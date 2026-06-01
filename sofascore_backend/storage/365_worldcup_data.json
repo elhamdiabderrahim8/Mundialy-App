@@ -1,0 +1,42 @@
+{
+    "groups": [
+        {
+            "groupName": "Groupe A",
+            "teams": [
+                {"teamId": 4766, "teamName": "Mexique", "rank": 1, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4766/image"},
+                {"teamId": 4995, "teamName": "Maroc", "rank": 2, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4995/image"},
+                {"teamId": 4987, "teamName": "Australie", "rank": 3, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4987/image"},
+                {"teamId": 4728, "teamName": "Grèce", "rank": 4, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4728/image"}
+            ]
+        },
+        {
+            "groupName": "Groupe B",
+            "teams": [
+                {"teamId": 4724, "teamName": "États-Unis", "rank": 1, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4724/image"},
+                {"teamId": 4481, "teamName": "France", "rank": 2, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4481/image"},
+                {"teamId": 4765, "teamName": "Canada", "rank": 3, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4765/image"},
+                {"teamId": 4723, "teamName": "Mali", "rank": 4, "played": 0, "goalsDiff": 0, "points": 0, "teamLogo": "https://api.sofascore.app/api/v1/team/4723/image"}
+            ]
+        }
+    ],
+    "matches": [
+        {
+            "id": 6001,
+            "date": "11/06/2026",
+            "time": "20:00",
+            "homeTeam": {"id": 4766, "name": "Mexique"},
+            "awayTeam": {"id": 4995, "name": "Maroc"},
+            "status": "Ouverture",
+            "league": "Match d'ouverture"
+        },
+        {
+            "id": 6002,
+            "date": "12/06/2026",
+            "time": "21:00",
+            "homeTeam": {"id": 4724, "name": "États-Unis"},
+            "awayTeam": {"id": 4481, "name": "France"},
+            "status": "Prévu",
+            "league": "Groupe B - J1"
+        }
+    ]
+}

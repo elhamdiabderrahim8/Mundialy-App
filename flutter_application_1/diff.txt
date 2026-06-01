@@ -1,0 +1,459 @@
+--- backup
+
++++ current
+
+@@ -9,3 +9,2 @@
+
+ import '../services/api_service.dart';
+
+-import '../services/sofa_service.dart';
+
+ import '../services/theme_provider.dart';
+
+@@ -17,3 +16,3 @@
+
+ 
+
+-/// --- CONSTANTES Ã‰LITE ---
+
++/// --- CONSTANTES ÉLITE ---
+
+ const Color _kGold = Color(0xFFE7C16A);
+
+@@ -30,3 +29,3 @@
+
+ class _HomeScreenState extends State<HomeScreen> {
+
+-  // --- Ã‰TAT ---
+
++  // --- ÉTAT ---
+
+   List<LiveMatch> _matches = [];
+
+@@ -42,2 +41,3 @@
+
+   late PageController _pageController;
+
++  java_timer.Timer? _smartRefreshTimer;
+
+ 
+
+@@ -48,2 +48,8 @@
+
+     _loadInitialData();
+
++    // Smart Timer : 15s refresh ONLY if a match is live
+
++    _smartRefreshTimer = java_timer.Timer.periodic(const Duration(seconds: 15), (_) {
+
++      if (_matches.any((m) => m.isLive)) {
+
++        _loadInitialData();
+
++      }
+
++    });
+
+   }
+
+@@ -52,2 +58,3 @@
+
+   void dispose() {
+
++    _smartRefreshTimer?.cancel();
+
+     _pageController.dispose();
+
+@@ -56,3 +63,3 @@
+
+ 
+
+-  // --- LOGIQUE DE DONNÃ‰ES ---
+
++  // --- LOGIQUE DE DONNÉES ---
+
+ 
+
+@@ -63,88 +70,17 @@
+
+     try {
+
+-      if (_selectedYear == 2026) {
+
+-        await _fetch2026Data();
+
+-      } else {
+
+-        await _fetchLegacyData();
+
++      final results = await Future.wait([
+
++        ApiService.fetchMatches(),
+
++        ApiService.fetchStandings(),
+
++      ]);
+
++      
+
++      if (mounted) {
+
++        setState(() {
+
++          _matches = results[0] as List<LiveMatch>;
+
++          _standings = results[1] as List<GroupStanding>;
+
++        });
+
+       }
+
+     } catch (e) {
+
+-      debugPrint('ðŸ’¥ Error loading data: $e');
+
++      debugPrint('💥 Error loading data: $e');
+
+     } finally {
+
+       if (mounted) setState(() => _isLoading = false);
+
+-    }
+
+-  }
+
+-
+
+-  Future<void> _fetch2026Data() async {
+
+-    try {
+
+-      final results = await Future.wait([
+
+-        SofaService.fetchWorldCup2026CompleteData(),
+
+-        SofaService.fetchWorldCupNews(),
+
+-      ]);
+
+-      
+
+-      final data = (results[0] as Map?)?.cast<String, dynamic>() ?? {};
+
+-      final news = (results[1] as List?)?.cast<dynamic>() ?? [];
+
+-
+
+-      _newsArticles = news;
+
+-      
+
+-      // Parsing Matchs
+
+-      if (data.containsKey('games')) {
+
+-        final List gamesList = data['games'] ?? [];
+
+-        final List competitorsList = data['competitors'] ?? [];
+
+-        final Map<int, dynamic> competitorsMap = {
+
+-          for (var c in competitorsList) (c['id'] as num).toInt() : c
+
+-        };
+
+-        _matches = gamesList.map<LiveMatch>((e) => SofaService.mapJsonToLiveMatch(e, competitorsMap)).toList();
+
+-      }
+
+-      
+
+-      // Parsing Standings (Groupes)
+
+-      if (data.containsKey('requestedCompetitions')) {
+
+-        final List comps = data['requestedCompetitions'] ?? [];
+
+-        if (comps.isNotEmpty && comps[0]['stages'] != null) {
+
+-          final List stages = comps[0]['stages'];
+
+-          _standings = stages
+
+-              .where((s) => s['name'] != null && s['name'].toString().contains('Group'))
+
+-              .map<GroupStanding>((s) {
+
+-            final List rows = s['standings']?['rows'] ?? [];
+
+-            return GroupStanding(
+
+-              groupName: s['name'] ?? 'Groupe',
+
+-              teams: rows.map<StandingTeam>((r) {
+
+-                final t = r['competitor'] ?? {};
+
+-                String? logo = t['imageURL'] ?? (t['imageRelativePath'] != null 
+
+-                    ? 'https://image.365scores.com/image/upload/${t['imageRelativePath']}' 
+
+-                    : null);
+
+-                return StandingTeam(
+
+-                  teamId: (t['id'] as num?)?.toInt() ?? 0,
+
+-                  rank: (r['position'] as num?)?.toInt() ?? 0,
+
+-                  teamName: t['name'] ?? 'TBD',
+
+-                  teamLogo: logo ?? '',
+
+-                  played: (r['gamePlayed'] as num?)?.toInt() ?? 0,
+
+-                  goalsDiff: (r['goalsDiff'] as num?)?.toInt() ?? 0,
+
+-                  points: (r['points'] as num?)?.toInt() ?? 0,
+
+-                );
+
+-              }).toList(),
+
+-            );
+
+-          }).toList();
+
+-        }
+
+-      }
+
+-    } catch (e) {
+
+-      debugPrint('ðŸ’¥ Error fetching 2026 data: $e');
+
+-    }
+
+-  }
+
+-
+
+-  Future<void> _fetchLegacyData() async {
+
+-    try {
+
+-      final results = await Future.wait([
+
+-        ApiService.fetchMatches(year: _selectedYear),
+
+-        ApiService.fetchStandings(year: _selectedYear),
+
+-        ApiService.fetchTopScorers(year: _selectedYear),
+
+-      ]);
+
+-      
+
+-      _matches = results[0] as List<LiveMatch>;
+
+-      _standings = results[1] as List<GroupStanding>;
+
+-      _topScorers = results[2] as List<TopScorer>;
+
+-      
+
+-      if (_matches.isEmpty && _selectedYear == 2022) {
+
+-        _matches = getMockMatches();
+
+-      }
+
+-    } catch (e) {
+
+-      debugPrint('ðŸ’¥ Error fetching legacy data: $e');
+
+     }
+
+@@ -203,4 +139,3 @@
+
+   Widget _buildMainContent(Color textColor) {
+
+-    // Mode Accueil 2026
+
+-    if (_selectedTab == 0 && _selectedYear == 2026) {
+
++    if (_selectedTab == 0) {
+
+       return _buildModernHome2026(textColor);
+
+@@ -208,4 +143,6 @@
+
+     
+
+-    // Autres onglets (Legacy)
+
++    // Autres onglets
+
+     switch (_selectedTab) {
+
++      case 1: return _buildModernHome2026(textColor); // Live
+
++      case 2: return _buildModernHome2026(textColor); // Matchs
+
+       case 3: return _buildStandingsView(textColor);
+
+@@ -228,3 +165,3 @@
+
+           title: 'GROUPES OFFICIELS',
+
+-          subtitle: 'DonnÃ©es en direct 365Scores',
+
++          subtitle: 'Données en direct 365Scores',
+
+           textColor: textColor,
+
+@@ -241,4 +178,4 @@
+
+           icon: Icons.rss_feed_rounded,
+
+-          title: 'ACTUALITÃ‰S MONDIAL 2026',
+
+-          subtitle: 'Les derniÃ¨res infos en franÃ§ais',
+
++          title: 'ACTUALITÉS MONDIAL 2026',
+
++          subtitle: 'Les dernières infos en français',
+
+           textColor: textColor,
+
+@@ -252,3 +189,3 @@
+
+           icon: Icons.star_border_rounded,
+
+-          title: 'MATCHS Ã€ VENIR',
+
++          title: 'MATCHS À VENIR',
+
+           subtitle: 'Calendrier officiel du tournoi',
+
+@@ -262,3 +199,3 @@
+
+ 
+
+-  // --- WIDGETS PRIVÃ‰S ---
+
++  // --- WIDGETS PRIVÉS ---
+
+ 
+
+@@ -268,3 +205,3 @@
+
+         height: 280,
+
+-        child: _EmptyState(msg: 'Aucune actualitÃ© disponible pour le moment.'),
+
++        child: _EmptyState(msg: 'Aucune actualité disponible pour le moment.'),
+
+       );
+
+@@ -291,3 +228,3 @@
+
+           height: 150,
+
+-          child: _EmptyState(msg: 'Aucun match programmÃ© pour le moment.'),
+
++          child: _EmptyState(msg: 'Aucun match programmé pour le moment.'),
+
+         ),
+
+@@ -302,4 +239,4 @@
+
+   Widget _buildPagedMatchView(Color textColor) {
+
+-    // Logique simplifiÃ©e de pagination de matchs par date/ville/Ã©quipe
+
+-    return const Center(child: Text('Vue Matchs PaginÃ©e'));
+
++    // Logique simplifiée de pagination de matchs par date/ville/équipe
+
++    return const Center(child: Text('Vue Matchs Paginée'));
+
+   }
+
+@@ -310,6 +247,10 @@
+
+     }
+
+-    return ListView.builder(
+
+-      padding: const EdgeInsets.all(16),
+
++    return PageView.builder(
+
+       itemCount: _standings.length,
+
+-      itemBuilder: (context, i) => _GroupTable(group: _standings[i], textColor: textColor),
+
++      itemBuilder: (context, i) => SingleChildScrollView(
+
++        child: Padding(
+
++          padding: const EdgeInsets.all(16),
+
++          child: _GroupTable(group: _standings[i], textColor: textColor),
+
++        ),
+
++      ),
+
+     );
+
+@@ -356,2 +297,9 @@
+
+       actions: [
+
++        IconButton(
+
++          onPressed: () {
+
++            final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+
++            themeProv.toggleTheme(isDark ? ThemeMode.light : ThemeMode.dark);
+
++          },
+
++          icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+
++        ),
+
+         IconButton(onPressed: _loadInitialData, icon: const Icon(Icons.refresh_rounded)),
+
+@@ -383,3 +331,3 @@
+
+   void _showSelectionPicker() {
+
+-    // Logique de picker pour sÃ©lectionner l'annÃ©e ou l'Ã©dition
+
++    // Logique de picker pour sélectionner l'année ou l'édition
+
+   }
+
+@@ -395,3 +343,3 @@
+
+ 
+
+-/// --- COMPOSANTS UNITAIRES SÃ‰CURISÃ‰S ---
+
++/// --- COMPOSANTS UNITAIRES SÉCURISÉS ---
+
+ 
+
+@@ -505,3 +453,3 @@
+
+           Text('J-748', style: TextStyle(color: _kGold, fontWeight: FontWeight.w900, fontSize: 18)), 
+
+-          Text('AVANT DÃ‰PART', style: TextStyle(color: Colors.white60, fontSize: 8, fontWeight: FontWeight.bold)),
+
++          Text('AVANT DÉPART', style: TextStyle(color: Colors.white60, fontSize: 8, fontWeight: FontWeight.bold)),
+
+         ],

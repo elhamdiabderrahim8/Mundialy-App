@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>L'Art de la Mer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Polices poétiques et cinématographiques (beaucoup plus élégantes) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="start-screen">
+        <div class="start-content">
+            <h1>L'Art de la Mer</h1>
+            <p>Une histoire de patience et d'embruns</p>
+            <button id="start-btn">Plonger dans l'histoire</button>
+            <p class="headphones-hint">🎧 Portez un casque pour une immersion totale</p>
+        </div>
+    </div>
+
+    <div id="reel-container" class="hidden">
+        <!-- Effet naturel de lumière (soleil/nature) -->
+        <div class="light-leak"></div>
+        
+        <!-- Particules flottantes (poussière/gouttelettes) pour la dynamique -->
+        <div id="particles"></div>
+
+        <!-- Scene 1: Image 4 (Pêcheur, chaud, zoom avant) -->
+        <div class="scene" id="scene-1">
+            <div class="bg-image img-4 ken-burns-in warm-filter"></div>
+            <div class="vignette"></div>
+            <div class="text-container">
+                <p class="text-line hook fade-in-up delay-1">Mon père ne parle pas beaucoup.</p>
+                <p class="text-line hook fade-in-up delay-2">La mer parle pour lui.</p>
+            </div>
+        </div>
+        
+        <!-- Scene 2: Image 2 (Poissons, soleil, panoramique droite) -->
+        <div class="scene" id="scene-2">
+            <div class="bg-image img-2 pan-right overexposed"></div>
+            <div class="vignette soft"></div>
+            <div class="text-container">
+                <p class="text-line fade-in-up delay-1">Chaque matin, la mer offre.</p>
+            </div>
+        </div>
+
+        <!-- Scene 3: Image 3 (N&B, zoom avant, vignette renforcée) -->
+        <div class="scene" id="scene-3">
+            <div class="bg-image img-3 ken-burns-in bw"></div>
+            <div class="vignette heavy"></div>
+            <div class="text-container">
+                <p class="text-line fade-in-up delay-1">Un métier.</p>
+                <p class="text-line fade-in-up delay-2">Une patience.</p>
+                <p class="text-line fade-in-up delay-3">Un art.</p>
+            </div>
+        </div>
+
+        <!-- Scene 4: Image 1 (Caisse jaune, zoom arrière, chaud/saturé) -->
+        <div class="scene" id="scene-4">
+            <div class="bg-image img-1 ken-burns-out warm-saturated"></div>
+            <div class="vignette"></div>
+            <div class="text-container">
+                <p class="text-line fade-in-up delay-1">La récompense de ceux</p>
+                <p class="text-line fade-in-up delay-2">qui se lèvent avant l'aube.</p>
+            </div>
+        </div>
+
+        <!-- Scene 5: Image 4 (Pêcheur zoomé, bords flous bokeh) -->
+        <div class="scene" id="scene-5">
+            <div class="blur-wrapper">
+                <div class="bg-image img-4 static-zoomed"></div>
+            </div>
+            <div class="vignette heavy"></div>
+            <div class="text-container">
+                <p class="text-line fade-in-up delay-1">Pêché à l'ancienne.</p>
+                <p class="text-line fade-in-up delay-2">Avec amour.</p>
+            </div>
+        </div>
+
+        <!-- Scene 6: Fin -->
+        <div class="scene" id="scene-6">
+            <div class="bg-color-deep-sea"></div>
+            <div class="text-container center-absolute">
+                <p class="final-text fade-in-up delay-1">🎣 Papa — fierté de la mer.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pistes audios naturelles (Pixabay - Sons réels et guitare acoustique douce) -->
+    <audio id="audio-waves" src="https://cdn.pixabay.com/download/audio/2022/02/22/audio_c8bd214811.mp3?filename=ocean-waves-112906.mp3" loop preload="auto"></audio>
+    <audio id="audio-music" src="https://cdn.pixabay.com/download/audio/2022/10/25/audio_249a17a02d.mp3?filename=acoustic-guitars-ambient-124230.mp3" loop preload="auto"></audio>
+    <audio id="audio-seagulls" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_233957eb07.mp3?filename=seagulls-107775.mp3" preload="auto"></audio>
+    <audio id="audio-drops" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_3d1ed151f8.mp3?filename=water-drop-40899.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

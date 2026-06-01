@@ -1,0 +1,92 @@
+[
+  {
+    "groupName": "Group A",
+    "teams": [
+      {"teamId": 4766, "rank": 1, "teamName": "Mexico", "played": 3, "goalsDiff": 2, "points": 7, "teamLogo": ""},
+      {"teamId": 4712, "rank": 2, "teamName": "Poland", "played": 3, "goalsDiff": 1, "points": 5, "teamLogo": ""},
+      {"teamId": 4716, "rank": 3, "teamName": "Sweden", "played": 3, "goalsDiff": 0, "points": 3, "teamLogo": ""},
+      {"teamId": 4776, "rank": 4, "teamName": "Egypt", "played": 3, "goalsDiff": -3, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group B",
+    "teams": [
+      {"teamId": 4481, "rank": 1, "teamName": "France", "played": 3, "goalsDiff": 4, "points": 9, "teamLogo": ""},
+      {"teamId": 4764, "rank": 2, "teamName": "Japan", "played": 3, "goalsDiff": 1, "points": 6, "teamLogo": ""},
+      {"teamId": 4818, "rank": 3, "teamName": "Chile", "played": 3, "goalsDiff": -2, "points": 3, "teamLogo": ""},
+      {"teamId": 4717, "rank": 4, "teamName": "Ukraine", "played": 3, "goalsDiff": -3, "points": 0, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group C",
+    "teams": [
+      {"teamId": 4698, "rank": 1, "teamName": "Spain", "played": 3, "goalsDiff": 3, "points": 7, "teamLogo": ""},
+      {"teamId": 4775, "rank": 2, "teamName": "South Korea", "played": 3, "goalsDiff": 1, "points": 5, "teamLogo": ""},
+      {"teamId": 4779, "rank": 3, "teamName": "Nigeria", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4823, "rank": 4, "teamName": "Peru", "played": 3, "goalsDiff": -3, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group D",
+    "teams": [
+      {"teamId": 4699, "rank": 1, "teamName": "Belgium", "played": 3, "goalsDiff": 2, "points": 7, "teamLogo": ""},
+      {"teamId": 4708, "rank": 2, "teamName": "Croatia", "played": 3, "goalsDiff": 2, "points": 6, "teamLogo": ""},
+      {"teamId": 4782, "rank": 3, "teamName": "Tunisia", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4762, "rank": 4, "teamName": "Australia", "played": 3, "goalsDiff": -3, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group E",
+    "teams": [
+      {"teamId": 4704, "rank": 1, "teamName": "Brazil", "played": 3, "goalsDiff": 4, "points": 7, "teamLogo": ""},
+      {"teamId": 4714, "rank": 2, "teamName": "Serbia", "played": 3, "goalsDiff": 1, "points": 5, "teamLogo": ""},
+      {"teamId": 4767, "rank": 3, "teamName": "Cameroon", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4772, "rank": 4, "teamName": "Iraq", "played": 3, "goalsDiff": -4, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group F",
+    "teams": [
+      {"teamId": 4703, "rank": 1, "teamName": "Portugal", "played": 3, "goalsDiff": 3, "points": 7, "teamLogo": ""},
+      {"teamId": 4778, "rank": 2, "teamName": "Morocco", "played": 3, "goalsDiff": 2, "points": 6, "teamLogo": ""},
+      {"teamId": 4718, "rank": 3, "teamName": "Turkey", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4777, "rank": 4, "teamName": "Ghana", "played": 3, "goalsDiff": -4, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group G",
+    "teams": [
+      {"teamId": 4819, "rank": 1, "teamName": "Argentina", "played": 3, "goalsDiff": 4, "points": 9, "teamLogo": ""},
+      {"teamId": 4705, "rank": 2, "teamName": "Netherlands", "played": 3, "goalsDiff": 2, "points": 6, "teamLogo": ""},
+      {"teamId": 4780, "rank": 3, "teamName": "Saudi Arabia", "played": 3, "goalsDiff": -2, "points": 3, "teamLogo": ""},
+      {"teamId": 4700, "rank": 4, "teamName": "Austria", "played": 3, "goalsDiff": -4, "points": 0, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group H",
+    "teams": [
+      {"teamId": 4711, "rank": 1, "teamName": "Germany", "played": 3, "goalsDiff": 3, "points": 7, "teamLogo": ""},
+      {"teamId": 4709, "rank": 2, "teamName": "Denmark", "played": 3, "goalsDiff": 1, "points": 5, "teamLogo": ""},
+      {"teamId": 4768, "rank": 3, "teamName": "Ivory Coast", "played": 3, "goalsDiff": 0, "points": 3, "teamLogo": ""},
+      {"teamId": 4771, "rank": 4, "teamName": "Iran", "played": 3, "goalsDiff": -4, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group I",
+    "teams": [
+      {"teamId": 4713, "rank": 1, "teamName": "England", "played": 3, "goalsDiff": 3, "points": 7, "teamLogo": ""},
+      {"teamId": 4822, "rank": 2, "teamName": "Ecuador", "played": 3, "goalsDiff": 1, "points": 6, "teamLogo": ""},
+      {"teamId": 4723, "rank": 3, "teamName": "Scotland", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4710, "rank": 4, "teamName": "Hungary", "played": 3, "goalsDiff": -3, "points": 1, "teamLogo": ""}
+    ]
+  },
+  {
+    "groupName": "Group J",
+    "teams": [
+      {"teamId": 4721, "rank": 1, "teamName": "Wales", "played": 3, "goalsDiff": 2, "points": 7, "teamLogo": ""},
+      {"teamId": 4701, "rank": 2, "teamName": "Czechia", "played": 3, "goalsDiff": 1, "points": 5, "teamLogo": ""},
+      {"teamId": 4770, "rank": 3, "teamName": "Mali", "played": 3, "goalsDiff": -1, "points": 3, "teamLogo": ""},
+      {"teamId": 4783, "rank": 4, "teamName": "Qatar", "played": 3, "goalsDiff": -2, "points": 1, "teamLogo": ""}
+    ]
+  }
+]
