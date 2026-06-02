@@ -16,43 +16,86 @@ class MatchDetails {
   final TeamLineup awayLineup;
 
   factory MatchDetails.fromApi(Map<String, dynamic> json) {
-    final fixture = json['fixture'] ?? {};
-    final league = json['league'] ?? {};
-    final teams = json['teams'] ?? {};
-    final goals = json['goals'] ?? {};
-    final score = json['score'] ?? {};
+    // Si on reçoit le format "Combined" (Back-end agrégé)
+    final bool isCombined = json.containsKey('event');
+    
+    final Map<String, dynamic> event = isCombined ? (json['event'] ?? {}) : (json['fixture'] ?? {});
+    final Map<String, dynamic> fixture = !isCombined ? (json['fixture'] ?? {}) : event;
+    final Map<String, dynamic> teams = isCombined ? {
+      'home': event['homeTeam'],
+      'away': event['awayTeam']
+    } : (json['teams'] ?? {});
+    
+    final Map<String, dynamic> goals = isCombined ? {
+      'home': event['homeScore']?['current'],
+      'away': event['awayScore']?['current']
+    } : (json['goals'] ?? {});
+    
+    final Map<String, dynamic> score = isCombined ? {
+      'penalty': {
+        'home': event['homeScore']?['penalties'],
+        'away': event['awayScore']?['penalties']
+      }
+    } : (json['score'] ?? {});
     
     return MatchDetails(
-      matchId: fixture['id']?.toString() ?? '0',
+      matchId: (isCombined ? event['id'] : fixture['id'])?.toString() ?? '0',
       overview: MatchOverview(
         title: '${teams['home']?['name']} vs ${teams['away']?['name']}',
         homeTeam: teams['home']?['name'] ?? 'Home',
-        homeCode: teams['home']?['id']?.toString() ?? 'H', // Use ID as code placeholder
-        homeLogoUrl: teams['home']?['logo'],
+        homeCode: teams['home']?['id']?.toString() ?? 'H',
+        homeLogoUrl: teams['home']?['logo'] ?? "https://api.sofascore.app/api/v1/team/${teams['home']?['id']}/image",
         awayTeam: teams['away']?['name'] ?? 'Away',
         awayCode: teams['away']?['id']?.toString() ?? 'A',
-        awayLogoUrl: teams['away']?['logo'],
+        awayLogoUrl: teams['away']?['logo'] ?? "https://api.sofascore.app/api/v1/team/${teams['away']?['id']}/image",
         scoreHome: goals['home'] ?? 0,
         scoreAway: goals['away'] ?? 0,
         penaltyHome: score['penalty']?['home'],
         penaltyAway: score['penalty']?['away'],
-        status: fixture['status']?['long'] ?? 'Unknown',
-        minute: fixture['status']?['elapsed']?.toString() ?? '0',
+        status: (isCombined ? (event['status']?['description'] ?? 'Unknown') : (fixture['status']?['long'] ?? 'Unknown')),
+        minute: (isCombined ? 'FT' : fixture['status']?['elapsed']?.toString() ?? '0'),
       ),
       summary: MatchSummary(
-        events: (json['events'] as List? ?? []).map((e) => MatchEvent.fromApi(e)).toList(),
-        referee: MatchOfficial(name: fixture['referee'] ?? 'Arbitre', nationality: ''),
+        events: (json['incidents'] is List ? json['incidents'] as List : (json['events'] as List? ?? [])).map((e) => MatchEvent.fromApi(e)).toList(),
+        referee: MatchOfficial(name: (isCombined ? (json['managers']?['home']?['name'] ?? 'Arbitre') : fixture['referee']) ?? 'Arbitre', nationality: ''),
         venue: MatchVenue(
-          stadium: fixture['venue']?['name'] ?? 'Stadium',
+          stadium: (isCombined ? 'Stadium' : fixture['venue']?['name']) ?? 'Stadium',
           capacity: '',
-          city: fixture['venue']?['city'] ?? 'City',
+          city: (isCombined ? 'City' : fixture['venue']?['city']) ?? 'City',
         ),
-        startTime: fixture['date'] ?? '',
+        startTime: (isCombined ? (event['startTimestamp'] != null ? DateTime.fromMillisecondsSinceEpoch((event['startTimestamp'] as int) * 1000).toIso8601String() : '') : fixture['date']) ?? '',
       ),
-      stats: (json['statistics'] as List? ?? []).map((s) => MatchStat.fromApi(s)).toList(),
-      homeLineup: TeamLineup.fromApi(json['lineups'] is List && (json['lineups'] as List).isNotEmpty ? json['lineups'][0] : {}),
-      awayLineup: TeamLineup.fromApi(json['lineups'] is List && (json['lineups'] as List).length > 1 ? json['lineups'][1] : {}),
+      stats: _parseStats(json['statistics'], isCombined),
+      homeLineup: TeamLineup.fromApi(isCombined ? (json['lineups']?['home'] ?? {}) : (json['lineups'] is List && (json['lineups'] as List).isNotEmpty ? json['lineups'][0] : {})),
+      awayLineup: TeamLineup.fromApi(isCombined ? (json['lineups']?['away'] ?? {}) : (json['lineups'] is List && (json['lineups'] as List).length > 1 ? json['lineups'][1] : {})),
     );
+  }
+
+  static List<MatchStat> _parseStats(dynamic statsJson, bool isCombined) {
+    if (statsJson == null) return [];
+    final List<MatchStat> result = [];
+    
+    if (statsJson is List) {
+      for (var period in statsJson) {
+        if (period['period'] == 'ALL') {
+          final groups = period['groups'] as List? ?? [];
+          for (var group in groups) {
+            final items = group['statisticsItems'] as List? ?? [];
+            for (var item in items) {
+              result.add(MatchStat(
+                label: item['name'] ?? '',
+                homeValue: MatchStat._p(item['homeValue']),
+                awayValue: MatchStat._p(item['awayValue']),
+              ));
+            }
+          }
+        }
+      }
+    }
+    
+    if (result.isNotEmpty) return result;
+    if (statsJson is List) return statsJson.map((s) => MatchStat.fromApi(s)).toList();
+    return [];
   }
 }
 

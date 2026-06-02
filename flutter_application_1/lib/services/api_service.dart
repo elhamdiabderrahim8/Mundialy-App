@@ -73,8 +73,8 @@ class ApiService {
 
   static Future<List<LiveMatch>> fetchMatches({int? year}) async {
     try {
-      final season = year ?? 2022;
-      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/fixtures?season=$season'));
+      final String path = (year == 2022) ? '/api/wc2022/fixtures' : '/api/fixtures';
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}$path'));
       if (response.statusCode == 200) return _parseMatchesResponse(response.body);
     } catch (e) { debugPrint('❌ fetchMatches Error: $e'); }
     return [];
@@ -82,8 +82,8 @@ class ApiService {
 
   static Future<List<GroupStanding>> fetchStandings({int? year}) async {
     try {
-      final season = year ?? 2022;
-      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/standings?season=$season'));
+      final String path = (year == 2022) ? '/api/wc2022/standings' : '/api/standings';
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}$path'));
       if (response.statusCode == 200) return _parseStandingsResponse(response.body);
     } catch (e) { debugPrint('❌ fetchStandings Error: $e'); }
     return [];
@@ -91,8 +91,8 @@ class ApiService {
 
   static Future<MatchDetails?> fetchFullMatchDetails(String fixtureId, {int? year}) async {
     try {
-      final season = year ?? 2022;
-      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId?season=$season'));
+      // Pour les détails, on utilise la route unique /api/match/id
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId'));
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         final data = body['response'] as List? ?? [];
@@ -160,6 +160,39 @@ class ApiService {
         return data['response'] as List? ?? [];
       }
     } catch (e) { debugPrint('❌ fetchNews Error: $e'); }
+    return [];
+  }
+
+  static Future<List<dynamic>> fetchVenues() async {
+    try {
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/venues'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] as List? ?? [];
+      }
+    } catch (e) { debugPrint('❌ fetchVenues Error: $e'); }
+    return [];
+  }
+
+  static Future<Map<String, dynamic>?> fetchCupTree() async {
+    try {
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/cuptree'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'];
+      }
+    } catch (e) { debugPrint('❌ fetchCupTree Error: $e'); }
+    return null;
+  }
+
+  static Future<List<dynamic>> fetchPowerRankings() async {
+    try {
+      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/power-rankings'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'] as List? ?? [];
+      }
+    } catch (e) { debugPrint('❌ fetchPowerRankings Error: $e'); }
     return [];
   }
 
