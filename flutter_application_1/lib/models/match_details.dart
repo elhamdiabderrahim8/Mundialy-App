@@ -185,8 +185,9 @@ class MatchEvent {
     final detail = json['detail']?.toString().toLowerCase() ?? '';
     
     MatchEventIcon icon = MatchEventIcon.goal;
-    if (type == 'goal') icon = MatchEventIcon.goal;
-    else if (type == 'subst') icon = MatchEventIcon.substitution;
+    if (type == 'goal') {
+      icon = MatchEventIcon.goal;
+    } else if (type == 'subst') icon = MatchEventIcon.substitution;
     else if (type == 'card' && detail.contains('red')) icon = MatchEventIcon.redCard;
     else if (type == 'card') icon = MatchEventIcon.yellowCard;
 

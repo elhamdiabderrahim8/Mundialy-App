@@ -221,7 +221,7 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.white10),
                 ),
@@ -231,7 +231,7 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: kTeamGold.withOpacity(0.15),
+                        color: kTeamGold.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       alignment: Alignment.center,
@@ -286,8 +286,7 @@ class _LegacyDiamondFlag extends StatelessWidget {
   const _LegacyDiamondFlag({
     required this.countryCode,
     required this.size,
-    this.imageUrlOverride,
-  });
+  }) : imageUrlOverride = null;
 
   final String countryCode;
   final double size;
@@ -319,7 +318,7 @@ class _LegacyDiamondFlag extends StatelessWidget {
                   width: size * 1.15,
                   height: size * 1.15,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     color: const Color(0xFF2A3A48),
                     alignment: Alignment.center,
                     child: Text(countryCode, style: TextStyle(color: Colors.white, fontSize: size * 0.2)),

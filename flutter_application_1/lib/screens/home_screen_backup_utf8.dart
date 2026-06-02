@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   bool _isLoading = true;
   int _selectedTab = 0;
-  int _selectedYear = 2026; 
+  final int _selectedYear = 2026; 
   int _currentPageIndex = 0;
   
   late PageController _pageController;
@@ -660,7 +660,7 @@ class _NewsCard extends StatelessWidget {
                 Image.network(
                   item['img'], 
                   fit: BoxFit.cover, 
-                  errorBuilder: (_,__,___) => Container(color: Colors.grey[900]),
+                  errorBuilder: (_,_,_) => Container(color: Colors.grey[900]),
                 )
               else
                 Container(color: Colors.grey[900]),
@@ -928,7 +928,7 @@ class _TabPill extends StatelessWidget {
   final VoidCallback onTap; 
   final bool selected;
 
-  const _TabPill({required this.label, required this.onTap, this.selected = false});
+  const _TabPill({required this.label, required this.onTap}) : selected = false;
 
   @override
   Widget build(BuildContext context) {

@@ -163,7 +163,7 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
         decoration: BoxDecoration(
           color: const Color(0xFF1E2630), // Gris Ardoise Elite
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.5), width: 1.5), // Or Elite
+          border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.5), width: 1.5), // Or Elite
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)],
         ),
         child: Row(
