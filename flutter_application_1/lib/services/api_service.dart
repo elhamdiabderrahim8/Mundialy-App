@@ -40,7 +40,9 @@ class ApiService {
 
   static Future<List<LiveMatch>> fetchLiveMatches() async {
     try {
-      final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/worldcup/live'));
+      final response = await http
+          .get(Uri.parse('${GlobalConfig.backendUrl}/api/worldcup/live'))
+          .timeout(const Duration(seconds: 12));
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         final data = body['response'] as List? ?? [];
@@ -48,7 +50,13 @@ class ApiService {
         _checkGoals(matches);
         return matches;
       }
-    } catch (e) { debugPrint('❌ fetchLiveMatches Error: $e'); }
+    } on TimeoutException {
+      debugPrint('⚠️ fetchLiveMatches: timeout, returning empty list');
+    } on http.ClientException catch (e) {
+      debugPrint('⚠️ fetchLiveMatches: network issue ($e), returning empty list');
+    } catch (e) {
+      debugPrint('❌ fetchLiveMatches Error: $e');
+    }
     return [];
   }
 
@@ -94,10 +102,19 @@ class ApiService {
       // Pour les détails, on utilise la route unique /api/match/id
       final response = await http.get(Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId'));
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        final data = body['response'] as List? ?? [];
-        if (data.isNotEmpty) {
-          return MatchDetails.fromApi(data[0]);
+        final decoded = jsonDecode(response.body);
+        final dynamic payload = (decoded is Map<String, dynamic>) ? decoded['response'] : decoded;
+
+        if (payload is List && payload.isNotEmpty && payload.first is Map) {
+          return MatchDetails.fromApi(Map<String, dynamic>.from(payload.first as Map));
+        }
+
+        if (payload is Map) {
+          return MatchDetails.fromApi(Map<String, dynamic>.from(payload));
+        }
+
+        if (decoded is Map<String, dynamic>) {
+          return MatchDetails.fromApi(decoded);
         }
       }
     } catch (e) { debugPrint('❌ fetchFullMatchDetails Error: $e'); }
@@ -228,15 +245,39 @@ class ApiService {
   }
 
   static List<GroupStanding> _parseStandingsResponse(String rawJson) {
-    final body = jsonDecode(rawJson);
-    final data = body['response'] as List? ?? [];
-    if (data.isNotEmpty) {
-      final standings = data[0]['league']['standings'] as List;
-      return standings.map((g) => GroupStanding(
-        groupName: g[0]['group'], 
-        teams: (g as List).map<StandingTeam>((t) => StandingTeam.fromApi(t)).toList()
-      )).toList();
+    final decoded = jsonDecode(rawJson);
+    final List<dynamic> groups = <dynamic>[];
+
+    if (decoded is Map<String, dynamic>) {
+      final dynamic response = decoded['response'];
+
+      if (response is List) {
+        for (final item in response) {
+          if (item is Map && item['league'] is Map && item['league']['standings'] is List) {
+            groups.addAll(item['league']['standings'] as List);
+          }
+        }
+      } else if (response is Map && response['league'] is Map && response['league']['standings'] is List) {
+        groups.addAll(response['league']['standings'] as List);
+      } else if (decoded['league'] is Map && decoded['league']['standings'] is List) {
+        groups.addAll(decoded['league']['standings'] as List);
+      }
+    } else if (decoded is List) {
+      for (final item in decoded) {
+        if (item is Map && item['league'] is Map && item['league']['standings'] is List) {
+          groups.addAll(item['league']['standings'] as List);
+        }
+      }
     }
+
+    if (groups.isNotEmpty) {
+      return groups.whereType<List>().map((g) {
+        final teams = g.whereType<Map>().map<StandingTeam>((t) => StandingTeam.fromApi(Map<String, dynamic>.from(t))).toList();
+        final groupName = teams.isNotEmpty ? (g.first is Map ? (g.first['group']?.toString() ?? 'Groupe') : 'Groupe') : 'Groupe';
+        return GroupStanding(groupName: groupName, teams: teams);
+      }).toList();
+    }
+
     return [];
   }
 

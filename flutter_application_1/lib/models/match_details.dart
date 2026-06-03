@@ -183,6 +183,7 @@ class MatchEvent {
   factory MatchEvent.fromApi(Map<String, dynamic> json) {
     final type = json['type']?.toString().toLowerCase() ?? '';
     final detail = json['detail']?.toString().toLowerCase() ?? '';
+    final minute = _readElapsedMinute(json);
     
     MatchEventIcon icon = MatchEventIcon.goal;
     if (type == 'goal') {
@@ -192,14 +193,31 @@ class MatchEvent {
     else if (type == 'card') icon = MatchEventIcon.yellowCard;
 
     return MatchEvent(
-      minute: "${json['time']?['elapsed'] ?? 0}'",
-      title: json['type'] ?? 'Action',
-      description: json['player']?['name'] ?? 'Joueur',
+      minute: "${minute ?? 0}'",
+      title: json['type']?.toString() ?? 'Action',
+      description: json['player']?['name']?.toString() ?? 'Joueur',
       icon: icon,
-      detail: json['detail'] ?? '',
-      teamId: json['team']?['id'],
+      detail: json['detail']?.toString() ?? '',
+      teamId: _toInt(json['team']?['id']),
       teamName: json['team']?['name'] ?? '',
     );
+  }
+
+  static int? _readElapsedMinute(Map<String, dynamic> json) {
+    final dynamic timeValue = json['time'];
+
+    if (timeValue is Map) {
+      return _toInt(timeValue['elapsed']) ?? _toInt(timeValue['current']) ?? _toInt(timeValue['minute']);
+    }
+
+    return _toInt(timeValue) ?? _toInt(json['elapsed']) ?? _toInt(json['minute']);
+  }
+
+  static int? _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 }
 
