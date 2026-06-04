@@ -35,8 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   
   bool _isLoading = true;
   int _selectedTab = 0;
-  int _selectedYear = 2022; // 2022, 2026, or -1 for LIVE
-  int _matchFilterMode = 0; // 0=Par Date, 1=Par Ville, 2=Par Groupe
+  int _selectedYear = 2022; // Qatar 2022 by default
+  int _matchFilterMode = 0; // 0=Par Date, 1=Par Équipe, 2=Par Groupe
   
   late PageController _pageController;
   java_timer.Timer? _liveTimer;
@@ -207,7 +207,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_selectedTab == 2) {
       switch (_matchFilterMode) {
         case 1: keysOf = (m) => [m.homeTeam, m.awayTeam]; break; // Group by Team
-        case 2: keysOf = (m) => [m.phaseLabel]; break;
+        case 2: keysOf = (m) {
+          final s = _standings.firstWhere((st) => st.teams.any((t) => t.teamName == m.homeTeam), orElse: () => GroupStanding(groupName: 'Autre', teams: []));
+          return [s.groupName];
+        }; break;
         default: keysOf = (m) => [m.dateLabel];
       }
     } else { keysOf = (m) => [m.dateLabel]; }
@@ -340,7 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final selectedDateLabel = keys.isNotEmpty && currentKeyIndex < keys.length ? keys[currentKeyIndex] : '';
       showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (context) => _CalendarBottomSheet(matches: _matches, selectedDateLabel: selectedDateLabel, isDark: isDark, onDateSelected: (dateLabel) { final idx = keys.indexOf(dateLabel); if (idx != -1) { _pageController.jumpToPage(idx); Navigator.pop(context); } }));
     } else {
-      final keysOf = mode == 1 ? (LiveMatch m) => [m.homeTeam, m.awayTeam] : (LiveMatch m) => [m.phaseLabel];
+      final keysOf = mode == 1 ? (LiveMatch m) => [m.homeTeam, m.awayTeam] : (LiveMatch m) {
+        final s = _standings.firstWhere((st) => st.teams.any((t) => t.teamName == m.homeTeam), orElse: () => GroupStanding(groupName: 'Autre', teams: []));
+        return [s.groupName];
+      };
       final keys = groupedKeys(keysOf);
       final currentKeyIndex = _pageController.hasClients ? _pageController.page?.round() ?? 0 : 0;
       final selectedItem = keys.isNotEmpty && currentKeyIndex < keys.length ? keys[currentKeyIndex] : '';
