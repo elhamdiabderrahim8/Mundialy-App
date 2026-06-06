@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
+import '../main.dart';
 import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
@@ -14,6 +15,7 @@ import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import 'team_profile_screen.dart';
+import 'iptv/iptv_main_screen.dart';
 
 /// --- CONSTANTES ÉLITE ---
 const Color _kGold = Color(0xFFE7C16A);
@@ -40,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   late PageController _pageController;
   java_timer.Timer? _liveTimer;
+  java_timer.StreamSubscription<void>? _refreshSubscription;
 
   @override
   void initState() {
@@ -47,10 +50,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _pageController = PageController();
     ApiService.initNotifications();
     _loadInitialData();
+    
+    // Écouter les notifications FCM pour rafraîchir brusquement
+    _refreshSubscription = refreshStreamController.stream.listen((_) {
+      debugPrint('🔄 FCM déclenche un rafraîchissement brusque !');
+      _loadInitialData();
+    });
   }
 
   @override
   void dispose() {
+    _refreshSubscription?.cancel();
     _pageController.dispose();
     _liveTimer?.cancel();
     super.dispose();
@@ -58,6 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // --- LOGIQUE DE DONNÉES ---
 
+  // State for news team filter
+  String _selectedNewsTeam = '';
+  
+  // Updated fetch method to include optional team filter for news
   Future<void> _loadInitialData() async {
     if (!mounted) return;
     _liveTimer?.cancel();
@@ -65,16 +79,25 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       if (_selectedYear == -1) {
         await _fetchLiveMode();
-        _liveTimer = java_timer.Timer.periodic(const Duration(seconds: 15), (_) => _fetchLiveMode());
+        _liveTimer = java_timer.Timer.periodic(const Duration(seconds: 5), (_) => _fetchLiveMode());
       } else {
-        await _fetchUnifiedData();
+        // Fetch unified data including news with optional team filter
+        final results = await Future.wait([
+          ApiService.fetchMatches(year: _selectedYear),
+          ApiService.fetchStandings(year: _selectedYear),
+          ApiService.fetchTopScorers(year: _selectedYear),
+          ApiService.fetchNews(team: _selectedNewsTeam),
+        ]);
+        _matches = (results[0] as List?)?.cast<LiveMatch>() ?? [];
+        _standings = (results[1] as List?)?.cast<GroupStanding>() ?? [];
+        _topScorers = (results[2] as List?)?.cast<TopScorer>() ?? [];
+        _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
+        if (_matches.isEmpty && _selectedYear == 2022) _matches = getMockMatches();
       }
-    } catch (e) {
-      debugPrint('💥 Error loading data: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    } catch (e) { debugPrint('💥 Error loading data: $e'); }
+    finally { if (mounted) setState(() => _isLoading = false); }
   }
+
 
   bool _isFetchingLive = false;
   Future<void> _fetchLiveMode() async {
@@ -100,22 +123,6 @@ class _HomeScreenState extends State<HomeScreen> {
     finally { _isFetchingLive = false; }
   }
 
-  Future<void> _fetchUnifiedData() async {
-    try {
-      final results = await Future.wait([
-        ApiService.fetchMatches(year: _selectedYear),
-        ApiService.fetchStandings(year: _selectedYear),
-        ApiService.fetchTopScorers(year: _selectedYear),
-        ApiService.fetchNews(),
-      ]);
-      _matches = (results[0] as List?)?.cast<LiveMatch>() ?? [];
-      _standings = (results[1] as List?)?.cast<GroupStanding>() ?? [];
-      _topScorers = (results[2] as List?)?.cast<TopScorer>() ?? [];
-      _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
-      if (_matches.isEmpty && _selectedYear == 2022) _matches = getMockMatches();
-    } catch (e) { debugPrint('💥 Error fetching unified data: $e'); }
-  }
-
   // --- NAVIGATION ---
   void _onTabTap(int index) {
     if (index > 2) { setState(() => _selectedTab = index); return; }
@@ -129,6 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final Color textColor = isDark ? Colors.white : Colors.black87;
+
+    if (_selectedTab == 1) {
+      return Scaffold(
+        bottomNavigationBar: _buildBottomNav(),
+        body: const IptvMainScreen(),
+      );
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       bottomNavigationBar: _buildBottomNav(),
@@ -170,37 +185,140 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildModernHome2026(Color textColor) {
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 100),
-      children: [
-        const _TournamentHero(),
-        const SizedBox(height: 24),
-        if (_standings.isNotEmpty) ...[
-          _SectionHeader(icon: Icons.leaderboard_rounded, title: 'GROUPES OFFICIELS', subtitle: 'Données en direct SofaScore', textColor: textColor),
+    return RefreshIndicator(
+      color: _kGold,
+      backgroundColor: isDark ? _kCardDark : Colors.white,
+      onRefresh: _loadInitialData,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // ── HERO BANNER ──
+          const _TournamentHero2026(),
+          const SizedBox(height: 20),
+
+          // ── LIVE / IN-PROGRESS MATCHES ──
+          if (_matches.any((m) => m.isLive)) ...[
+            _SectionHeader(icon: Icons.bolt_rounded, title: 'EN DIRECT', subtitle: 'Matchs en cours maintenant', textColor: textColor),
+            const SizedBox(height: 12),
+            ..._matches.where((m) => m.isLive).map((m) => _AnimatedEntrance(
+              child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: _LiveMatchCard2026(match: m, textColor: textColor)),
+            )),
+            const SizedBox(height: 24),
+          ],
+
+          // ── NEWS SECTION ──
+          _SectionHeader(icon: Icons.newspaper_rounded, title: 'ACTUALITÉS FIFA', subtitle: 'Les dernières nouvelles du Mondial', textColor: textColor),
+          const SizedBox(height: 10),
+          // Team filter chips
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _FilterChip2026(label: 'TOUT', isSelected: _selectedNewsTeam.isEmpty, onTap: () { setState(() { _selectedNewsTeam = ''; }); _loadInitialData(); }),
+                ...['France', 'Argentina', 'Brazil', 'England', 'Germany', 'Spain', 'Mexico', 'USA', 'Morocco', 'Japan'].map((name) {
+                  final isSelected = _selectedNewsTeam.toLowerCase() == name.toLowerCase();
+                  return _FilterChip2026(label: name.toUpperCase(), isSelected: isSelected, onTap: () {
+                    setState(() { _selectedNewsTeam = isSelected ? '' : name; });
+                    _loadInitialData();
+                  });
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          _buildNewsCarousel2026(),
+          const SizedBox(height: 28),
+
+          // ── STANDINGS / GROUPS ──
+          if (_standings.isNotEmpty) ...[
+            _SectionHeader(icon: Icons.leaderboard_rounded, title: 'CLASSEMENTS', subtitle: 'Phase de groupes – Données en direct', textColor: textColor),
+            const SizedBox(height: 12),
+            _GroupsAutoCarousel(groups: _standings, textColor: textColor),
+            const SizedBox(height: 28),
+          ],
+
+          // ── UPCOMING MATCHES ──
+          _SectionHeader(icon: Icons.calendar_month_rounded, title: 'PROGRAMME', subtitle: 'Prochains matchs du tournoi', textColor: textColor),
           const SizedBox(height: 12),
-          _GroupsAutoCarousel(groups: _standings, textColor: textColor),
-          const SizedBox(height: 24),
+          ..._buildUpcomingMatchCards2026(textColor),
+          const SizedBox(height: 100),
         ],
-        _SectionHeader(icon: Icons.rss_feed_rounded, title: 'ACTUALITÉS MONDIAL 2026', subtitle: 'Les dernières infos SofaScore', textColor: textColor),
-        const SizedBox(height: 12),
-        _buildNewsHorizontalList(),
-        const SizedBox(height: 24),
-        _SectionHeader(icon: Icons.star_border_rounded, title: 'MATCHS À VENIR', subtitle: 'Calendrier officiel du tournoi', textColor: textColor),
-        const SizedBox(height: 12),
-        ..._buildUpcomingMatches(textColor),
-      ],
+      ),
     );
   }
 
-  Widget _buildNewsHorizontalList() {
-    if (_newsArticles.isEmpty) return const SizedBox(height: 280, child: _EmptyState(msg: 'Aucune actualité disponible.'));
-    return SizedBox(height: 280, child: ListView.builder(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 16), itemCount: _newsArticles.length, itemBuilder: (context, i) => _NewsCard(item: _newsArticles[i], onTap: () => _openUrl(_newsArticles[i]['url']))));
+  Widget _buildNewsCarousel2026() {
+    if (_newsArticles.isEmpty) {
+      return SizedBox(
+        height: 220,
+        child: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.wifi_off_rounded, color: Colors.grey.withValues(alpha: 0.4), size: 40),
+            const SizedBox(height: 8),
+            Text('Actualités indisponibles', style: TextStyle(color: Colors.grey.withValues(alpha: 0.6), fontSize: 13)),
+          ]),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 220,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _newsArticles.length,
+        itemBuilder: (context, i) => _AnimatedEntrance(
+          delay: Duration(milliseconds: 80 * i),
+          child: _NewsCard2026(item: _newsArticles[i], onTap: () => _openUrl(_newsArticles[i]['url'])),
+        ),
+      ),
+    );
   }
 
-  List<Widget> _buildUpcomingMatches(Color textColor) {
-    if (_matches.isEmpty) return const [SizedBox(height: 150, child: _EmptyState(msg: 'Aucun match programmé.'))];
-    return _matches.take(5).map((m) => Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), child: _MatchCard(match: m, year: _selectedYear, textColor: textColor))).toList();
+  List<Widget> _buildUpcomingMatchCards2026(Color textColor) {
+    final upcoming = _matches.where((m) => !m.isLive).toList();
+    if (upcoming.isEmpty) {
+      return [const SizedBox(height: 120, child: _EmptyState(msg: 'Aucun match programmé pour le moment.'))];
+    }
+    // Group by date
+    final grouped = <String, List<LiveMatch>>{};
+    for (final m in upcoming) {
+      grouped.putIfAbsent(m.dateLabel, () => []).add(m);
+    }
+    final sortedKeys = grouped.keys.toList()..sort((a, b) {
+      final dateA = grouped[a]!.first.dateTime;
+      final dateB = grouped[b]!.first.dateTime;
+      if (dateA == null || dateB == null) return 0;
+      return dateA.compareTo(dateB);
+    });
+
+    final widgets = <Widget>[];
+    for (final key in sortedKeys.take(5)) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(children: [
+            Container(width: 4, height: 16, decoration: BoxDecoration(color: _kGold, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(width: 8),
+            Text(key.toUpperCase(), style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
+          ]),
+        ),
+      );
+      for (final m in grouped[key]!) {
+        widgets.add(_AnimatedEntrance(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+          ),
+        ));
+      }
+    }
+    return widgets;
   }
+
+
 
   Widget _buildPagedMatchView(Color textColor) {
     final List<String> Function(LiveMatch) keysOf;
@@ -224,18 +342,44 @@ class _HomeScreenState extends State<HomeScreen> {
       controller: _pageController, itemCount: keys.length,
       itemBuilder: (context, index) {
         final key = keys[index]; final matches = grouped[key] ?? [];
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100), itemCount: matches.length + 1,
-          itemBuilder: (context, mIndex) {
-            if (mIndex == 0) {
-              return Padding(padding: const EdgeInsets.only(top: 20, bottom: 16), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    if (index > 0) GestureDetector(onTap: () => _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_back_ios_new_rounded, color: _kGold, size: 16))),
-                    Flexible(child: Text(key.toUpperCase(), style: const TextStyle(color: _kGold, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2), overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
-                    if (index < keys.length - 1) GestureDetector(onTap: () => _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward_ios_rounded, color: _kGold, size: 16))),
-              ]));
-            }
-            return _MatchCard(match: matches[mIndex - 1], year: _selectedYear, textColor: textColor);
-          },
+        // Separate into live, upcoming, finished
+        final liveMatches = matches.where((m) => m.isLive).toList();
+        final upcomingMatches = matches.where((m) => !m.isLive && !m.isFinished).toList();
+        final finishedMatches = matches.where((m) => m.isFinished).toList();
+
+        final List<Widget> items = [];
+        // Page header with navigation
+        items.add(Padding(padding: const EdgeInsets.only(top: 20, bottom: 16), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              if (index > 0) GestureDetector(onTap: () => _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_back_ios_new_rounded, color: _kGold, size: 16))),
+              Flexible(child: Text(key.toUpperCase(), style: const TextStyle(color: _kGold, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2), overflow: TextOverflow.ellipsis, textAlign: TextAlign.center)),
+              if (index < keys.length - 1) GestureDetector(onTap: () => _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut), child: const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Icon(Icons.arrow_forward_ios_rounded, color: _kGold, size: 16))),
+        ])));
+
+        // Live matches section
+        if (liveMatches.isNotEmpty) {
+          items.add(_StatusSectionHeader(icon: Icons.bolt_rounded, label: 'EN DIRECT', color: Colors.redAccent));
+          for (final m in liveMatches) {
+            items.add(_MatchCard(match: m, year: _selectedYear, textColor: textColor));
+          }
+        }
+        // Upcoming matches section
+        if (upcomingMatches.isNotEmpty) {
+          items.add(_StatusSectionHeader(icon: Icons.schedule_rounded, label: 'À VENIR', color: _kGold));
+          for (final m in upcomingMatches) {
+            items.add(_MatchCard(match: m, year: _selectedYear, textColor: textColor));
+          }
+        }
+        // Finished matches section
+        if (finishedMatches.isNotEmpty) {
+          items.add(_StatusSectionHeader(icon: Icons.check_circle_outline_rounded, label: 'TERMINÉS', color: Colors.grey));
+          for (final m in finishedMatches) {
+            items.add(_MatchCard(match: m, year: _selectedYear, textColor: textColor));
+          }
+        }
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+          children: items,
         );
       },
     );
@@ -248,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTopScorersView(Color textColor) {
     if (_topScorers.isEmpty) return const _EmptyState(msg: 'Aucun buteur disponible.');
-    return ListView.builder(padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), itemCount: _topScorers.length, itemBuilder: (context, i) => ListTile(leading: CircleAvatar(backgroundImage: NetworkImage(_topScorers[i].playerPhoto)), title: Text(_topScorers[i].playerName, style: TextStyle(color: textColor, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), trailing: Text('${_topScorers[i].goals} G', style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold))));
+    return ListView.builder(padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), itemCount: _topScorers.length, itemBuilder: (context, i) => ListTile(leading: CircleAvatar(backgroundImage: _topScorers[i].playerPhoto.isNotEmpty ? NetworkImage(_topScorers[i].playerPhoto) : null), title: Text(_topScorers[i].playerName, style: TextStyle(color: textColor, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis), trailing: Text('${_topScorers[i].goals} G', style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold))));
   }
 
   Widget _buildBracketView(Color textColor) {
@@ -388,22 +532,89 @@ class _YearDropdownSelectorState extends State<_YearDropdownSelector> {
   }
 }
 
+class _StatusSectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _StatusSectionHeader({required this.icon, required this.label, required this.color});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 6),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: color, size: 14),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.2)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Container(height: 1, color: color.withValues(alpha: 0.15))),
+      ]),
+    );
+  }
+}
+
 class _MatchCard extends StatelessWidget {
   final LiveMatch match; final int year; final Color textColor;
   const _MatchCard({required this.match, required this.year, required this.textColor});
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Card(elevation: 0, color: isDark ? _kCardDark : Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))), child: InkWell(onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match))), borderRadius: BorderRadius.circular(20), child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Flexible(child: Row(mainAxisSize: MainAxisSize.min, children: [Text(match.localTime, style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis), if (match.isLive) ...[const SizedBox(width: 8), const _LiveDot()]])),
-                    const SizedBox(width: 8),
-                    if (match.isLive) GestureDetector(onTap: () => _pinMatch(context, match), child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: _kGold.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.push_pin_rounded, color: _kGold, size: 12), SizedBox(width: 4), Text('ÉPINGLER', style: TextStyle(color: _kGold, fontWeight: FontWeight.bold, fontSize: 9))])))
-                    else Flexible(flex: 2, child: Text(match.phaseLabel, style: const TextStyle(color: Colors.grey, fontSize: 11), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right))
-                ]),
-                const SizedBox(height: 16),
-                Row(children: [Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [Flexible(child: Text(match.homeTeam, textAlign: TextAlign.right, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis)), const SizedBox(width: 8), NationFlagBadge(countryCode: match.homeCode, size: 24, imageUrlOverride: match.homeLogoUrl)])), Container(width: 70, alignment: Alignment.center, child: Text(match.scoreHome != null ? '${match.scoreHome} - ${match.scoreAway}' : 'VS', style: const TextStyle(color: _kGold, fontSize: 20, fontWeight: FontWeight.w900))), Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [NationFlagBadge(countryCode: match.awayCode, size: 24, imageUrlOverride: match.awayLogoUrl), const SizedBox(width: 8), Flexible(child: Text(match.awayTeam, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis))]))])
-    ]))));
+    // Determine status colors
+    final Color statusColor = match.isLive ? Colors.redAccent : (match.isFinished ? Colors.grey : _kGold);
+    final String centerText = match.scoreHome != null ? '${match.scoreHome} - ${match.scoreAway}' : 'VS';
+    final String? penaltyText = (match.penaltyHome != null && match.penaltyAway != null) ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)' : null;
+
+    return Card(
+      elevation: 0,
+      color: isDark ? _kCardDark : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: match.isLive ? Colors.redAccent.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.05), width: match.isLive ? 1.5 : 1)),
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match))),
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
+          // Top row: status + phase
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Flexible(child: Row(mainAxisSize: MainAxisSize.min, children: [
+              if (match.isLive) ...[
+                const _LiveDot(),
+                const SizedBox(width: 6),
+                Text(match.statusDisplay, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 14)),
+              ] else if (match.isFinished) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                  child: const Text('TERMINÉ', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w800, fontSize: 10, letterSpacing: 0.5)),
+                ),
+              ] else ...[
+                Text(match.localTime, style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis),
+              ],
+            ])),
+            const SizedBox(width: 8),
+            if (match.isLive) GestureDetector(onTap: () => _pinMatch(context, match), child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.push_pin_rounded, color: Colors.redAccent, size: 12), SizedBox(width: 4), Text('ÉPINGLER', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 9))])))
+            else Flexible(flex: 2, child: Text(match.phaseLabel, style: const TextStyle(color: Colors.grey, fontSize: 11), overflow: TextOverflow.ellipsis, textAlign: TextAlign.right)),
+          ]),
+          const SizedBox(height: 16),
+          // Teams + Score row
+          Row(children: [
+            Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [Flexible(child: Text(match.homeTeam, textAlign: TextAlign.right, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis)), const SizedBox(width: 8), NationFlagBadge(countryCode: match.homeCode, size: 24, imageUrlOverride: match.homeLogoUrl)])),
+            Container(width: 80, alignment: Alignment.center, child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(centerText, style: TextStyle(color: match.isLive ? Colors.redAccent : _kGold, fontSize: 20, fontWeight: FontWeight.w900)),
+              if (penaltyText != null) Padding(padding: const EdgeInsets.only(top: 2), child: Text(penaltyText, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w600))),
+            ])),
+            Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [NationFlagBadge(countryCode: match.awayCode, size: 24, imageUrlOverride: match.awayLogoUrl), const SizedBox(width: 8), Flexible(child: Text(match.awayTeam, style: TextStyle(color: textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis))]))
+          ]),
+        ])),
+      ),
+    );
   }
   void _pinMatch(BuildContext context, LiveMatch match) async {
     final bool status = await FlutterOverlayWindow.isPermissionGranted();
@@ -430,7 +641,10 @@ class _MatchCard extends StatelessWidget {
     FlutterOverlayWindow.shareData({
       'home': match.homeTeam,
       'away': match.awayTeam,
+      'homeCode': match.homeCode,
+      'awayCode': match.awayCode,
       'score': '${match.scoreHome ?? 0} - ${match.scoreAway ?? 0}',
+      'minute': match.matchMinute ?? '',
     });
 
     if (context.mounted) {
@@ -478,31 +692,490 @@ class _GroupTable extends StatelessWidget {
   Widget _buildLegendItem(Color color, String label) { return Row(children: [Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 6), Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold))]); }
 }
 
-class _TournamentHero extends StatelessWidget {
-  const _TournamentHero();
+// ═══════════════════════════════════════════════════════
+// ── PREMIUM 2026 WIDGETS ──
+// ═══════════════════════════════════════════════════════
+
+/// Entrance animation wrapper – fade + slide up
+class _AnimatedEntrance extends StatefulWidget {
+  final Widget child;
+  final Duration delay;
+  const _AnimatedEntrance({required this.child, this.delay = Duration.zero});
   @override
-  Widget build(BuildContext context) { return SizedBox(height: 360, width: double.infinity, child: Stack(children: [Positioned.fill(child: Image.network('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=60', fit: BoxFit.cover)), Positioned.fill(child: Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.black.withValues(alpha: 0.3), Colors.black.withValues(alpha: 0.9)])))), Padding(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.end, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: _kGold, borderRadius: BorderRadius.circular(6)), child: const Text('UNITED 2026', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w900))), const SizedBox(height: 12), const Text('FIFA World Cup', style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, height: 1), overflow: TextOverflow.ellipsis, maxLines: 1), const SizedBox(height: 16), const Wrap(spacing: 8, runSpacing: 8, children: [_HeroChip(icon: Icons.calendar_month_rounded, label: 'Calendrier'), _HeroChip(icon: Icons.stadium_rounded, label: 'Stades'), _HeroChip(icon: Icons.public_rounded, label: 'Nations')])])), const Positioned(top: 60, right: 20, child: _CountdownBadge())])); }
+  State<_AnimatedEntrance> createState() => _AnimatedEntranceState();
 }
-class _HeroChip extends StatelessWidget {
-  final IconData icon; final String label; const _HeroChip({required this.icon, required this.label});
+class _AnimatedEntranceState extends State<_AnimatedEntrance> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
   @override
-  Widget build(BuildContext context) { return Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white24)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: Colors.white, size: 14), const SizedBox(width: 6), Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))])); }
-}
-class _CountdownBadge extends StatelessWidget {
-  const _CountdownBadge();
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _opacity = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    Future.delayed(widget.delay, () { if (mounted) _ctrl.forward(); });
+  }
   @override
-  Widget build(BuildContext context) { return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(16), border: Border.all(color: _kGold.withValues(alpha: 0.5))), child: const Column(mainAxisSize: MainAxisSize.min, children: [Text('J-748', style: TextStyle(color: _kGold, fontWeight: FontWeight.w900, fontSize: 18)), Text('AVANT DÉPART', style: TextStyle(color: Colors.white60, fontSize: 8, fontWeight: FontWeight.bold))])); }
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(opacity: _opacity, child: SlideTransition(position: _slide, child: widget.child));
+  }
 }
+
+/// Premium hero banner for 2026 with dynamic countdown
+class _TournamentHero2026 extends StatelessWidget {
+  const _TournamentHero2026();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Calculate real countdown to June 11, 2026
+    final now = DateTime.now();
+    final kickoff = DateTime(2026, 6, 11);
+    final diff = kickoff.difference(now);
+    final daysLeft = diff.isNegative ? 0 : diff.inDays;
+    final isTournamentLive = diff.isNegative || daysLeft == 0;
+
+    return SizedBox(
+      height: 340,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Image.network(
+              'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=60',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: [Color(0xFF0D1B2A), Color(0xFF1B3A5C)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Gradient overlay
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.15),
+                    Colors.black.withValues(alpha: 0.5),
+                    (isDark ? _kDarkBg : const Color(0xFFF7F2E8)).withValues(alpha: 0.95),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Badge
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFFE7C16A), Color(0xFFD4A843)]),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [BoxShadow(color: _kGold.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4))],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.sports_soccer_rounded, color: Colors.black, size: 12),
+                          SizedBox(width: 5),
+                          Text('UNITED 2026', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    if (isTournamentLive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [BoxShadow(color: Colors.redAccent.withValues(alpha: 0.4), blurRadius: 12)],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.circle, color: Colors.white, size: 6),
+                            SizedBox(width: 5),
+                            Text('EN COURS', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Title
+                Text('FIFA World Cup',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Text('USA · MEX · CAN',
+                  style: TextStyle(
+                    color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Stats row
+                Row(
+                  children: [
+                    _HeroStat(value: isTournamentLive ? 'LIVE' : 'J-$daysLeft', label: isTournamentLive ? 'TOURNOI' : 'COUP D\'ENVOI', highlight: true),
+                    const SizedBox(width: 20),
+                    const _HeroStat(value: '48', label: 'NATIONS'),
+                    const SizedBox(width: 20),
+                    const _HeroStat(value: '104', label: 'MATCHS'),
+                    const SizedBox(width: 20),
+                    const _HeroStat(value: '16', label: 'STADES'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStat extends StatelessWidget {
+  final String value;
+  final String label;
+  final bool highlight;
+  const _HeroStat({required this.value, required this.label, this.highlight = false});
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(value, style: TextStyle(
+          color: highlight ? _kGold : textColor,
+          fontSize: highlight ? 20 : 18,
+          fontWeight: FontWeight.w900,
+        )),
+        Text(label, style: TextStyle(
+          color: textColor.withValues(alpha: 0.45),
+          fontSize: 8,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        )),
+      ],
+    );
+  }
+}
+
+/// Filter chip for news team filtering
+class _FilterChip2026 extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _FilterChip2026({required this.label, required this.isSelected, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? _kGold : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? _kGold : Colors.transparent, width: 1.5),
+            boxShadow: isSelected ? [BoxShadow(color: _kGold.withValues(alpha: 0.3), blurRadius: 8)] : [],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.black : (isDark ? Colors.white70 : Colors.black54),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Premium news card with glassmorphism
+class _NewsCard2026 extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final VoidCallback onTap;
+  const _NewsCard2026({required this.item, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      margin: const EdgeInsets.only(right: 14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background image
+              if (item['img'] != null)
+                Image.network(
+                  item['img'],
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        colors: [Color(0xFF1B3A5C), Color(0xFF0D1B2A)],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      colors: [Color(0xFF1B3A5C), Color(0xFF0D1B2A)],
+                    ),
+                  ),
+                ),
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.9)],
+                  ),
+                ),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Source badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Text(
+                        item['source'] ?? 'FIFA',
+                        style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    // Title + date
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['title'] ?? '',
+                          maxLines: 3,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            height: 1.3,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(width: 20, height: 2, decoration: BoxDecoration(color: _kGold, borderRadius: BorderRadius.circular(1))),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _formatNewsDate(item['date']),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatNewsDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final diff = now.difference(date);
+      if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
+      if (diff.inHours < 24) return 'Il y a ${diff.inHours}h';
+      if (diff.inDays < 7) return 'Il y a ${diff.inDays}j';
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+}
+
+/// Live match card with pulsing border for in-progress matches
+class _LiveMatchCard2026 extends StatefulWidget {
+  final LiveMatch match;
+  final Color textColor;
+  const _LiveMatchCard2026({required this.match, required this.textColor});
+  @override
+  State<_LiveMatchCard2026> createState() => _LiveMatchCard2026State();
+}
+class _LiveMatchCard2026State extends State<_LiveMatchCard2026> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseCtrl;
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..repeat(reverse: true);
+  }
+  @override
+  void dispose() { _pulseCtrl.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.match;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AnimatedBuilder(
+      animation: _pulseCtrl,
+      builder: (context, child) {
+        final glowOpacity = 0.15 + (_pulseCtrl.value * 0.25);
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4 + _pulseCtrl.value * 0.3), width: 1.5),
+            color: isDark ? _kCardDark : Colors.white,
+            boxShadow: [BoxShadow(color: Colors.redAccent.withValues(alpha: glowOpacity), blurRadius: 20, spreadRadius: 1)],
+          ),
+          child: InkWell(
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: m))),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  // Status row
+                  Row(
+                    children: [
+                      const _LiveDot(),
+                      const SizedBox(width: 6),
+                      Text(m.statusDisplay, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 14)),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                        child: Text(m.phaseLabel, style: const TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Teams + Score
+                  Row(
+                    children: [
+                      Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                        Flexible(child: Text(m.homeTeam, textAlign: TextAlign.right, style: TextStyle(color: widget.textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 8),
+                        NationFlagBadge(countryCode: m.homeCode, size: 28, imageUrlOverride: m.homeLogoUrl),
+                      ])),
+                      Container(
+                        width: 80,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${m.scoreHome ?? 0} - ${m.scoreAway ?? 0}',
+                          style: const TextStyle(color: Colors.redAccent, fontSize: 22, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      Expanded(child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                        NationFlagBadge(countryCode: m.awayCode, size: 28, imageUrlOverride: m.awayLogoUrl),
+                        const SizedBox(width: 8),
+                        Flexible(child: Text(m.awayTeam, style: TextStyle(color: widget.textColor, fontWeight: FontWeight.w800, fontSize: 14), overflow: TextOverflow.ellipsis)),
+                      ])),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _SectionHeader extends StatelessWidget {
-  final IconData icon; final String title; final String subtitle; final Color textColor; const _SectionHeader({required this.icon, required this.title, required this.subtitle, required this.textColor});
+  final IconData icon; final String title; final String subtitle; final Color textColor;
+  const _SectionHeader({required this.icon, required this.title, required this.subtitle, required this.textColor});
   @override
-  Widget build(BuildContext context) { return Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Row(children: [Container(width: 40, height: 40, decoration: BoxDecoration(color: _kGold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: _kGold, size: 20)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 0.5), overflow: TextOverflow.ellipsis), Text(subtitle, style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 11), overflow: TextOverflow.ellipsis)]))])); }
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [_kGold.withValues(alpha: 0.2), _kGold.withValues(alpha: 0.08)]),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: _kGold, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 0.5), overflow: TextOverflow.ellipsis),
+          Text(subtitle, style: TextStyle(color: textColor.withValues(alpha: 0.45), fontSize: 11), overflow: TextOverflow.ellipsis),
+        ])),
+      ]),
+    );
+  }
 }
+
+// Keep old _NewsCard for backward compat with _buildNewsHorizontalList
 class _NewsCard extends StatelessWidget {
   final Map<String, dynamic> item; final VoidCallback onTap; const _NewsCard({required this.item, required this.onTap});
   @override
-  Widget build(BuildContext context) { return Container(width: 280, margin: const EdgeInsets.only(right: 14), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(24), child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Stack(fit: StackFit.expand, children: [if (item['img'] != null) Image.network(item['img'], fit: BoxFit.cover, errorBuilder: (_, _, _) => Container(color: Colors.grey[900])), Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withValues(alpha: 0.85)]))), Padding(padding: const EdgeInsets.all(16), child: Column(mainAxisAlignment: MainAxisAlignment.end, crossAxisAlignment: CrossAxisAlignment.start, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: _kGold, borderRadius: BorderRadius.circular(6)), child: Text(item['source'] ?? 'News', style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)), const SizedBox(height: 8), Text(item['title'] ?? '', maxLines: 2, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, height: 1.2), overflow: TextOverflow.ellipsis)]))])))); }
+  Widget build(BuildContext context) { return Container(width: 280, margin: const EdgeInsets.only(right: 14), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(24), child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Stack(fit: StackFit.expand, children: [if (item['img'] != null) Image.network(item['img'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: Colors.grey[900])), Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withValues(alpha: 0.85)]))), Padding(padding: const EdgeInsets.all(16), child: Column(mainAxisAlignment: MainAxisAlignment.end, crossAxisAlignment: CrossAxisAlignment.start, children: [Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: _kGold, borderRadius: BorderRadius.circular(6)), child: Text(item['source'] ?? 'News', style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)), const SizedBox(height: 8), Text(item['title'] ?? '', maxLines: 2, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, height: 1.2), overflow: TextOverflow.ellipsis)]))])))); }
 }
+
 class _GroupsAutoCarousel extends StatefulWidget {
   final List<GroupStanding> groups; final Color textColor; const _GroupsAutoCarousel({required this.groups, required this.textColor});
   @override
@@ -520,7 +1193,33 @@ class _GroupsAutoCarouselState extends State<_GroupsAutoCarousel> {
 class _GroupCard extends StatelessWidget {
   final GroupStanding group; const _GroupCard({required this.group});
   @override
-  Widget build(BuildContext context) { return Container(margin: const EdgeInsets.symmetric(horizontal: 8), padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF1B2A39), borderRadius: BorderRadius.circular(20), border: Border.all(color: _kGold.withValues(alpha: 0.2))), child: Column(children: [Text(group.groupName.toUpperCase(), style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 13)), const Divider(color: Colors.white10, height: 20), ...group.teams.take(4).map((t) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [SizedBox(width: 20, child: Text('${t.rank}', style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold, fontSize: 12))), NationFlagBadge(countryCode: resolveCountryCode(t.teamName), size: 20, imageUrlOverride: t.teamLogo), const SizedBox(width: 12), Expanded(child: Text(t.teamName, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)), Text('${t.points} PTS', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold))])))])); }
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1B2A39) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _kGold.withValues(alpha: 0.2)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Column(children: [
+        Text(group.groupName.toUpperCase(), style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 13)),
+        const Divider(color: Colors.white10, height: 20),
+        ...group.teams.take(4).map((t) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(children: [
+            SizedBox(width: 20, child: Text('${t.rank}', style: TextStyle(color: _kGold, fontWeight: FontWeight.bold, fontSize: 12))),
+            NationFlagBadge(countryCode: resolveCountryCode(t.teamName), size: 20, imageUrlOverride: t.teamLogo),
+            const SizedBox(width: 12),
+            Expanded(child: Text(t.teamName, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+            Text('${t.points} PTS', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, fontWeight: FontWeight.bold)),
+          ]),
+        )),
+      ]),
+    );
+  }
 }
 class _AmbientGlow extends StatelessWidget {
   final Color color; final double size; const _AmbientGlow({required this.color, required this.size});
@@ -554,6 +1253,6 @@ class _ListBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bgColor = isDark ? const Color(0xFF23303C) : Colors.white; final textColor = isDark ? Colors.white : Colors.black87;
-    return Container(decoration: BoxDecoration(color: bgColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))), padding: const EdgeInsets.fromLTRB(20, 12, 20, 24), constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7), child: Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))), const SizedBox(height: 16), Text(title, style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold)), const SizedBox(height: 20), Expanded(child: ListView.builder(itemCount: items.length, itemBuilder: (context, i) { final isSel = items[i] == selectedItem; return ListTile(title: Text(items[i], style: TextStyle(color: isSel ? _kGold : textColor, fontWeight: isSel ? FontWeight.bold : FontWeight.normal)), trailing: isSel ? const Icon(Icons.check, color: _kGold) : null, onTap: () => onItemSelected(i)); }))] ));
+    return Container(decoration: BoxDecoration(color: bgColor, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))), padding: const EdgeInsets.fromLTRB(20, 12, 20, 24), constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7), child: Column(mainAxisSize: MainAxisSize.min, children: [Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))), const SizedBox(height: 16), Text(title, style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold)), const SizedBox(height: 20), Expanded(child: ListView.builder(itemCount: items.length, itemBuilder: (context, i) { final isSel = items[i] == selectedItem; return Material(color: Colors.transparent, child: ListTile(title: Text(items[i], style: TextStyle(color: isSel ? _kGold : textColor, fontWeight: isSel ? FontWeight.bold : FontWeight.normal)), trailing: isSel ? const Icon(Icons.check, color: _kGold) : null, onTap: () => onItemSelected(i))); }))] ));
   }
 }

@@ -36,3 +36,6 @@ sofascore_backend/data/
 # OS
 .DS_Store
 Thumbs.db
+*.keystore
+*.jks
+key.properties

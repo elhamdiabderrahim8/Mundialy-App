@@ -1,0 +1,440 @@
+{
+  "event": {
+    "eventState": {},
+    "tournament": {
+      "name": "FIFA World Cup, Group A",
+      "slug": "world-championship-gr-a",
+      "category": {
+        "name": "World",
+        "slug": "world",
+        "sport": {
+          "name": "Football",
+          "slug": "football",
+          "id": 1
+        },
+        "priority": 20,
+        "country": {},
+        "id": 1468,
+        "flag": "international",
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "العالم",
+            "hi": "विश्व",
+            "bn": "বিশ্ব",
+            "ru": "Мир"
+          },
+          "shortNameTranslation": {}
+        }
+      },
+      "uniqueTournament": {
+        "name": "FIFA World Cup",
+        "slug": "world-championship",
+        "primaryColorHex": "#d20a11",
+        "secondaryColorHex": "#e8bb57",
+        "category": {
+          "name": "World",
+          "slug": "world",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "priority": 20,
+          "country": {},
+          "id": 1468,
+          "flag": "international",
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "العالم",
+              "hi": "विश्व",
+              "bn": "বিশ্ব",
+              "ru": "Мир"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "userCount": 848372,
+        "hasRounds": true,
+        "hasPerformanceGraphFeature": false,
+        "country": {},
+        "id": 16,
+        "hasEventPlayerStatistics": true,
+        "displayInverseHomeAwayTeams": false,
+        "fieldTranslations": {
+          "nameTranslation": {
+            "pt-pt": "Mundial",
+            "ar": "كأس العالم",
+            "bn": "ওয়ার্ল্ড চ্যাম্পিয়নশিপ",
+            "hi": "वर्ल्ड चैंपियनशिप",
+            "hr": "FIFA Svjetsko prvenstvo",
+            "az": "FİFA Dünya Kuboku",
+            "nl": "Wereldkampioenschap",
+            "fr": "Coupe du monde",
+            "de": "Weltmeisterschaft",
+            "el": "Παγκόσμιο Κύπελλο",
+            "hu": "FIFA Világbajnokság",
+            "id": "Piala Dunia FIFA",
+            "it": "Coppa del Mondo FIFA",
+            "ja": "FIFAワールドカップ",
+            "ko": "FIFA 월드컵",
+            "no": "Verdensmesterskapet",
+            "pl": "Mistrzostwa Świata",
+            "pt": "Copa do Mundo FIFA",
+            "ro": "Campionatul Mondial",
+            "es": "Copa Mundial",
+            "es-la": "Copa Mundial",
+            "sv": "Världsmästerskapet",
+            "th": "ฟุตบอลโลก",
+            "tr": "FIFA Dünya Kupası",
+            "vi": "Giải Vô Địch Thế Giới",
+            "ru": "Чемпионат мира",
+            "sr": "Светско првенство"
+          },
+          "shortNameTranslation": {}
+        }
+      },
+      "priority": 813,
+      "isGroup": true,
+      "groupName": "Group A",
+      "groupSign": "A",
+      "competitionType": 1,
+      "isLive": false,
+      "id": 3954,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "hr": "FIFA Svjetsko prvenstvo, Grupa A",
+          "az": "FİFA Dünya Kuboku, Qrup A",
+          "nl": "Wereldkampioenschap, Groep A",
+          "fr": "Coupe du monde, Groupe A",
+          "ru": "Чемпионат мира, Группа A",
+          "ar": "بطولة العالم، المجموعة A",
+          "bn": "ওয়ার্ল্ড চ্যাম্পিয়নশিপ, গ্র. এ",
+          "hi": "वर्ल्ड चैंपियनशिप, ग्रेड ए",
+          "de": "Weltmeisterschaft, Gruppe A",
+          "th": "ฟุตบอลโลก, กลุ่ม A",
+          "el": "Παγκόσμιο Κύπελλο, Όμιλος A",
+          "hu": "Világbajnokság, Csoport A",
+          "id": "Piala Dunia FIFA, Grup A",
+          "it": "Coppa del Mondo, Gruppo A",
+          "ja": "FIFAワールドカップ, グループA",
+          "ko": "FIFA 월드컵, 그룹 A",
+          "no": "Verdensmesterskapet, Gruppe A",
+          "pl": "Mistrzostwa Świata, Grupa A",
+          "pt": "Copa do Mundo FIFA, Grupo A",
+          "ro": "Campionatul Mondial, Grupa A",
+          "es": "Copa Mundial, Grupo A",
+          "es-la": "Copa Mundial, Grupo A",
+          "sv": "Världsmästerskapet, Grupp A",
+          "tr": "FIFA Dünya Kupası, Grup A",
+          "vi": "Giải Vô Địch Thế Giới, Bảng A",
+          "pt-pt": "Mundial, Grupo A",
+          "sr": "Светско првенство, Група A"
+        },
+        "shortNameTranslation": {}
+      }
+    },
+    "season": {
+      "name": "World Cup 2022",
+      "year": "2022",
+      "editor": false,
+      "id": 41087
+    },
+    "roundInfo": {
+      "round": 1
+    },
+    "customId": "hVbsRVb",
+    "status": {
+      "code": 100,
+      "description": "Ended",
+      "type": "finished"
+    },
+    "winnerCode": 2,
+    "attendance": 67372,
+    "venue": {
+      "city": {
+        "name": "Al Khor",
+        "country": {
+          "alpha2": "QA",
+          "alpha3": "QAT",
+          "name": "Qatar",
+          "slug": "qatar"
+        },
+        "id": 31067
+      },
+      "venueCoordinates": {
+        "latitude": 51.31667,
+        "longitude": 25.76667
+      },
+      "hidden": true,
+      "slug": "al-bayt-stadium",
+      "name": "Al Bayt Stadium",
+      "capacity": 60000,
+      "country": {
+        "alpha2": "QA",
+        "alpha3": "QAT",
+        "name": "Qatar",
+        "slug": "qatar"
+      },
+      "id": 34310,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "ملعب البيت",
+          "hi": "अल बेत स्टेडियम",
+          "bn": "আল বাইত স্টেডিয়াম"
+        },
+        "shortNameTranslation": {}
+      },
+      "stadium": {
+        "name": "Al Bayt Stadium",
+        "capacity": 60000
+      }
+    },
+    "referee": {
+      "name": "Daniele Orsato",
+      "slug": "orsato-daniele",
+      "yellowCards": 1882,
+      "redCards": 31,
+      "yellowRedCards": 44,
+      "games": 373,
+      "sport": {
+        "id": 1,
+        "slug": "football",
+        "name": "Football"
+      },
+      "country": {
+        "alpha2": "IT",
+        "alpha3": "ITA",
+        "name": "Italy",
+        "slug": "italy"
+      },
+      "id": 52303,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "أورساتو، دانييلي",
+          "bn": "ওরসাতো, ড্যানিয়েল",
+          "hi": "ओर्साटो, डेनियल"
+        },
+        "shortNameTranslation": {}
+      }
+    },
+    "homeTeam": {
+      "name": "Qatar",
+      "slug": "qatar",
+      "shortName": "Qatar",
+      "gender": "M",
+      "sport": {
+        "name": "Football",
+        "slug": "football",
+        "id": 1
+      },
+      "userCount": 49991,
+      "manager": {
+        "name": "Julen Lopetegui",
+        "slug": "julen-lopetegui",
+        "shortName": "J. Lopetegui",
+        "country": {
+          "alpha2": "ES",
+          "alpha3": "ESP",
+          "name": "Spain",
+          "slug": "spain"
+        },
+        "id": 138570,
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "يولن لوبيتيغي"
+          },
+          "shortNameTranslation": {
+            "ar": "ي. لوبيتيغي"
+          }
+        }
+      },
+      "nameCode": "QAT",
+      "ranking": 55,
+      "class": 1,
+      "disabled": false,
+      "national": true,
+      "type": 0,
+      "country": {
+        "alpha2": "QA",
+        "alpha3": "QAT",
+        "name": "Qatar",
+        "slug": "qatar"
+      },
+      "id": 4792,
+      "fullName": "Qatar",
+      "subTeams": [],
+      "teamColors": {
+        "primary": "#660000",
+        "secondary": "#ffffff",
+        "text": "#ffffff"
+      },
+      "foundationDateTimestamp": 1472947200,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "قطر",
+          "bn": "কাতার",
+          "hi": "क़तर",
+          "ru": "Катар"
+        },
+        "shortNameTranslation": {}
+      },
+      "timeActive": []
+    },
+    "awayTeam": {
+      "name": "Ecuador",
+      "slug": "ecuador",
+      "shortName": "Ecuador",
+      "gender": "M",
+      "sport": {
+        "name": "Football",
+        "slug": "football",
+        "id": 1
+      },
+      "userCount": 179395,
+      "manager": {
+        "name": "Sebastian Beccacece",
+        "slug": "sebastian-beccacece",
+        "shortName": "S. Beccacece",
+        "country": {
+          "alpha2": "AR",
+          "alpha3": "ARG",
+          "name": "Argentina",
+          "slug": "argentina"
+        },
+        "id": 786550,
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "سيباستيان بيكاسيسي",
+            "bn": "সেবাস্টিয়ান বেক্কাসিস",
+            "hi": "सेबेस्टियन बेक्कासे"
+          },
+          "shortNameTranslation": {
+            "ar": "س. بيكاسيسي",
+            "hi": "एस. बेक्कासे",
+            "bn": "এস. বেক্কাসিস"
+          }
+        }
+      },
+      "venue": {
+        "city": {
+          "name": "Quito",
+          "country": {
+            "alpha2": "EC",
+            "alpha3": "ECU",
+            "name": "Ecuador",
+            "slug": "ecuador"
+          },
+          "id": 19229
+        },
+        "venueCoordinates": {
+          "latitude": -0.107723,
+          "longitude": -78.489077
+        },
+        "hidden": true,
+        "slug": "estadio-rodrigo-paz-delgado",
+        "name": "Estadio Rodrigo Paz Delgado",
+        "capacity": 41575,
+        "country": {
+          "alpha2": "EC",
+          "alpha3": "ECU",
+          "name": "Ecuador",
+          "slug": "ecuador"
+        },
+        "id": 17523,
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "ملعب رودريغو باز ديلغادو",
+            "hi": "एस्टेडियो रोड्रिगो पाज़ डेलगाडो",
+            "bn": "এস্তাদিও রদ্রিগো পাজ ডেলগাডো"
+          },
+          "shortNameTranslation": {}
+        },
+        "stadium": {
+          "name": "Estadio Rodrigo Paz Delgado",
+          "capacity": 41575
+        }
+      },
+      "nameCode": "ECU",
+      "ranking": 23,
+      "class": 4,
+      "disabled": false,
+      "national": true,
+      "type": 0,
+      "country": {
+        "alpha2": "EC",
+        "alpha3": "ECU",
+        "name": "Ecuador",
+        "slug": "ecuador"
+      },
+      "id": 4757,
+      "fullName": "Ecuador",
+      "subTeams": [],
+      "teamColors": {
+        "primary": "#ffff00",
+        "secondary": "#000063",
+        "text": "#000063"
+      },
+      "foundationDateTimestamp": -1407196800,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "الاكوادور",
+          "bn": "ইকুয়েডর",
+          "hi": "इक्वाडोर",
+          "ru": "Эквадор"
+        },
+        "shortNameTranslation": {}
+      },
+      "timeActive": []
+    },
+    "homeScore": {
+      "current": 0,
+      "display": 0,
+      "period1": 0,
+      "period2": 0,
+      "normaltime": 0
+    },
+    "awayScore": {
+      "current": 2,
+      "display": 2,
+      "period1": 2,
+      "period2": 0,
+      "normaltime": 2
+    },
+    "time": {
+      "injuryTime1": 5,
+      "injuryTime2": 5,
+      "currentPeriodStartTimestamp": 1668967169
+    },
+    "changes": {
+      "changes": [
+        "status.code",
+        "status.description",
+        "status.type",
+        "homeScore.period2",
+        "homeScore.normaltime",
+        "awayScore.period2",
+        "awayScore.normaltime",
+        "time.currentPeriodStart"
+      ],
+      "changeTimestamp": 1668967171
+    },
+    "hasGlobalHighlights": false,
+    "hasXg": true,
+    "hasEventPlayerStatistics": true,
+    "hasEventPlayerHeatMap": true,
+    "detailId": 1,
+    "crowdsourcingDataDisplayEnabled": false,
+    "id": 10230541,
+    "defaultPeriodCount": 2,
+    "defaultPeriodLength": 45,
+    "defaultOvertimeLength": 15,
+    "slug": "qatar-ecuador",
+    "currentPeriodStartTimestamp": 1668967169,
+    "startTimestamp": 1668960000,
+    "finalResultOnly": false,
+    "feedLocked": false,
+    "seasonStatisticsType": "overall",
+    "showTotoPromo": true,
+    "isEditor": false
+  }
+}

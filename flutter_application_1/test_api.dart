@@ -49,6 +49,6 @@ void main() {
   final penalty = score['penalty'] ?? {};
   final status = fixture['status'] ?? {};
   
-  print('homeTeam: \${home['name']}');
-  print('scoreHome: \${goals['home']}');
+  print("homeTeam: ${home['name']}");
+  print("scoreHome: ${goals['home']}");
 }

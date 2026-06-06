@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "244211951859",
+    "project_id": "mundialy-3e52b",
+    "storage_bucket": "mundialy-3e52b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:244211951859:android:76874b274d657070adaf86",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -16,7 +16,12 @@ dependencies:
   provider: ^6.1.5+1
   url_launcher: ^6.3.1
   flutter_local_notifications: ^18.0.1
+  firebase_core: ^4.10.0
+  firebase_messaging: ^16.3.0
   flutter_overlay_window: ^0.5.0
+  video_player: ^2.11.1
+  chewie: ^1.14.1
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -31,6 +36,7 @@ flutter:
     - assets/data/matches_2022.json
     - assets/data/standings_2022.json
     - assets/data/topscorers_2022.json
+    - assets/logo.png
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,0 +1,572 @@
+{
+    "response": [
+        {
+            "league": {
+                "id": 16,
+                "name": "World Cup 2022",
+                "standings": [
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group A",
+                            "team": {
+                                "id": 4705,
+                                "name": "Netherlands",
+                                "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                            },
+                            "points": 7,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 1,
+                                "lose": 0
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group A",
+                            "team": {
+                                "id": 4739,
+                                "name": "Senegal",
+                                "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group A",
+                            "team": {
+                                "id": 4757,
+                                "name": "Ecuador",
+                                "logo": "https://api.sofascore.app/api/v1/team/4757/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group A",
+                            "team": {
+                                "id": 4792,
+                                "name": "Qatar",
+                                "logo": "https://api.sofascore.app/api/v1/team/4792/image"
+                            },
+                            "points": 0,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 0,
+                                "draw": 0,
+                                "lose": 3
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group B",
+                            "team": {
+                                "id": 4713,
+                                "name": "England",
+                                "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                            },
+                            "points": 7,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 1,
+                                "lose": 0
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group B",
+                            "team": {
+                                "id": 4724,
+                                "name": "USA",
+                                "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+                            },
+                            "points": 5,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 2,
+                                "lose": 0
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group B",
+                            "team": {
+                                "id": 4766,
+                                "name": "Iran",
+                                "logo": "https://api.sofascore.app/api/v1/team/4766/image"
+                            },
+                            "points": 3,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 0,
+                                "lose": 2
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group B",
+                            "team": {
+                                "id": 4702,
+                                "name": "Wales",
+                                "logo": "https://api.sofascore.app/api/v1/team/4702/image"
+                            },
+                            "points": 1,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 0,
+                                "draw": 1,
+                                "lose": 2
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group C",
+                            "team": {
+                                "id": 4819,
+                                "name": "Argentina",
+                                "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group C",
+                            "team": {
+                                "id": 4703,
+                                "name": "Poland",
+                                "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group C",
+                            "team": {
+                                "id": 4781,
+                                "name": "Mexico",
+                                "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group C",
+                            "team": {
+                                "id": 4834,
+                                "name": "Saudi Arabia",
+                                "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+                            },
+                            "points": 3,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 0,
+                                "lose": 2
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group D",
+                            "team": {
+                                "id": 4481,
+                                "name": "France",
+                                "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group D",
+                            "team": {
+                                "id": 4741,
+                                "name": "Australia",
+                                "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group D",
+                            "team": {
+                                "id": 4729,
+                                "name": "Tunisia",
+                                "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group D",
+                            "team": {
+                                "id": 4476,
+                                "name": "Denmark",
+                                "logo": "https://api.sofascore.app/api/v1/team/4476/image"
+                            },
+                            "points": 1,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 0,
+                                "draw": 1,
+                                "lose": 2
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group E",
+                            "team": {
+                                "id": 4770,
+                                "name": "Japan",
+                                "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group E",
+                            "team": {
+                                "id": 4698,
+                                "name": "Spain",
+                                "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group E",
+                            "team": {
+                                "id": 4711,
+                                "name": "Germany",
+                                "logo": "https://api.sofascore.app/api/v1/team/4711/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group E",
+                            "team": {
+                                "id": 4756,
+                                "name": "Costa Rica",
+                                "logo": "https://api.sofascore.app/api/v1/team/4756/image"
+                            },
+                            "points": 3,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 0,
+                                "lose": 2
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group F",
+                            "team": {
+                                "id": 4778,
+                                "name": "Morocco",
+                                "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                            },
+                            "points": 7,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 1,
+                                "lose": 0
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group F",
+                            "team": {
+                                "id": 4715,
+                                "name": "Croatia",
+                                "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                            },
+                            "points": 5,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 2,
+                                "lose": 0
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group F",
+                            "team": {
+                                "id": 4717,
+                                "name": "Belgium",
+                                "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group F",
+                            "team": {
+                                "id": 4752,
+                                "name": "Canada",
+                                "logo": "https://api.sofascore.app/api/v1/team/4752/image"
+                            },
+                            "points": 0,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 0,
+                                "draw": 0,
+                                "lose": 3
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group G",
+                            "team": {
+                                "id": 4748,
+                                "name": "Brazil",
+                                "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group G",
+                            "team": {
+                                "id": 4699,
+                                "name": "Switzerland",
+                                "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group G",
+                            "team": {
+                                "id": 4751,
+                                "name": "Cameroon",
+                                "logo": "https://api.sofascore.app/api/v1/team/4751/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group G",
+                            "team": {
+                                "id": 6355,
+                                "name": "Serbia",
+                                "logo": "https://api.sofascore.app/api/v1/team/6355/image"
+                            },
+                            "points": 1,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 0,
+                                "draw": 1,
+                                "lose": 2
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "rank": 1,
+                            "group": "Group H",
+                            "team": {
+                                "id": 4704,
+                                "name": "Portugal",
+                                "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                            },
+                            "points": 6,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 2,
+                                "draw": 0,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 2,
+                            "group": "Group H",
+                            "team": {
+                                "id": 4735,
+                                "name": "South Korea",
+                                "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 3,
+                            "group": "Group H",
+                            "team": {
+                                "id": 4725,
+                                "name": "Uruguay",
+                                "logo": "https://api.sofascore.app/api/v1/team/4725/image"
+                            },
+                            "points": 4,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 1,
+                                "lose": 1
+                            }
+                        },
+                        {
+                            "rank": 4,
+                            "group": "Group H",
+                            "team": {
+                                "id": 4764,
+                                "name": "Ghana",
+                                "logo": "https://api.sofascore.app/api/v1/team/4764/image"
+                            },
+                            "points": 3,
+                            "goalsDiff": 0,
+                            "all": {
+                                "played": 3,
+                                "win": 1,
+                                "draw": 0,
+                                "lose": 2
+                            }
+                        }
+                    ]
+                ]
+            }
+        }
+    ]
+}

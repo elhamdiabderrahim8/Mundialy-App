@@ -1,0 +1,216 @@
+{
+    "response": {
+        "venues": [
+            {
+                "city": {
+                    "name": "Al Rayyan",
+                    "id": 19373
+                },
+                "venueCoordinates": {
+                    "latitude": 25.329692,
+                    "longitude": 51.342322
+                },
+                "hidden": false,
+                "slug": "ahmed-bin-ali-stadium",
+                "name": "Ahmed bin Ali Stadium",
+                "capacity": 40740,
+                "id": 4964,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0623\u062d\u0645\u062f \u0628\u0646 \u0639\u0644\u064a \u0633\u062a\u0627\u062f\u064a\u0648\u0645",
+                        "hi": "\u0905\u0939\u092e\u0926 \u092c\u093f\u0928 \u0905\u0932\u0940 \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u0986\u09b9\u09ae\u09c7\u09a6 \u09ac\u09bf\u09a8 \u0986\u09b2\u09c0 \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Ahmed bin Ali Stadium",
+                    "capacity": 40740
+                }
+            },
+            {
+                "city": {
+                    "name": "Doha",
+                    "id": 19000
+                },
+                "venueCoordinates": {
+                    "latitude": 25.27932,
+                    "longitude": 51.52245
+                },
+                "hidden": true,
+                "slug": "khalifa-international-stadium",
+                "name": "Khalifa International Stadium",
+                "capacity": 45857,
+                "id": 1516,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u062e\u0644\u064a\u0641\u0629 \u0627\u0644\u062f\u0648\u0644\u064a",
+                        "hi": "\u0916\u0932\u0940\u092b\u093e \u0907\u0902\u091f\u0930\u0928\u0947\u0936\u0928\u0932 \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u0996\u09b2\u09bf\u09ab\u09be \u0987\u09a8\u09cd\u099f\u09be\u09b0\u09a8\u09cd\u09af\u09be\u09b6\u09a8\u09be\u09b2 \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Khalifa International Stadium",
+                    "capacity": 45857
+                }
+            },
+            {
+                "city": {
+                    "name": "Al Rayyan",
+                    "id": 19373
+                },
+                "venueCoordinates": {
+                    "latitude": 25.310853,
+                    "longitude": 51.424448
+                },
+                "hidden": true,
+                "slug": "education-city-stadium",
+                "name": "Education City Stadium",
+                "capacity": 45350,
+                "id": 30001,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u062a\u0639\u0644\u064a\u0645",
+                        "hi": "\u090f\u091c\u0941\u0915\u0947\u0936\u0928 \u0938\u093f\u091f\u0940 \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u098f\u09a1\u09c1\u0995\u09c7\u09b6\u09a8 \u09b8\u09bf\u099f\u09bf \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Education City Stadium",
+                    "capacity": 45350
+                }
+            },
+            {
+                "city": {
+                    "name": "Lusail",
+                    "id": 25274
+                },
+                "venueCoordinates": {
+                    "latitude": 25.4975,
+                    "longitude": 51.48528
+                },
+                "hidden": true,
+                "slug": "lusail-iconic-stadium",
+                "name": "Lusail Stadium",
+                "capacity": 88966,
+                "id": 34307,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u0644\u0648\u0633\u064a\u0644",
+                        "hi": "\u0932\u0941\u0938\u0948\u0932 \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u09b2\u09c1\u09b8\u09be\u0987\u09b2 \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Lusail Stadium",
+                    "capacity": 88966
+                }
+            },
+            {
+                "city": {
+                    "name": "Al-Thumama",
+                    "id": 25013
+                },
+                "hidden": true,
+                "slug": "al-thumama-stadium",
+                "name": "Al-Thumama Stadium",
+                "capacity": 40000,
+                "id": 34309,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u0627\u0644\u062b\u0645\u0627\u0645\u0629",
+                        "hi": "\u0905\u0932-\u0925\u0941\u092e\u093e\u092e\u093e \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u0986\u09b2-\u09a5\u09c1\u09ae\u09be\u09ae\u09be \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Al-Thumama Stadium",
+                    "capacity": 40000
+                }
+            },
+            {
+                "city": {
+                    "name": "Al Wakrah",
+                    "id": 26747
+                },
+                "venueCoordinates": {
+                    "latitude": 25.159708,
+                    "longitude": 51.574227
+                },
+                "hidden": true,
+                "slug": "al-janoub-stadium",
+                "name": "Al Janoub Stadium",
+                "id": 25979,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u0627\u0644\u062c\u0646\u0648\u0628",
+                        "hi": "\u0905\u0932 \u091c\u0928\u094c\u092c \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u0986\u09b2 \u099c\u09be\u09a8\u09c1\u09ac \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Al Janoub Stadium"
+                }
+            },
+            {
+                "city": {
+                    "name": "Al Khor",
+                    "id": 31067
+                },
+                "venueCoordinates": {
+                    "latitude": 51.31667,
+                    "longitude": 25.76667
+                },
+                "hidden": true,
+                "slug": "al-bayt-stadium",
+                "name": "Al Bayt Stadium",
+                "capacity": 60000,
+                "id": 34310,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 \u0627\u0644\u0628\u064a\u062a",
+                        "hi": "\u0905\u0932 \u092c\u0947\u0924 \u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e",
+                        "bn": "\u0986\u09b2 \u09ac\u09be\u0987\u09a4 \u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Al Bayt Stadium",
+                    "capacity": 60000
+                }
+            },
+            {
+                "city": {
+                    "name": "Ras Abu Aboud",
+                    "id": 32710
+                },
+                "venueCoordinates": {
+                    "latitude": 51.57889,
+                    "longitude": 25.28972
+                },
+                "hidden": true,
+                "slug": "stadium-974",
+                "name": "Stadium 974",
+                "capacity": 40000,
+                "id": 34308,
+                "fieldTranslations": {
+                    "nameTranslation": {
+                        "ar": "\u0645\u0644\u0639\u0628 974",
+                        "hi": "\u0938\u094d\u091f\u0947\u0921\u093f\u092f\u092e 974",
+                        "bn": "\u09b8\u09cd\u099f\u09c7\u09a1\u09bf\u09af\u09bc\u09be\u09ae 974"
+                    },
+                    "shortNameTranslation": {}
+                },
+                "stadium": {
+                    "name": "Stadium 974",
+                    "capacity": 40000
+                }
+            }
+        ]
+    }
+}

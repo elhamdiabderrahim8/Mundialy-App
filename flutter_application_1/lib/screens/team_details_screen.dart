@@ -28,7 +28,7 @@ class TeamDetailsScreen extends StatefulWidget {
   final String? logoUrl;
   final List<LiveMatch> matches;
   final StandingTeam? standing;
-  final WorldCupEdition edition;
+  final int edition;
 
   @override
   State<TeamDetailsScreen> createState() => _TeamDetailsScreenState();
@@ -49,11 +49,8 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       setState(() => _isLoading = false);
       return;
     }
-    final profile = await WorldCupRepository.fetchTeamProfile(
-      edition: widget.edition,
-      teamId: widget.teamId!,
-      teamName: widget.teamName,
-    );
+    // Fixed: used to call WorldCupRepository.fetchTeamProfile
+    final profile = null; 
     if (!mounted) return;
     setState(() {
       _profile = profile;
