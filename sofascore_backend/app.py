@@ -390,25 +390,45 @@ def get_standings():
     try:
         url_g = f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/groups"
         groups_raw = fetch_json(url_g)
-        if not groups_raw or 'groups' not in groups_raw:
-            return jsonify({"response": []})
-        all_s = []
-        for g in groups_raw.get('groups', []):
-            tid = g.get('tournamentId')
-            if not tid: continue
-            url_s = f"{SOFA_BASE_URL}/tournament/{tid}/season/{S_ID_2026}/standings/total"
-            data = fetch_json(url_s)
-            if data and data.get('standings'):
-                teams = []
-                for r in data['standings'][0].get('rows', []):
-                    t = r.get('team', {})
-                    teams.append({"rank": r.get('position'), "group": g.get('groupName'), "team": {"id": t.get('id'), "name": t.get('name'), "logo": f"https://api.sofascore.app/api/v1/team/{t.get('id')}/image"}, "points": r.get('points', 0), "goalsDiff": r.get('goalsFor', 0) - r.get('goalsAgainst', 0), "all": {"played": r.get('matches', 0), "win": r.get('wins', 0), "draw": r.get('draws', 0), "lose": r.get('losses', 0)}})
-                all_s.append(teams)
-        res = {"response": [{"league": {"id": UT_ID, "name": "World Cup 2026", "standings": all_s}}]}
-        return jsonify(res)
+        if groups_raw and 'groups' in groups_raw:
+            all_s = []
+            for g in groups_raw.get('groups', []):
+                tid = g.get('tournamentId')
+                if not tid: continue
+                url_s = f"{SOFA_BASE_URL}/tournament/{tid}/season/{S_ID_2026}/standings/total"
+                data = fetch_json(url_s)
+                if data and data.get('standings'):
+                    teams = []
+                    for r in data['standings'][0].get('rows', []):
+                        t = r.get('team', {})
+                        teams.append({"rank": r.get('position'), "group": g.get('groupName'), "team": {"id": t.get('id'), "name": t.get('name'), "logo": f"https://api.sofascore.app/api/v1/team/{t.get('id')}/image"}, "points": r.get('points', 0), "goalsDiff": r.get('goalsFor', 0) - r.get('goalsAgainst', 0), "all": {"played": r.get('matches', 0), "win": r.get('wins', 0), "draw": r.get('draws', 0), "lose": r.get('losses', 0)}})
+                    all_s.append(teams)
+            if all_s:
+                # Sauvegarder dans le cache pour la prochaine fois
+                cache_path = os.path.join(DATA_DIR, "wc2026_standings_formatted.json")
+                res = {"response": [{"league": {"id": UT_ID, "name": "World Cup 2026", "standings": all_s}}]}
+                with open(cache_path, 'w', encoding='utf-8') as f:
+                    json.dump(res, f, indent=2)
+                return jsonify(res)
     except Exception as e:
-        print(f"/api/standings error: {e}")
-        return jsonify({"response": []})
+        print(f"/api/standings live fetch error: {e}")
+
+    # FALLBACK : Lire depuis le cache local si SofaScore est bloqué
+    cache_path = os.path.join(DATA_DIR, "wc2026_standings_formatted.json")
+    if os.path.exists(cache_path):
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            print("[Fallback] Standings 2026 servi depuis le cache local")
+            return jsonify(json.load(f))
+
+    # Fallback brut : fichier wc2026_true_standings.json
+    raw_path = os.path.join(DATA_DIR, "wc2026_true_standings.json")
+    if os.path.exists(raw_path):
+        with open(raw_path, 'r', encoding='utf-8') as f:
+            raw = json.load(f)
+            print("[Fallback] Standings 2026 servi depuis wc2026_true_standings.json")
+            return jsonify(raw if isinstance(raw, dict) else {"response": raw})
+
+    return jsonify({"response": []})
 
 # Cache pour la route Live
 LIVE_CACHE = {
