@@ -9,6 +9,25 @@
       "client_info": {
         "mobilesdk_app_id": "1:244211951859:android:76874b274d657070adaf86",
         "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:244211951859:android:8244abcf53e810cdadaf86",
+        "android_client_info": {
           "package_name": "com.mundialy.app"
         }
       },
