@@ -51,7 +51,7 @@ from curl_cffi import requests as cffi_requests
 import random
 
 # Profils d'impersonation à rotater pour éviter le blocage
-_IMPERSONATE_PROFILES = ['chrome110', 'chrome107', 'chrome104', 'chrome101']
+_IMPERSONATE_PROFILES = ['chrome124', 'chrome120', 'chrome119']
 
 # Headers réalistes d'un vrai navigateur Chrome sur SofaScore
 _SOFA_HEADERS = {
@@ -894,17 +894,13 @@ def get_topscorers():
             with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
     else:
-        driver = None
         try:
-            driver = init_selenium_driver()
             url = f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/top-players/goals"
-            raw_data = fetch_json(driver, url)
+            raw_data = fetch_json_fast(url)
             if raw_data:
                 data = {"response": raw_data}
         except Exception as e:
             print("Error topscorers 2026:", e)
-        finally:
-            if driver: driver.quit()
 
     if data:
         # On extrait l'objet topPlayers
