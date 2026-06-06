@@ -1,0 +1,883 @@
+{
+    "response": {
+        "event": {
+            "id": 16263941,
+            "homeTeam": {
+                "id": 23488,
+                "name": "Tajikistan",
+                "nameCode": "TJK",
+                "logo": "https://api.sofascore.app/api/v1/team/23488/image"
+            },
+            "awayTeam": {
+                "id": 4828,
+                "name": "India",
+                "nameCode": "IND",
+                "logo": "https://api.sofascore.app/api/v1/team/4828/image"
+            },
+            "homeScore": {
+                "current": 3,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 1,
+                "penalties": null
+            },
+            "winnerCode": 1,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780671600
+        },
+        "venue": {
+            "name": "Stadium",
+            "city": "",
+            "capacity": ""
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Gela Shekiladze"
+            },
+            "away": {
+                "name": "Khalid Jamil"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 23488,
+                    "name": "Tajikistan",
+                    "nameCode": "TJK"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Gela Shekiladze"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 875697,
+                            "name": "R. Yatimov",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1023224,
+                            "name": "V. Khanonov",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 986337,
+                            "name": "Z. Dzhuraboev",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1196056,
+                            "name": "M. Karimov",
+                            "number": 12,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 875698,
+                            "name": "T. Islomov",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1536265,
+                            "name": "A. Shukurov",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 875725,
+                            "name": "E. Panshanbe",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1473390,
+                            "name": "S. Irgashev",
+                            "number": 5,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 61585,
+                            "name": "A. Dzhalilov",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1025562,
+                            "name": "S. Mabatshoev",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 928648,
+                            "name": "S. Boboev",
+                            "number": 14,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1110965,
+                            "name": "A. Karomatullozoda",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 61580,
+                            "name": "P. Umarbaev",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 975788,
+                            "name": "S. Samiev",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1652186,
+                            "name": "R. Rakhmatzoda",
+                            "number": 13,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 809525,
+                            "name": "A. Nazarov",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 875700,
+                            "name": "Juraboev",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2084702,
+                            "name": "F. Rakhimzoda",
+                            "number": 25,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1025489,
+                            "name": "D. Azizov",
+                            "number": 16,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1002640,
+                            "name": "M. Khasanov",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1394730,
+                            "name": "S. Kurbonov",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 975692,
+                            "name": "M. Rakhimov",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1473370,
+                            "name": "F. Davlatov",
+                            "number": 21,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 4828,
+                    "name": "India",
+                    "nameCode": "IND"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Khalid Jamil"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 144531,
+                            "name": "G. Sandhu",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 880701,
+                            "name": "N. Poojary",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 875824,
+                            "name": "S. Jhingan",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 822325,
+                            "name": "R. Bheke",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1000137,
+                            "name": "A. Mishra",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 905211,
+                            "name": "J. Singh",
+                            "number": 8,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1009606,
+                            "name": "R. J. Shabong",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 827824,
+                            "name": "L. Chhangte",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1188772,
+                            "name": "M. L. Nickson",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1000447,
+                            "name": "V. P. Singh",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 974480,
+                            "name": "E. Lalrindika",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1416388,
+                            "name": "N. Barla",
+                            "number": 22,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 911664,
+                            "name": "F. Choudhary",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1536250,
+                            "name": "M. S. K",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 822333,
+                            "name": "A. Gomes",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1501063,
+                            "name": "P. Singh",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1157775,
+                            "name": "B. Varghese",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1100518,
+                            "name": "P. Gogoi",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1154143,
+                            "name": "H. Tiwari",
+                            "number": 13,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1097393,
+                            "name": "N. M. Singh",
+                            "number": 3,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1432026,
+                            "name": "N. PN",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 905210,
+                            "name": "R. Ali",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 9,
+                "addedTime": null,
+                "displayTime": "9'",
+                "incidentType": "goal",
+                "incidentClass": "penalty",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 928648,
+                    "name": "S. Boboev"
+                },
+                "from": "penalty"
+            },
+            {
+                "time": 25,
+                "addedTime": null,
+                "displayTime": "25'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 974480,
+                    "name": "E. Lalrindika"
+                },
+                "reason": ""
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1110965,
+                    "name": "A. Karomatullozoda"
+                },
+                "playerOut": {
+                    "id": 1023224,
+                    "name": "V. Khanonov"
+                }
+            },
+            {
+                "time": 59,
+                "addedTime": null,
+                "displayTime": "59'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 875725,
+                    "name": "E. Panshanbe"
+                },
+                "reason": ""
+            },
+            {
+                "time": 61,
+                "addedTime": null,
+                "displayTime": "61'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1000447,
+                    "name": "V. P. Singh"
+                },
+                "reason": ""
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 975788,
+                    "name": "S. Samiev"
+                },
+                "playerOut": {
+                    "id": 928648,
+                    "name": "S. Boboev"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 61580,
+                    "name": "P. Umarbaev"
+                },
+                "playerOut": {
+                    "id": 1025562,
+                    "name": "S. Mabatshoev"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1196056,
+                    "name": "M. Karimov"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 66,
+                "addedTime": null,
+                "displayTime": "66'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1652186,
+                    "name": "R. Rakhmatzoda"
+                },
+                "playerOut": {
+                    "id": 1196056,
+                    "name": "M. Karimov"
+                }
+            },
+            {
+                "time": 68,
+                "addedTime": null,
+                "displayTime": "68'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 875725,
+                    "name": "E. Panshanbe"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 69,
+                "addedTime": null,
+                "displayTime": "69'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1536250,
+                    "name": "M. S. K"
+                },
+                "playerOut": {
+                    "id": 827824,
+                    "name": "L. Chhangte"
+                }
+            },
+            {
+                "time": 69,
+                "addedTime": null,
+                "displayTime": "69'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1416388,
+                    "name": "N. Barla"
+                },
+                "playerOut": {
+                    "id": 880701,
+                    "name": "N. Poojary"
+                }
+            },
+            {
+                "time": 69,
+                "addedTime": null,
+                "displayTime": "69'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 911664,
+                    "name": "F. Choudhary"
+                },
+                "playerOut": {
+                    "id": 1188772,
+                    "name": "M. L. Nickson"
+                }
+            },
+            {
+                "time": 75,
+                "addedTime": null,
+                "displayTime": "75'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 2084702,
+                    "name": "F. Rakhimzoda"
+                },
+                "playerOut": {
+                    "id": 61585,
+                    "name": "A. Dzhalilov"
+                }
+            },
+            {
+                "time": 75,
+                "addedTime": null,
+                "displayTime": "75'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 809525,
+                    "name": "A. Nazarov"
+                },
+                "playerOut": {
+                    "id": 875725,
+                    "name": "E. Panshanbe"
+                }
+            },
+            {
+                "time": 75,
+                "addedTime": null,
+                "displayTime": "75'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 875700,
+                    "name": "Juraboev"
+                },
+                "playerOut": {
+                    "id": 1536265,
+                    "name": "A. Shukurov"
+                }
+            },
+            {
+                "time": 81,
+                "addedTime": null,
+                "displayTime": "81'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1157775,
+                    "name": "B. Varghese"
+                },
+                "playerOut": {
+                    "id": 822325,
+                    "name": "R. Bheke"
+                }
+            },
+            {
+                "time": 81,
+                "addedTime": null,
+                "displayTime": "81'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1501063,
+                    "name": "P. Singh"
+                },
+                "playerOut": {
+                    "id": 875824,
+                    "name": "S. Jhingan"
+                }
+            },
+            {
+                "time": 81,
+                "addedTime": null,
+                "displayTime": "81'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 822333,
+                    "name": "A. Gomes"
+                },
+                "playerOut": {
+                    "id": 144531,
+                    "name": "G. Sandhu"
+                }
+            },
+            {
+                "time": 84,
+                "addedTime": null,
+                "displayTime": "84'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 809525,
+                    "name": "A. Nazarov"
+                },
+                "reason": ""
+            },
+            {
+                "time": 84,
+                "addedTime": null,
+                "displayTime": "84'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1100518,
+                    "name": "P. Gogoi"
+                },
+                "playerOut": {
+                    "id": 905211,
+                    "name": "J. Singh"
+                }
+            },
+            {
+                "time": 87,
+                "addedTime": null,
+                "displayTime": "87'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1652186,
+                    "name": "R. Rakhmatzoda"
+                },
+                "reason": ""
+            },
+            {
+                "time": 89,
+                "addedTime": null,
+                "displayTime": "89'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 911664,
+                    "name": "F. Choudhary"
+                },
+                "from": "regular"
+            }
+        ],
+        "kitColors": {
+            "home": "f10909",
+            "away": "e2570c"
+        }
+    }
+}

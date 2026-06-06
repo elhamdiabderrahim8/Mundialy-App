@@ -1,0 +1,816 @@
+{
+    "response": {
+        "event": {
+            "id": 16223225,
+            "homeTeam": {
+                "id": 4829,
+                "name": "Indonesia",
+                "nameCode": "INA",
+                "logo": "https://api.sofascore.app/api/v1/team/4829/image"
+            },
+            "awayTeam": {
+                "id": 4787,
+                "name": "Oman",
+                "nameCode": "OMN",
+                "logo": "https://api.sofascore.app/api/v1/team/4787/image"
+            },
+            "homeScore": {
+                "current": 3,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": 1,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780664400
+        },
+        "venue": {
+            "name": "Gelora Bung Karno Madya Stadium",
+            "city": "Jakarta",
+            "capacity": "9170"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "John Herdman"
+            },
+            "away": {
+                "name": "Tarik Sektioui"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4829,
+                    "name": "Indonesia",
+                    "nameCode": "INA"
+                },
+                "formation": "3-4-3",
+                "coach": {
+                    "name": "John Herdman"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 318603,
+                            "name": "E. Audero",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1383006,
+                            "name": "R. Ridho",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1066814,
+                            "name": "E. Baggott",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1112604,
+                            "name": "J. Hubner",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 583806,
+                            "name": "K. Diks",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1171844,
+                            "name": "I. Jenner",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 235404,
+                            "name": "J. Pelupessy",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 992651,
+                            "name": "N. Tjoe-A-On",
+                            "number": 22,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 986947,
+                            "name": "B. P. Nugraha",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 921948,
+                            "name": "O. Romeny",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 899651,
+                            "name": "R. Oratmangoen",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1474234,
+                            "name": "D. Pamungkas",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 361780,
+                            "name": "C. Verdonk",
+                            "number": 17,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 984909,
+                            "name": "Y. Sayuri",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2080794,
+                            "name": "M. Baker",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 962477,
+                            "name": "S. Ramdani",
+                            "number": 15,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1939256,
+                            "name": "M. Zijlstra",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 985042,
+                            "name": "N. Argawinata",
+                            "number": 25,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 843250,
+                            "name": "M. Paes",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 163199,
+                            "name": "S. Walsh",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1143679,
+                            "name": "M. Ferarri",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1504091,
+                            "name": "R. Hannan",
+                            "number": 21,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 4787,
+                    "name": "Oman",
+                    "nameCode": "OMN"
+                },
+                "formation": "4-4-2",
+                "coach": {
+                    "name": "Tarik Sektioui"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 971571,
+                            "name": "A. Al-Rawahi",
+                            "number": 22,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1110848,
+                            "name": "A. Al-Harthi",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 869773,
+                            "name": "A. Al-Khamisi",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2070148,
+                            "name": "M. Al-Shaqsy",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1522406,
+                            "name": "Y. Al-Malki",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1500437,
+                            "name": "N. Al-Rawahi",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 901310,
+                            "name": "A. Fawaz",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 812978,
+                            "name": "H. Al-Saadi",
+                            "number": 23,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 920429,
+                            "name": "Z. Al-Aghbari",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 869774,
+                            "name": "M. Al Ghassani",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1542931,
+                            "name": "H. Sultan",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1163985,
+                            "name": "I. A. Rajhi",
+                            "number": 26,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1473346,
+                            "name": "A. Al-Mashaiki",
+                            "number": 27,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1215437,
+                            "name": "H. S. A. Shahri",
+                            "number": 25,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1410214,
+                            "name": "M. Al-Mamari",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 836733,
+                            "name": "J. Al-Yahmadi",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 994806,
+                            "name": "M. A. Ghafri",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 823703,
+                            "name": "A. Al-Kaabi",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1825192,
+                            "name": "K. A. Ghatrifi",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1605922,
+                            "name": "G. Al-Habashi",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2070143,
+                            "name": "I. A. Naabi",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1473364,
+                            "name": "S. Al-Marzouq",
+                            "number": 31,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2019350,
+                            "name": "A. Al-Shukaili",
+                            "number": 30,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 8,
+                "addedTime": null,
+                "displayTime": "8'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 986947,
+                    "name": "B. P. Nugraha"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 13,
+                "addedTime": null,
+                "displayTime": "13'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1112604,
+                    "name": "J. Hubner"
+                },
+                "from": "",
+                "assist": {
+                    "id": 992651,
+                    "name": "N. Tjoe-A-On"
+                }
+            },
+            {
+                "time": 27,
+                "addedTime": null,
+                "displayTime": "27'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 921948,
+                    "name": "O. Romeny"
+                },
+                "from": ""
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1474234,
+                    "name": "D. Pamungkas"
+                },
+                "playerOut": {
+                    "id": 1112604,
+                    "name": "J. Hubner"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1163985,
+                    "name": "I. A. Rajhi"
+                },
+                "playerOut": {
+                    "id": 971571,
+                    "name": "A. Al-Rawahi"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1473346,
+                    "name": "A. Al-Mashaiki"
+                },
+                "playerOut": {
+                    "id": 1542931,
+                    "name": "H. Sultan"
+                }
+            },
+            {
+                "time": 48,
+                "addedTime": null,
+                "displayTime": "48'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 992651,
+                    "name": "N. Tjoe-A-On"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 52,
+                "addedTime": null,
+                "displayTime": "52'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 361780,
+                    "name": "C. Verdonk"
+                },
+                "playerOut": {
+                    "id": 986947,
+                    "name": "B. P. Nugraha"
+                }
+            },
+            {
+                "time": 56,
+                "addedTime": null,
+                "displayTime": "56'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 899651,
+                    "name": "R. Oratmangoen"
+                },
+                "from": ""
+            },
+            {
+                "time": 63,
+                "addedTime": null,
+                "displayTime": "63'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 984909,
+                    "name": "Y. Sayuri"
+                },
+                "playerOut": {
+                    "id": 992651,
+                    "name": "N. Tjoe-A-On"
+                }
+            },
+            {
+                "time": 68,
+                "addedTime": null,
+                "displayTime": "68'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1410214,
+                    "name": "M. Al-Mamari"
+                },
+                "playerOut": {
+                    "id": 869773,
+                    "name": "A. Al-Khamisi"
+                }
+            },
+            {
+                "time": 68,
+                "addedTime": null,
+                "displayTime": "68'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 836733,
+                    "name": "J. Al-Yahmadi"
+                },
+                "playerOut": {
+                    "id": 1500437,
+                    "name": "N. Al-Rawahi"
+                }
+            },
+            {
+                "time": 68,
+                "addedTime": null,
+                "displayTime": "68'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1215437,
+                    "name": "H. S. A. Shahri"
+                },
+                "playerOut": {
+                    "id": 920429,
+                    "name": "Z. Al-Aghbari"
+                }
+            },
+            {
+                "time": 74,
+                "addedTime": null,
+                "displayTime": "74'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1474234,
+                    "name": "D. Pamungkas"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 75,
+                "addedTime": null,
+                "displayTime": "75'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 994806,
+                    "name": "M. A. Ghafri"
+                },
+                "playerOut": {
+                    "id": 812978,
+                    "name": "H. Al-Saadi"
+                }
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 962477,
+                    "name": "S. Ramdani"
+                },
+                "playerOut": {
+                    "id": 899651,
+                    "name": "R. Oratmangoen"
+                }
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 2080794,
+                    "name": "M. Baker"
+                },
+                "playerOut": {
+                    "id": 1383006,
+                    "name": "R. Ridho"
+                }
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1939256,
+                    "name": "M. Zijlstra"
+                },
+                "playerOut": {
+                    "id": 921948,
+                    "name": "O. Romeny"
+                }
+            },
+            {
+                "time": 88,
+                "addedTime": null,
+                "displayTime": "88'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 823703,
+                    "name": "A. Al-Kaabi"
+                },
+                "playerOut": {
+                    "id": 1522406,
+                    "name": "Y. Al-Malki"
+                }
+            }
+        ],
+        "kitColors": {
+            "home": "bc1515",
+            "away": "ffffff"
+        }
+    }
+}

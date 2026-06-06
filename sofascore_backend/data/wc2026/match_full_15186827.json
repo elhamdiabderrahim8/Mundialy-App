@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186827,
+            "homeTeam": {
+                "id": 4784,
+                "name": "New Zealand",
+                "nameCode": "NZL",
+                "logo": "https://www.sofascore.com/api/v1/team/4784/image"
+            },
+            "awayTeam": {
+                "id": 4758,
+                "name": "Egypt",
+                "nameCode": "EGY",
+                "logo": "https://www.sofascore.com/api/v1/team/4758/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1782090000
+        },
+        "venue": {
+            "name": "BC Place",
+            "city": "Vancouver",
+            "capacity": "54500"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Darren Bazeley"
+            },
+            "away": {
+                "name": "Hossam Hassan"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4784,
+                    "name": "New Zealand",
+                    "nameCode": "NZL"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Darren Bazeley"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4758,
+                    "name": "Egypt",
+                    "nameCode": "EGY"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Hossam Hassan"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

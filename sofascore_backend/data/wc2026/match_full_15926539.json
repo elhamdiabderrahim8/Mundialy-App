@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15926539,
+            "homeTeam": {
+                "id": 4781,
+                "name": "Mexico",
+                "nameCode": "MEX",
+                "logo": "https://www.sofascore.com/api/v1/team/4781/image"
+            },
+            "awayTeam": {
+                "id": 6355,
+                "name": "Serbia",
+                "nameCode": "SRB",
+                "logo": "https://www.sofascore.com/api/v1/team/6355/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1780624800
+        },
+        "venue": {
+            "name": "Estadio Nemesio Diez",
+            "city": "Toluca",
+            "capacity": "31000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Javier Aguirre"
+            },
+            "away": {
+                "name": "Veljko Paunović"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4781,
+                    "name": "Mexico",
+                    "nameCode": "MEX"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Javier Aguirre"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 6355,
+                    "name": "Serbia",
+                    "nameCode": "SRB"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Veljko Paunović"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

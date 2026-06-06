@@ -1,0 +1,171 @@
+{
+    "response": {
+        "event": {
+            "id": 16268921,
+            "homeTeam": {
+                "id": 23484,
+                "name": "Myanmar",
+                "nameCode": "MYA",
+                "logo": "https://api.sofascore.app/api/v1/team/23484/image"
+            },
+            "awayTeam": {
+                "id": 23493,
+                "name": "Guam",
+                "nameCode": "GUM",
+                "logo": "https://api.sofascore.app/api/v1/team/23493/image"
+            },
+            "homeScore": {
+                "current": 5,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 7,
+                "description": "2nd half",
+                "type": "inprogress"
+            },
+            "startTimestamp": 1780745400
+        },
+        "venue": {
+            "name": "Stadium",
+            "city": "",
+            "capacity": ""
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Hlaing Win Myo"
+            },
+            "away": {
+                "name": "Ross Awa"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 23484,
+                    "name": "Myanmar",
+                    "nameCode": "MYA"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Hlaing Win Myo"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 23493,
+                    "name": "Guam",
+                    "nameCode": "GUM"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Ross Awa"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 13,
+                "addedTime": null,
+                "displayTime": "13'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 23,
+                "addedTime": null,
+                "displayTime": "23'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 35,
+                "addedTime": null,
+                "displayTime": "35'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 53,
+                "addedTime": null,
+                "displayTime": "53'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 4,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 57,
+                "addedTime": null,
+                "displayTime": "57'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 5,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "from": "regular"
+            }
+        ],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

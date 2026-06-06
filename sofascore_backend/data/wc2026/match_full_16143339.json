@@ -1,0 +1,851 @@
+{
+    "response": {
+        "event": {
+            "id": 16143339,
+            "homeTeam": {
+                "id": 4714,
+                "name": "Czechia",
+                "nameCode": "CZE",
+                "logo": "https://www.sofascore.com/api/v1/team/4714/image"
+            },
+            "awayTeam": {
+                "id": 5163,
+                "name": "Guatemala",
+                "nameCode": "GUA",
+                "logo": "https://www.sofascore.com/api/v1/team/5163/image"
+            },
+            "homeScore": {
+                "current": 3,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 1,
+                "penalties": null
+            },
+            "winnerCode": 1,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780617600
+        },
+        "venue": {
+            "name": "Sports Illustrated Stadium",
+            "city": "Harrison",
+            "capacity": "25000"
+        },
+        "referee": {
+            "name": "Pierre-Luc Lauziere",
+            "country": "Canada"
+        },
+        "managers": {
+            "home": {
+                "name": "Miroslav Koubek"
+            },
+            "away": {
+                "name": "Luis Fernando Tena"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4714,
+                    "name": "Czechia",
+                    "nameCode": "CZE"
+                },
+                "formation": "5-4-1",
+                "coach": {
+                    "name": "Miroslav Koubek"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 927366,
+                            "name": "M. Kovář",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1144329,
+                            "name": "S. Chaloupek",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 957615,
+                            "name": "R. Hranáč",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 856250,
+                            "name": "L. Krejčí",
+                            "number": 7,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 138024,
+                            "name": "V. Coufal",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 799041,
+                            "name": "T. Souček",
+                            "number": 22,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 825731,
+                            "name": "M. Sadílek",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1030711,
+                            "name": "D. Jurásek",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 846122,
+                            "name": "L. Provod",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 957604,
+                            "name": "P. Šulc",
+                            "number": 15,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 280609,
+                            "name": "P. Schick",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 151440,
+                            "name": "T. Holeš",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 118204,
+                            "name": "J. Zelený",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 109002,
+                            "name": "V. Darida",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 963801,
+                            "name": "A. Hložek",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 963084,
+                            "name": "D. Zima",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 952114,
+                            "name": "L. Červ",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 891442,
+                            "name": "D. Doudera",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1403491,
+                            "name": "A. Sojka",
+                            "number": 24,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1088727,
+                            "name": "D. Višinský",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 188307,
+                            "name": "T. Chorý",
+                            "number": 19,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 280601,
+                            "name": "J. Staněk",
+                            "number": 16,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 963744,
+                            "name": "L. Horníček",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1931626,
+                            "name": "H. Sochurek",
+                            "number": 25,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 826049,
+                            "name": "M. Chytil",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 824139,
+                            "name": "J. Kuchta",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 5163,
+                    "name": "Guatemala",
+                    "nameCode": "GUA"
+                },
+                "formation": "3-4-2-1",
+                "coach": {
+                    "name": "Luis Fernando Tena"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1176504,
+                            "name": "L. Morán",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 880795,
+                            "name": "A. Herrera",
+                            "number": 7,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2033188,
+                            "name": "M. Hernández",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 803584,
+                            "name": "N. Samayoa",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 812987,
+                            "name": "J. Pinto",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1128520,
+                            "name": "J. Morales",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 962609,
+                            "name": "Ó. Santis",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1494434,
+                            "name": "J. Franco",
+                            "number": 22,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 986259,
+                            "name": "J. Rosales",
+                            "number": 5,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1168126,
+                            "name": "W. Fajardo",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1618782,
+                            "name": "D. Méndez",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1468974,
+                            "name": "M. Evans",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1468976,
+                            "name": "O. Escobar",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1127223,
+                            "name": "A. Ordóñez",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 962616,
+                            "name": "O. Castellanos",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 803581,
+                            "name": "N. Hagen",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 962602,
+                            "name": "J. Ardón",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1191062,
+                            "name": "A. Recinos",
+                            "number": 24,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1140409,
+                            "name": "K. Ramírez",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1123548,
+                            "name": "J. Méndez",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1495079,
+                            "name": "J. Bantes",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1049305,
+                            "name": "D. Lom",
+                            "number": 14,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 11,
+                "addedTime": null,
+                "displayTime": "11'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 280609,
+                    "name": "P. Schick"
+                },
+                "from": "",
+                "assist": {
+                    "id": 957604,
+                    "name": "P. Šulc"
+                }
+            },
+            {
+                "time": 40,
+                "addedTime": null,
+                "displayTime": "40'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1168126,
+                    "name": "W. Fajardo"
+                },
+                "from": "",
+                "assist": {
+                    "id": 1618782,
+                    "name": "D. Méndez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 109002,
+                    "name": "V. Darida"
+                },
+                "playerOut": {
+                    "id": 825731,
+                    "name": "M. Sadílek"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 963801,
+                    "name": "A. Hložek"
+                },
+                "playerOut": {
+                    "id": 957604,
+                    "name": "P. Šulc"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 151440,
+                    "name": "T. Holeš"
+                },
+                "playerOut": {
+                    "id": 1144329,
+                    "name": "S. Chaloupek"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 118204,
+                    "name": "J. Zelený"
+                },
+                "playerOut": {
+                    "id": 856250,
+                    "name": "L. Krejčí"
+                }
+            },
+            {
+                "time": 60,
+                "addedTime": null,
+                "displayTime": "60'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1127223,
+                    "name": "A. Ordóñez"
+                },
+                "playerOut": {
+                    "id": 1618782,
+                    "name": "D. Méndez"
+                }
+            },
+            {
+                "time": 60,
+                "addedTime": null,
+                "displayTime": "60'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1468974,
+                    "name": "M. Evans"
+                },
+                "playerOut": {
+                    "id": 962609,
+                    "name": "Ó. Santis"
+                }
+            },
+            {
+                "time": 60,
+                "addedTime": null,
+                "displayTime": "60'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1468976,
+                    "name": "O. Escobar"
+                },
+                "playerOut": {
+                    "id": 1168126,
+                    "name": "W. Fajardo"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 891442,
+                    "name": "D. Doudera"
+                },
+                "playerOut": {
+                    "id": 280609,
+                    "name": "P. Schick"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1403491,
+                    "name": "A. Sojka"
+                },
+                "playerOut": {
+                    "id": 1030711,
+                    "name": "D. Jurásek"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1088727,
+                    "name": "D. Višinský"
+                },
+                "playerOut": {
+                    "id": 799041,
+                    "name": "T. Souček"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 952114,
+                    "name": "L. Červ"
+                },
+                "playerOut": {
+                    "id": 138024,
+                    "name": "V. Coufal"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 963084,
+                    "name": "D. Zima"
+                },
+                "playerOut": {
+                    "id": 957615,
+                    "name": "R. Hranáč"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 188307,
+                    "name": "T. Chorý"
+                },
+                "playerOut": {
+                    "id": 846122,
+                    "name": "L. Provod"
+                }
+            },
+            {
+                "time": 72,
+                "addedTime": null,
+                "displayTime": "72'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 188307,
+                    "name": "T. Chorý"
+                },
+                "from": "",
+                "assist": {
+                    "id": 891442,
+                    "name": "D. Doudera"
+                }
+            },
+            {
+                "time": 78,
+                "addedTime": null,
+                "displayTime": "78'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 2033188,
+                    "name": "M. Hernández"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 79,
+                "addedTime": null,
+                "displayTime": "79'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1088727,
+                    "name": "D. Višinský"
+                },
+                "from": ""
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 962616,
+                    "name": "O. Castellanos"
+                },
+                "playerOut": {
+                    "id": 986259,
+                    "name": "J. Rosales"
+                }
+            }
+        ],
+        "kitColors": {
+            "home": "cc0000",
+            "away": "ffffff"
+        }
+    }
+}

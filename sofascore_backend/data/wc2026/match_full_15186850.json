@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186850,
+            "homeTeam": {
+                "id": 4748,
+                "name": "Brazil",
+                "nameCode": "BRA",
+                "logo": "https://www.sofascore.com/api/v1/team/4748/image"
+            },
+            "awayTeam": {
+                "id": 4778,
+                "name": "Morocco",
+                "nameCode": "MOR",
+                "logo": "https://www.sofascore.com/api/v1/team/4778/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781388000
+        },
+        "venue": {
+            "name": "MetLife Stadium",
+            "city": "East Rutherford",
+            "capacity": "82500"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Carlo Ancelotti"
+            },
+            "away": {
+                "name": "Mohamed Ouahbi"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "nameCode": "BRA"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Carlo Ancelotti"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 243609,
+                            "name": "Alisson",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1134200,
+                            "name": "Wesley",
+                            "number": 2,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 155995,
+                            "name": "Marquinhos",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 869792,
+                            "name": "G. Magalhães",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 84854,
+                            "name": "A. Sandro",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 866469,
+                            "name": "B. Guimarães",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 122951,
+                            "name": "Casemiro",
+                            "number": 5,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1035995,
+                            "name": "L. Henrique",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 831005,
+                            "name": "Raphinha",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 868812,
+                            "name": "Vinícius Jr.",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 886363,
+                            "name": "M. Cunha",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "nameCode": "MOR"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Mohamed Ouahbi"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 360938,
+                            "name": "Bono",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 814594,
+                            "name": "A. Hakimi",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 877102,
+                            "name": "N. Aguerd",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1064218,
+                            "name": "C. Riad",
+                            "number": 18,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 847030,
+                            "name": "N. Mazraoui",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 991421,
+                            "name": "A. Ounahi",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1128530,
+                            "name": "N. El Aynaoui",
+                            "number": 24,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 835485,
+                            "name": "B. Díaz",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1063767,
+                            "name": "I. Saibari",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1142675,
+                            "name": "C. Talbi",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 919793,
+                            "name": "A. E. Kaabi",
+                            "number": 20,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

@@ -1,0 +1,698 @@
+[
+    {
+        "fixture": {
+            "id": 15186710,
+            "timestamp": 1781204400,
+            "date": "2026-06-11T21:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4781,
+                "name": "Mexico",
+                "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+            },
+            "away": {
+                "id": 4736,
+                "name": "South Africa",
+                "logo": "https://api.sofascore.app/api/v1/team/4736/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186720,
+            "timestamp": 1781229600,
+            "date": "2026-06-12T04:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4735,
+                "name": "South Korea",
+                "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+            },
+            "away": {
+                "id": 4714,
+                "name": "Czechia",
+                "logo": "https://api.sofascore.app/api/v1/team/4714/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186836,
+            "timestamp": 1781290800,
+            "date": "2026-06-12T21:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4752,
+                "name": "Canada",
+                "logo": "https://api.sofascore.app/api/v1/team/4752/image"
+            },
+            "away": {
+                "id": 4479,
+                "name": "Bosnia & Herzegovina",
+                "logo": "https://api.sofascore.app/api/v1/team/4479/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186873,
+            "timestamp": 1781312400,
+            "date": "2026-06-13T03:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4724,
+                "name": "USA",
+                "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+            },
+            "away": {
+                "id": 4789,
+                "name": "Paraguay",
+                "logo": "https://api.sofascore.app/api/v1/team/4789/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186526,
+            "timestamp": 1781377200,
+            "date": "2026-06-13T21:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4792,
+                "name": "Qatar",
+                "logo": "https://api.sofascore.app/api/v1/team/4792/image"
+            },
+            "away": {
+                "id": 4699,
+                "name": "Switzerland",
+                "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186850,
+            "timestamp": 1781388000,
+            "date": "2026-06-14T00:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4748,
+                "name": "Brazil",
+                "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+            },
+            "away": {
+                "id": 4778,
+                "name": "Morocco",
+                "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186853,
+            "timestamp": 1781398800,
+            "date": "2026-06-14T03:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 7229,
+                "name": "Haiti",
+                "logo": "https://api.sofascore.app/api/v1/team/7229/image"
+            },
+            "away": {
+                "id": 4695,
+                "name": "Scotland",
+                "logo": "https://api.sofascore.app/api/v1/team/4695/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186874,
+            "timestamp": 1781409600,
+            "date": "2026-06-14T06:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4741,
+                "name": "Australia",
+                "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+            },
+            "away": {
+                "id": 4700,
+                "name": "T\u00fcrkiye",
+                "logo": "https://api.sofascore.app/api/v1/team/4700/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186899,
+            "timestamp": 1781456400,
+            "date": "2026-06-14T19:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4711,
+                "name": "Germany",
+                "logo": "https://api.sofascore.app/api/v1/team/4711/image"
+            },
+            "away": {
+                "id": 55827,
+                "name": "Cura\u00e7ao",
+                "logo": "https://api.sofascore.app/api/v1/team/55827/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186945,
+            "timestamp": 1781467200,
+            "date": "2026-06-14T22:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4705,
+                "name": "Netherlands",
+                "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+            },
+            "away": {
+                "id": 4770,
+                "name": "Japan",
+                "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186904,
+            "timestamp": 1781478000,
+            "date": "2026-06-15T01:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4768,
+                "name": "C\u00f4te d'Ivoire",
+                "logo": "https://api.sofascore.app/api/v1/team/4768/image"
+            },
+            "away": {
+                "id": 4757,
+                "name": "Ecuador",
+                "logo": "https://api.sofascore.app/api/v1/team/4757/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186951,
+            "timestamp": 1781488800,
+            "date": "2026-06-15T04:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4688,
+                "name": "Sweden",
+                "logo": "https://api.sofascore.app/api/v1/team/4688/image"
+            },
+            "away": {
+                "id": 4729,
+                "name": "Tunisia",
+                "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186783,
+            "timestamp": 1781539200,
+            "date": "2026-06-15T18:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4698,
+                "name": "Spain",
+                "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+            },
+            "away": {
+                "id": 4753,
+                "name": "Cabo Verde",
+                "logo": "https://api.sofascore.app/api/v1/team/4753/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186837,
+            "timestamp": 1781550000,
+            "date": "2026-06-15T21:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4717,
+                "name": "Belgium",
+                "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+            },
+            "away": {
+                "id": 4758,
+                "name": "Egypt",
+                "logo": "https://api.sofascore.app/api/v1/team/4758/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186811,
+            "timestamp": 1781560800,
+            "date": "2026-06-16T00:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4834,
+                "name": "Saudi Arabia",
+                "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+            },
+            "away": {
+                "id": 4725,
+                "name": "Uruguay",
+                "logo": "https://api.sofascore.app/api/v1/team/4725/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186832,
+            "timestamp": 1781571600,
+            "date": "2026-06-16T03:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4766,
+                "name": "Iran",
+                "logo": "https://api.sofascore.app/api/v1/team/4766/image"
+            },
+            "away": {
+                "id": 4784,
+                "name": "New Zealand",
+                "logo": "https://api.sofascore.app/api/v1/team/4784/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186501,
+            "timestamp": 1781636400,
+            "date": "2026-06-16T21:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4481,
+                "name": "France",
+                "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+            },
+            "away": {
+                "id": 4739,
+                "name": "Senegal",
+                "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186773,
+            "timestamp": 1781647200,
+            "date": "2026-06-17T00:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4767,
+                "name": "Iraq",
+                "logo": "https://api.sofascore.app/api/v1/team/4767/image"
+            },
+            "away": {
+                "id": 4475,
+                "name": "Norway",
+                "logo": "https://api.sofascore.app/api/v1/team/4475/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186854,
+            "timestamp": 1781658000,
+            "date": "2026-06-17T03:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4819,
+                "name": "Argentina",
+                "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+            },
+            "away": {
+                "id": 4691,
+                "name": "Algeria",
+                "logo": "https://api.sofascore.app/api/v1/team/4691/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186751,
+            "timestamp": 1781668800,
+            "date": "2026-06-17T06:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4718,
+                "name": "Austria",
+                "logo": "https://api.sofascore.app/api/v1/team/4718/image"
+            },
+            "away": {
+                "id": 4771,
+                "name": "Jordan",
+                "logo": "https://api.sofascore.app/api/v1/team/4771/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186709,
+            "timestamp": 1781715600,
+            "date": "2026-06-17T19:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4704,
+                "name": "Portugal",
+                "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+            },
+            "away": {
+                "id": 4823,
+                "name": "DR Congo",
+                "logo": "https://api.sofascore.app/api/v1/team/4823/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186504,
+            "timestamp": 1781726400,
+            "date": "2026-06-17T22:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4713,
+                "name": "England",
+                "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+            },
+            "away": {
+                "id": 4715,
+                "name": "Croatia",
+                "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186687,
+            "timestamp": 1781737200,
+            "date": "2026-06-18T01:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4764,
+                "name": "Ghana",
+                "logo": "https://api.sofascore.app/api/v1/team/4764/image"
+            },
+            "away": {
+                "id": 5164,
+                "name": "Panama",
+                "logo": "https://api.sofascore.app/api/v1/team/5164/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    },
+    {
+        "fixture": {
+            "id": 15186722,
+            "timestamp": 1781748000,
+            "date": "2026-06-18T04:00:00",
+            "status": {
+                "long": "Not started",
+                "short": "NS",
+                "elapsed": 0
+            }
+        },
+        "teams": {
+            "home": {
+                "id": 4723,
+                "name": "Uzbekistan",
+                "logo": "https://api.sofascore.app/api/v1/team/4723/image"
+            },
+            "away": {
+                "id": 4820,
+                "name": "Colombia",
+                "logo": "https://api.sofascore.app/api/v1/team/4820/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "stream_url": "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
+    }
+]

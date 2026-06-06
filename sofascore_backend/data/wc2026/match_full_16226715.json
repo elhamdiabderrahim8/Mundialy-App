@@ -1,0 +1,635 @@
+{
+    "response": {
+        "event": {
+            "id": 16226715,
+            "homeTeam": {
+                "id": 4765,
+                "name": "Hong Kong",
+                "nameCode": "HKG",
+                "logo": "https://www.sofascore.com/api/v1/team/4765/image"
+            },
+            "awayTeam": {
+                "id": 23496,
+                "name": "Mongolia",
+                "nameCode": "MGL",
+                "logo": "https://www.sofascore.com/api/v1/team/23496/image"
+            },
+            "homeScore": {
+                "current": 1,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 6,
+                "description": "1st half",
+                "type": "inprogress"
+            },
+            "startTimestamp": 1780660800
+        },
+        "venue": {
+            "name": "Hong Kong Stadium",
+            "city": "Hong Kong",
+            "capacity": "40000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Wolfgang Luisser"
+            },
+            "away": {
+                "name": "Ichiro Otsuka"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4765,
+                    "name": "Hong Kong",
+                    "nameCode": "HKG"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Wolfgang Luisser"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1527594,
+                            "name": "C. Pong",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1390583,
+                            "name": "V. Nuñez",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1396680,
+                            "name": "O. Gerbig",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 967088,
+                            "name": "T. Yue",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 975784,
+                            "name": "S. Chan",
+                            "number": 17,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1126275,
+                            "name": "H. Ma",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 815217,
+                            "name": "C. Tan",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 815204,
+                            "name": "W. Wong",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 940877,
+                            "name": "E. Camargo",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1101120,
+                            "name": "M. Orr",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1489016,
+                            "name": "Juninho",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1146899,
+                            "name": "K. Tse",
+                            "number": 18,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2543890,
+                            "name": "Y. K. Yu",
+                            "number": 19,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1016133,
+                            "name": "Dudú",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 987202,
+                            "name": "C. Philip",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 830684,
+                            "name": "C. Wu",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1069310,
+                            "name": "H. Lam",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 807998,
+                            "name": "N. Pan",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 943002,
+                            "name": "C. Lau",
+                            "number": 14,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1482844,
+                            "name": "K. Lau",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1846485,
+                            "name": "Y. Ng",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 910648,
+                            "name": "L. J. Lam",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 23496,
+                    "name": "Mongolia",
+                    "nameCode": "MGL"
+                },
+                "formation": "4-2-1-3",
+                "coach": {
+                    "name": "Ichiro Otsuka"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1536281,
+                            "name": "E. Gan-Erdene",
+                            "number": 20,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1482125,
+                            "name": "K. Naranbaatar",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 983950,
+                            "name": "M. Orkhon",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1000746,
+                            "name": "G. Bat-Orgil",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1381966,
+                            "name": "T. Jargaltuyaa",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 992724,
+                            "name": "T. Khurelbaatar",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1110978,
+                            "name": "B. Myagmar",
+                            "number": 8,
+                            "pos": ""
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 992816,
+                            "name": "G. Ganbayar",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1124170,
+                            "name": "E. O. Otgonbaatar",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 994768,
+                            "name": "O. Mijiddorj",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 992824,
+                            "name": "D. Amaraa",
+                            "number": 2,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 992765,
+                            "name": "S. Amarbayasgalan",
+                            "number": 20,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1923479,
+                            "name": "F. Chinzorig",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1539100,
+                            "name": "G. Dulguun",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1500617,
+                            "name": "T. Munkhbaatar",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 983966,
+                            "name": "P. Enkhbileg",
+                            "number": 9,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2611343,
+                            "name": "B. Bat-Od",
+                            "number": 32,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1482127,
+                            "name": "T. Zayat",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1482126,
+                            "name": "T. Uuganbat",
+                            "number": 29,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2254869,
+                            "name": "K. Baatar",
+                            "number": 27,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1604171,
+                            "name": "T. Gantogtokh",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [
+            {
+                "period": "ALL",
+                "groups": [
+                    {
+                        "groupName": "Match overview",
+                        "statisticsItems": [
+                            {
+                                "name": "Ball possession",
+                                "home": "73%",
+                                "away": "27%",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 73,
+                                "awayValue": 27,
+                                "renderType": 2,
+                                "key": "ballPossession"
+                            },
+                            {
+                                "name": "Corner kicks",
+                                "home": "3",
+                                "away": "0",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 3,
+                                "awayValue": 0,
+                                "renderType": 1,
+                                "key": "cornerKicks"
+                            },
+                            {
+                                "name": "Fouls",
+                                "home": "7",
+                                "away": "8",
+                                "compareCode": 2,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 7,
+                                "awayValue": 8,
+                                "renderType": 1,
+                                "key": "fouls"
+                            },
+                            {
+                                "name": "Free kicks",
+                                "home": "9",
+                                "away": "8",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 9,
+                                "awayValue": 8,
+                                "renderType": 1,
+                                "key": "freeKicks"
+                            },
+                            {
+                                "name": "Yellow cards",
+                                "home": "1",
+                                "away": "1",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 1,
+                                "awayValue": 1,
+                                "renderType": 1,
+                                "key": "yellowCards"
+                            },
+                            {
+                                "name": "Red cards",
+                                "home": "0",
+                                "away": "0",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 0,
+                                "awayValue": 0,
+                                "renderType": 1,
+                                "key": "redCards"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Shots",
+                        "statisticsItems": [
+                            {
+                                "name": "Shots on target",
+                                "home": "2",
+                                "away": "1",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 2,
+                                "awayValue": 1,
+                                "renderType": 1,
+                                "key": "shotsOnGoal"
+                            },
+                            {
+                                "name": "Shots off target",
+                                "home": "1",
+                                "away": "1",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 1,
+                                "awayValue": 1,
+                                "renderType": 1,
+                                "key": "shotsOffGoal"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Attack",
+                        "statisticsItems": [
+                            {
+                                "name": "Offsides",
+                                "home": "1",
+                                "away": "1",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 1,
+                                "awayValue": 1,
+                                "renderType": 1,
+                                "key": "offsides"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Passes",
+                        "statisticsItems": [
+                            {
+                                "name": "Throw-ins",
+                                "home": "15",
+                                "away": "10",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 15,
+                                "awayValue": 10,
+                                "renderType": 1,
+                                "key": "throwIns"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "incidents": [
+            {
+                "time": 5,
+                "addedTime": null,
+                "displayTime": "5'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1489016,
+                    "name": "Juninho"
+                },
+                "from": "regular",
+                "assist": {
+                    "id": 1126275,
+                    "name": "H. Ma"
+                }
+            },
+            {
+                "time": 33,
+                "addedTime": null,
+                "displayTime": "33'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1390583,
+                    "name": "V. Nuñez"
+                },
+                "reason": ""
+            },
+            {
+                "time": 35,
+                "addedTime": null,
+                "displayTime": "35'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 983950,
+                    "name": "M. Orkhon"
+                },
+                "reason": ""
+            }
+        ],
+        "kitColors": {
+            "home": "cc0000",
+            "away": "000000"
+        }
+    }
+}

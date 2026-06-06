@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186853,
+            "homeTeam": {
+                "id": 7229,
+                "name": "Haiti",
+                "nameCode": "HAI",
+                "logo": "https://api.sofascore.app/api/v1/team/7229/image"
+            },
+            "awayTeam": {
+                "id": 4695,
+                "name": "Scotland",
+                "nameCode": "SCO",
+                "logo": "https://api.sofascore.app/api/v1/team/4695/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781398800
+        },
+        "venue": {
+            "name": "Gillette Stadium",
+            "city": "Foxborough",
+            "capacity": "66829"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Sébastien Migné"
+            },
+            "away": {
+                "name": "Steve Clarke"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 7229,
+                    "name": "Haiti",
+                    "nameCode": "HAI"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Sébastien Migné"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 37224,
+                            "name": "J. Placide",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 794373,
+                            "name": "C. Arcus",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 839638,
+                            "name": "R. Adé",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 845930,
+                            "name": "J. Duverne",
+                            "number": 22,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1110369,
+                            "name": "M. Expérience",
+                            "number": 8,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 991451,
+                            "name": "L. D. Deedson",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 845273,
+                            "name": "J. Bellegarde",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1384367,
+                            "name": "W. Pierre",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 954066,
+                            "name": "R. Providence",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 796023,
+                            "name": "D. Nazon",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 877980,
+                            "name": "W. Isidor",
+                            "number": 18,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4695,
+                    "name": "Scotland",
+                    "nameCode": "SCO"
+                },
+                "formation": "4-1-4-1",
+                "coach": {
+                    "name": "Steve Clarke"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 9370,
+                            "name": "C. Gordon",
+                            "number": 21,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 966869,
+                            "name": "A. Hickey",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 95791,
+                            "name": "G. Hanley",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 358108,
+                            "name": "S. McKenna",
+                            "number": 26,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 262911,
+                            "name": "A. Robertson",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 907152,
+                            "name": "L. Ferguson",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1154861,
+                            "name": "B. Doak",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 322391,
+                            "name": "R. Christie",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 879346,
+                            "name": "S. McTominay",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 250223,
+                            "name": "J. McGinn",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 773409,
+                            "name": "C. Adams",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

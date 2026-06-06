@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186904,
+            "homeTeam": {
+                "id": 4768,
+                "name": "Côte d'Ivoire",
+                "nameCode": "CIV",
+                "logo": "https://www.sofascore.com/api/v1/team/4768/image"
+            },
+            "awayTeam": {
+                "id": 4757,
+                "name": "Ecuador",
+                "nameCode": "ECU",
+                "logo": "https://www.sofascore.com/api/v1/team/4757/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781478000
+        },
+        "venue": {
+            "name": "Lincoln Financial Field",
+            "city": "Philadelphia",
+            "capacity": "69176"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Emerse Faé"
+            },
+            "away": {
+                "name": "Sebastian Beccacece"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4768,
+                    "name": "Côte d'Ivoire",
+                    "nameCode": "CIV"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Emerse Faé"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 877977,
+                            "name": "Y. Fofana",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1002033,
+                            "name": "G. Doué",
+                            "number": 17,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 973437,
+                            "name": "O. Kossounou",
+                            "number": 7,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 848287,
+                            "name": "E. Ndicka",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 831781,
+                            "name": "G. Konan",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 359226,
+                            "name": "F. Kessié",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 843754,
+                            "name": "I. Sangaré",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1888002,
+                            "name": "C. I. Oulaï",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 593526,
+                            "name": "N. Pépé",
+                            "number": 19,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 930245,
+                            "name": "E. Guessand",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2087085,
+                            "name": "Y. Diomande",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4757,
+                    "name": "Ecuador",
+                    "nameCode": "ECU"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Sebastian Beccacece"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 588618,
+                            "name": "H. Galíndez",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 881844,
+                            "name": "Á. Preciado",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1187275,
+                            "name": "J. Ordóñez",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 979480,
+                            "name": "W. Pacho",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1002837,
+                            "name": "P. Hincapié",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1002524,
+                            "name": "P. Vite",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 987650,
+                            "name": "M. Caicedo",
+                            "number": 23,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1145126,
+                            "name": "D. Castillo",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1116571,
+                            "name": "N. Angulo",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 106456,
+                            "name": "E. Valencia",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 879802,
+                            "name": "J. Yeboah",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

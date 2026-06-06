@@ -1,0 +1,27 @@
+[
+    {
+        "fixture": {
+            "id": 15186859,
+            "status": {
+                "long": "Not started",
+                "short": "FT"
+            }
+        },
+        "teams": {
+            "home": {
+                "name": "Scotland",
+                "logo": "https://api.sofascore.app/api/v1/team/4695/image"
+            },
+            "away": {
+                "name": "Morocco",
+                "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "statistics": [],
+        "events": []
+    }
+]

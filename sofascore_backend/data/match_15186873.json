@@ -1,0 +1,27 @@
+[
+    {
+        "fixture": {
+            "id": 15186873,
+            "status": {
+                "long": "Not started",
+                "short": "FT"
+            }
+        },
+        "teams": {
+            "home": {
+                "name": "USA",
+                "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+            },
+            "away": {
+                "name": "Paraguay",
+                "logo": "https://api.sofascore.app/api/v1/team/4789/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "statistics": [],
+        "events": []
+    }
+]

@@ -1,0 +1,449 @@
+{
+    "response": {
+        "event": {
+            "id": 16277694,
+            "homeTeam": {
+                "id": 4834,
+                "name": "Saudi Arabia",
+                "nameCode": "KSA",
+                "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+            },
+            "awayTeam": {
+                "id": 21818,
+                "name": "Puerto Rico",
+                "nameCode": "PUR",
+                "logo": "https://api.sofascore.app/api/v1/team/21818/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 6,
+                "description": "1st half",
+                "type": "inprogress"
+            },
+            "startTimestamp": 1780700400
+        },
+        "venue": {
+            "name": "Stadium",
+            "city": "",
+            "capacity": ""
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Georgios Donis"
+            },
+            "away": {
+                "name": "Charlie Trout"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4834,
+                    "name": "Saudi Arabia",
+                    "nameCode": "KSA"
+                },
+                "formation": "4-4-2",
+                "coach": {
+                    "name": "Georgios Donis"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 818749,
+                            "name": "A. Al-Kassar",
+                            "number": 22,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 966849,
+                            "name": "S. Abdulhamid",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 818667,
+                            "name": "A. Lajami",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1845169,
+                            "name": "J. Thakri",
+                            "number": 25,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 847235,
+                            "name": "H. Kadesh",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 872607,
+                            "name": "N. Al-Dawsari",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1048372,
+                            "name": "Z. Aljohani",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 828524,
+                            "name": "M. Kanno",
+                            "number": 23,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 818568,
+                            "name": "S. Mandash",
+                            "number": 27,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 976538,
+                            "name": "K. Al-Ghannam",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 915991,
+                            "name": "A. Al-Hamdan",
+                            "number": 19,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1066728,
+                            "name": "A. A. Sanbi",
+                            "number": 99,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 925459,
+                            "name": "A. Atiah",
+                            "number": 98,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 881831,
+                            "name": "A. Al-Amri",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1022679,
+                            "name": "M. Al-Harbi",
+                            "number": 24,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 917035,
+                            "name": "A. Majrashi",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1804369,
+                            "name": "M. A. Al-Shamat",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 160893,
+                            "name": "S. Al-Dawsari",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1106234,
+                            "name": "M. A. Juwayr",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 867179,
+                            "name": "A. Al-Khaibari",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 826242,
+                            "name": "A. Al-Hejji",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1130539,
+                            "name": "A. Yahya",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 818779,
+                            "name": "S. Al-Shehri",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 21818,
+                    "name": "Puerto Rico",
+                    "nameCode": "PUR"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Charlie Trout"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1385571,
+                            "name": "S. Cutler",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1382115,
+                            "name": "D. Rossi",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1049324,
+                            "name": "G. Calderon",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099327,
+                            "name": "N. Cardona",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1385540,
+                            "name": "A. Cutler",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1800944,
+                            "name": "A. Torres",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1481903,
+                            "name": "S. Paris",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 965485,
+                            "name": "G. Díaz",
+                            "number": 13,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 982957,
+                            "name": "J. Servania",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1158547,
+                            "name": "L. Antonetti",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1046130,
+                            "name": "W. Rivera",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1807948,
+                            "name": "N. Aristizabal",
+                            "number": 99,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1110239,
+                            "name": "J. Serrano",
+                            "number": 18,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2181844,
+                            "name": "A. Mercado",
+                            "number": 94,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1960018,
+                            "name": "I. A. Lopez",
+                            "number": 5,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1471195,
+                            "name": "I. Charles",
+                            "number": 93,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2262663,
+                            "name": "A. Melville",
+                            "number": 95,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099324,
+                            "name": "J. O'Neill",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1481799,
+                            "name": "D. Williams",
+                            "number": 96,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1501060,
+                            "name": "N. Hernández",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1049288,
+                            "name": "R. Rivera",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2232177,
+                            "name": "J. Rivera",
+                            "number": 98,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "0b5648",
+            "away": "1c4079"
+        }
+    }
+}

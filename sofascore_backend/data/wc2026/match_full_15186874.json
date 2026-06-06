@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186874,
+            "homeTeam": {
+                "id": 4741,
+                "name": "Australia",
+                "nameCode": "AUS",
+                "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+            },
+            "awayTeam": {
+                "id": 4700,
+                "name": "Türkiye",
+                "nameCode": "TUR",
+                "logo": "https://api.sofascore.app/api/v1/team/4700/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781409600
+        },
+        "venue": {
+            "name": "BC Place",
+            "city": "Vancouver",
+            "capacity": "54500"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Tony Popovic"
+            },
+            "away": {
+                "name": "Vincenzo Montella"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "nameCode": "AUS"
+                },
+                "formation": "5-4-1",
+                "coach": {
+                    "name": "Tony Popovic"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 134029,
+                            "name": "M. Ryan",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 907217,
+                            "name": "J. Italiano",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 155961,
+                            "name": "M. Degenek",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 808680,
+                            "name": "H. Souttar",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1155423,
+                            "name": "A. Circati",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1144138,
+                            "name": "J. Bos",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1144687,
+                            "name": "N. Irankunda",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 944054,
+                            "name": "C. Devlin",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1155625,
+                            "name": "C. Volpato",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 888854,
+                            "name": "C. Metcalfe",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1019061,
+                            "name": "M. Touré",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4700,
+                    "name": "Türkiye",
+                    "nameCode": "TUR"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Vincenzo Montella"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 754330,
+                            "name": "U. Çakır",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 836683,
+                            "name": "M. Müldür",
+                            "number": 18,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 178963,
+                            "name": "A. Bardakcı",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 857740,
+                            "name": "O. Kabak",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 981483,
+                            "name": "E. Elmalı",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 135700,
+                            "name": "H. Çalhanoğlu",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 952600,
+                            "name": "İ. Yüksek",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1440948,
+                            "name": "C. Uzun",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1091116,
+                            "name": "A. Güler",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 904096,
+                            "name": "B. A. Yılmaz",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 903324,
+                            "name": "K. Aktürkoğlu",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

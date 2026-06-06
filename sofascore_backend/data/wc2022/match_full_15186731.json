@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186731,
+            "homeTeam": {
+                "id": 4714,
+                "name": "Czechia",
+                "nameCode": "CZE",
+                "logo": "https://api.sofascore.app/api/v1/team/4714/image"
+            },
+            "awayTeam": {
+                "id": 4736,
+                "name": "South Africa",
+                "nameCode": "RSA",
+                "logo": "https://api.sofascore.app/api/v1/team/4736/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781798400
+        },
+        "venue": {
+            "name": "Mercedes-Benz Stadium",
+            "city": "Atlanta",
+            "capacity": "71000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Miroslav Koubek"
+            },
+            "away": {
+                "name": "Hugo Broos"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4714,
+                    "name": "Czechia",
+                    "nameCode": "CZE"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Miroslav Koubek"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4736,
+                    "name": "South Africa",
+                    "nameCode": "RSA"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Hugo Broos"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

@@ -1,0 +1,27 @@
+[
+    {
+        "fixture": {
+            "id": 15186951,
+            "status": {
+                "long": "Not started",
+                "short": "FT"
+            }
+        },
+        "teams": {
+            "home": {
+                "name": "Sweden",
+                "logo": "https://api.sofascore.app/api/v1/team/4688/image"
+            },
+            "away": {
+                "name": "Tunisia",
+                "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+            }
+        },
+        "goals": {
+            "home": 0,
+            "away": 0
+        },
+        "statistics": [],
+        "events": []
+    }
+]

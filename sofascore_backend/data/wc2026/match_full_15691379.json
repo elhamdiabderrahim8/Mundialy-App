@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15691379,
+            "homeTeam": {
+                "id": 4748,
+                "name": "Brazil",
+                "nameCode": "BRA",
+                "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+            },
+            "awayTeam": {
+                "id": 4758,
+                "name": "Egypt",
+                "nameCode": "EGY",
+                "logo": "https://api.sofascore.app/api/v1/team/4758/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1780783200
+        },
+        "venue": {
+            "name": "Stadium",
+            "city": "",
+            "capacity": ""
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Carlo Ancelotti"
+            },
+            "away": {
+                "name": "Hossam Hassan"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "nameCode": "BRA"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Carlo Ancelotti"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 243609,
+                            "name": "Alisson",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1134200,
+                            "name": "Wesley",
+                            "number": 2,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 155995,
+                            "name": "Marquinhos",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 358548,
+                            "name": "L. Pereira",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 243583,
+                            "name": "D. Santos",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 866469,
+                            "name": "B. Guimarães",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 122951,
+                            "name": "Casemiro",
+                            "number": 5,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 831005,
+                            "name": "Raphinha",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 839981,
+                            "name": "L. Paquetá",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 868812,
+                            "name": "Vinícius Jr.",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1016907,
+                            "name": "I. Thiago",
+                            "number": 25,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4758,
+                    "name": "Egypt",
+                    "nameCode": "EGY"
+                },
+                "formation": "3-4-1-2",
+                "coach": {
+                    "name": "Hossam Hassan"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1048378,
+                            "name": "M. Shobeir",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 333441,
+                            "name": "Y. Ibrahim",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 918913,
+                            "name": "H. Fathy",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 926506,
+                            "name": "M. Abdelmonem",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 826545,
+                            "name": "M. Hany",
+                            "number": 30,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 918506,
+                            "name": "M. Lasheen",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1013699,
+                            "name": "M. Attia",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 880622,
+                            "name": "A. Aboul-Fetouh",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 967032,
+                            "name": "E. Ashour",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 159665,
+                            "name": "M. Salah",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 873554,
+                            "name": "O. Marmoush",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "eae380",
+            "away": "ffffff"
+        }
+    }
+}

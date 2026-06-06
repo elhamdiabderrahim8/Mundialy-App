@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186854,
+            "homeTeam": {
+                "id": 4819,
+                "name": "Argentina",
+                "nameCode": "ARG",
+                "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+            },
+            "awayTeam": {
+                "id": 4691,
+                "name": "Algeria",
+                "nameCode": "DZA",
+                "logo": "https://api.sofascore.app/api/v1/team/4691/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781658000
+        },
+        "venue": {
+            "name": "Arrowhead Stadium",
+            "city": "Kansas City",
+            "capacity": "76416"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Lionel Scaloni"
+            },
+            "away": {
+                "name": "Vladimir Petković"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "nameCode": "ARG"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Lionel Scaloni"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4691,
+                    "name": "Algeria",
+                    "nameCode": "DZA"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Vladimir Petković"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

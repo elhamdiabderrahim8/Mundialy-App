@@ -1,0 +1,1102 @@
+{
+    "response": {
+        "event": {
+            "id": 16153421,
+            "homeTeam": {
+                "id": 5164,
+                "name": "Panama",
+                "nameCode": "PAN",
+                "logo": "https://api.sofascore.app/api/v1/team/5164/image"
+            },
+            "awayTeam": {
+                "id": 21813,
+                "name": "Dominican Republic",
+                "nameCode": "DOM",
+                "logo": "https://api.sofascore.app/api/v1/team/21813/image"
+            },
+            "homeScore": {
+                "current": 4,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 2,
+                "penalties": null
+            },
+            "winnerCode": 1,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780533900
+        },
+        "venue": {
+            "name": "Estadio Rommel Fernandez",
+            "city": "Panama City",
+            "capacity": "32000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Thomas Christiansen"
+            },
+            "away": {
+                "name": "Marcelo Neveleff"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 5164,
+                    "name": "Panama",
+                    "nameCode": "PAN"
+                },
+                "formation": "5-4-1",
+                "coach": {
+                    "name": "Thomas Christiansen"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1172599,
+                            "name": "C. Samudio",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1021120,
+                            "name": "I. Anderson",
+                            "number": 30,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1217937,
+                            "name": "E. Fariña",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1006509,
+                            "name": "J. Ramos",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 159939,
+                            "name": "R. Miller",
+                            "number": 25,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 928021,
+                            "name": "J. Gutiérrez",
+                            "number": 26,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1021117,
+                            "name": "C. Yanis",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 985159,
+                            "name": "V. Griffith",
+                            "number": 28,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 841006,
+                            "name": "C. Martínez",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 985161,
+                            "name": "T. Rodríguez",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 936184,
+                            "name": "J. Fajardo",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 841793,
+                            "name": "C. Blackman",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 159931,
+                            "name": "C. Waterman",
+                            "number": 18,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 796326,
+                            "name": "F. Escobar",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 159935,
+                            "name": "É. Davis",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 841802,
+                            "name": "A. Andrade",
+                            "number": 16,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 796328,
+                            "name": "I. Díaz",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 833352,
+                            "name": "Y. Bárcenas",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 985131,
+                            "name": "C. Harvey",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 83951,
+                            "name": "A. Quintero",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 976191,
+                            "name": "J. M. Murillo",
+                            "number": 29,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1855160,
+                            "name": "J. Gunn",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1105688,
+                            "name": "J. Córdoba",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 839493,
+                            "name": "A. Murillo",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 842253,
+                            "name": "J. L. Rodríguez",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2282985,
+                            "name": "K. Barría",
+                            "number": 27,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 886041,
+                            "name": "O. Mosquera",
+                            "number": 22,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1217929,
+                            "name": "A. Londoño",
+                            "number": 24,
+                            "pos": "M"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 21813,
+                    "name": "Dominican Republic",
+                    "nameCode": "DOM"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Marcelo Neveleff"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1187237,
+                            "name": "X. Valdez",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1637104,
+                            "name": "B. Ademán",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1010444,
+                            "name": "L. d. Lucas",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1489673,
+                            "name": "N. Dollenmayer",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 872852,
+                            "name": "M. Rodríguez",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 804472,
+                            "name": "P. Rosario",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1547400,
+                            "name": "J. C. López",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099323,
+                            "name": "J. Pineda",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1048927,
+                            "name": "P. González",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099313,
+                            "name": "E. Reyes",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 175753,
+                            "name": "M. Díaz",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1529926,
+                            "name": "A. O. Santos",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1470747,
+                            "name": "L. Bretón",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099315,
+                            "name": "E. Japa",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1486562,
+                            "name": "J. Báez",
+                            "number": 18,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1157736,
+                            "name": "Y. Álvarez",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 965534,
+                            "name": "M. Lloyd",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1099312,
+                            "name": "D. Romero",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1157745,
+                            "name": "E. Frías",
+                            "number": 21,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1874794,
+                            "name": "A. Núñez",
+                            "number": 22,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1109628,
+                            "name": "J. Urbáez",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1385553,
+                            "name": "I. Boatwright",
+                            "number": 24,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2049303,
+                            "name": "A. López",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2049044,
+                            "name": "A. García",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1157741,
+                            "name": "A. Gómez",
+                            "number": 25,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 16,
+                "addedTime": null,
+                "displayTime": "16'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 985161,
+                    "name": "T. Rodríguez"
+                },
+                "from": ""
+            },
+            {
+                "time": 30,
+                "addedTime": null,
+                "displayTime": "30'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 841793,
+                    "name": "C. Blackman"
+                },
+                "playerOut": {
+                    "id": 1021120,
+                    "name": "I. Anderson"
+                }
+            },
+            {
+                "time": 30,
+                "addedTime": null,
+                "displayTime": "30'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 159931,
+                    "name": "C. Waterman"
+                },
+                "playerOut": {
+                    "id": 936184,
+                    "name": "J. Fajardo"
+                }
+            },
+            {
+                "time": 37,
+                "addedTime": null,
+                "displayTime": "37'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 804472,
+                    "name": "P. Rosario"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 44,
+                "addedTime": null,
+                "displayTime": "44'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 985159,
+                    "name": "V. Griffith"
+                },
+                "from": ""
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1099315,
+                    "name": "E. Japa"
+                },
+                "playerOut": {
+                    "id": 1637104,
+                    "name": "B. Ademán"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 796328,
+                    "name": "I. Díaz"
+                },
+                "playerOut": {
+                    "id": 985159,
+                    "name": "V. Griffith"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 159935,
+                    "name": "É. Davis"
+                },
+                "playerOut": {
+                    "id": 928021,
+                    "name": "J. Gutiérrez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1470747,
+                    "name": "L. Bretón"
+                },
+                "playerOut": {
+                    "id": 1099313,
+                    "name": "E. Reyes"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1529926,
+                    "name": "A. O. Santos"
+                },
+                "playerOut": {
+                    "id": 872852,
+                    "name": "M. Rodríguez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 976191,
+                    "name": "J. M. Murillo"
+                },
+                "playerOut": {
+                    "id": 841006,
+                    "name": "C. Martínez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 833352,
+                    "name": "Y. Bárcenas"
+                },
+                "playerOut": {
+                    "id": 1021117,
+                    "name": "C. Yanis"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 83951,
+                    "name": "A. Quintero"
+                },
+                "playerOut": {
+                    "id": 985161,
+                    "name": "T. Rodríguez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 841802,
+                    "name": "A. Andrade"
+                },
+                "playerOut": {
+                    "id": 159939,
+                    "name": "R. Miller"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 985131,
+                    "name": "C. Harvey"
+                },
+                "playerOut": {
+                    "id": 1006509,
+                    "name": "J. Ramos"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 796326,
+                    "name": "F. Escobar"
+                },
+                "playerOut": {
+                    "id": 1217937,
+                    "name": "E. Fariña"
+                }
+            },
+            {
+                "time": 47,
+                "addedTime": null,
+                "displayTime": "47'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 175753,
+                    "name": "M. Díaz"
+                },
+                "from": "",
+                "assist": {
+                    "id": 1099323,
+                    "name": "J. Pineda"
+                }
+            },
+            {
+                "time": 56,
+                "addedTime": null,
+                "displayTime": "56'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1486562,
+                    "name": "J. Báez"
+                },
+                "playerOut": {
+                    "id": 1489673,
+                    "name": "N. Dollenmayer"
+                }
+            },
+            {
+                "time": 57,
+                "addedTime": null,
+                "displayTime": "57'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 159931,
+                    "name": "C. Waterman"
+                },
+                "from": "",
+                "assist": {
+                    "id": 841802,
+                    "name": "A. Andrade"
+                }
+            },
+            {
+                "time": 66,
+                "addedTime": null,
+                "displayTime": "66'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1855160,
+                    "name": "J. Gunn"
+                },
+                "playerOut": {
+                    "id": 1172599,
+                    "name": "C. Samudio"
+                }
+            },
+            {
+                "time": 67,
+                "addedTime": null,
+                "displayTime": "67'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 2,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1099315,
+                    "name": "E. Japa"
+                },
+                "from": ""
+            },
+            {
+                "time": 72,
+                "addedTime": null,
+                "displayTime": "72'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1105688,
+                    "name": "J. Córdoba"
+                },
+                "playerOut": {
+                    "id": 796326,
+                    "name": "F. Escobar"
+                }
+            },
+            {
+                "time": 72,
+                "addedTime": null,
+                "displayTime": "72'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 2282985,
+                    "name": "K. Barría"
+                },
+                "playerOut": {
+                    "id": 159931,
+                    "name": "C. Waterman"
+                }
+            },
+            {
+                "time": 72,
+                "addedTime": null,
+                "displayTime": "72'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 842253,
+                    "name": "J. L. Rodríguez"
+                },
+                "playerOut": {
+                    "id": 796328,
+                    "name": "I. Díaz"
+                }
+            },
+            {
+                "time": 72,
+                "addedTime": null,
+                "displayTime": "72'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 839493,
+                    "name": "A. Murillo"
+                },
+                "playerOut": {
+                    "id": 841793,
+                    "name": "C. Blackman"
+                }
+            },
+            {
+                "time": 76,
+                "addedTime": null,
+                "displayTime": "76'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1157736,
+                    "name": "Y. Álvarez"
+                },
+                "playerOut": {
+                    "id": 1099323,
+                    "name": "J. Pineda"
+                }
+            },
+            {
+                "time": 83,
+                "addedTime": null,
+                "displayTime": "83'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 842253,
+                    "name": "J. L. Rodríguez"
+                },
+                "reason": "Foul"
+            },
+            {
+                "time": 87,
+                "addedTime": null,
+                "displayTime": "87'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 965534,
+                    "name": "M. Lloyd"
+                },
+                "playerOut": {
+                    "id": 1187237,
+                    "name": "X. Valdez"
+                }
+            },
+            {
+                "time": 87,
+                "addedTime": null,
+                "displayTime": "87'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1099312,
+                    "name": "D. Romero"
+                },
+                "playerOut": {
+                    "id": 1547400,
+                    "name": "J. C. López"
+                }
+            },
+            {
+                "time": 89,
+                "addedTime": null,
+                "displayTime": "89'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 4,
+                "awayScore": 2,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 2282985,
+                    "name": "K. Barría"
+                },
+                "from": "",
+                "assist": {
+                    "id": 159935,
+                    "name": "É. Davis"
+                }
+            }
+        ],
+        "kitColors": {
+            "home": "cc252a",
+            "away": "1e3572"
+        }
+    }
+}

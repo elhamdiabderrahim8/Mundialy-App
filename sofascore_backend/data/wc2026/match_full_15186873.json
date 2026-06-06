@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186873,
+            "homeTeam": {
+                "id": 4724,
+                "name": "USA",
+                "nameCode": "USA",
+                "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+            },
+            "awayTeam": {
+                "id": 4789,
+                "name": "Paraguay",
+                "nameCode": "PAR",
+                "logo": "https://api.sofascore.app/api/v1/team/4789/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781312400
+        },
+        "venue": {
+            "name": "SoFi Stadium",
+            "city": "Inglewood",
+            "capacity": "70242"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Mauricio Pochettino"
+            },
+            "away": {
+                "name": "Gustavo Alfaro"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4724,
+                    "name": "USA",
+                    "nameCode": "USA"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Mauricio Pochettino"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 973436,
+                            "name": "M. Freese",
+                            "number": 24,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 906021,
+                            "name": "S. Dest",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 931844,
+                            "name": "C. Richards",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 822459,
+                            "name": "A. Trusty",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 803174,
+                            "name": "A. Robinson",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 881931,
+                            "name": "W. McKennie",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 800419,
+                            "name": "T. Adams",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1014845,
+                            "name": "S. Berhalter",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 817957,
+                            "name": "C. Pulišić",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 934237,
+                            "name": "F. Balogun",
+                            "number": 20,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 855810,
+                            "name": "T. Weah",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4789,
+                    "name": "Paraguay",
+                    "nameCode": "PAR"
+                },
+                "formation": "4-4-2",
+                "coach": {
+                    "name": "Gustavo Alfaro"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 991709,
+                            "name": "O. Gill",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 989801,
+                            "name": "J. Cáceres",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 220833,
+                            "name": "G. Gómez",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 805137,
+                            "name": "O. Alderete",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 333275,
+                            "name": "J. Alonso",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1015733,
+                            "name": "R. Sosa",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1065588,
+                            "name": "D. Gómez",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 883206,
+                            "name": "B. Ojeda",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 333373,
+                            "name": "M. Almirón",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 973556,
+                            "name": "J. Enciso",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 333261,
+                            "name": "A. Sanabria",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

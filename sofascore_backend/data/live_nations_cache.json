@@ -1,0 +1,48 @@
+{
+    "response": [
+        {
+            "id": 16273571,
+            "homeTeam": "Shakhtar Donetsk U17",
+            "awayTeam": "Dynamo Kyiv U17",
+            "scoreHome": 0,
+            "scoreAway": 0,
+            "status": "1st half",
+            "shortStatus": "inprogress",
+            "tournament": "U17 Club Friendly Games",
+            "isLive": true
+        },
+        {
+            "id": 15602774,
+            "homeTeam": "Portugal U19",
+            "awayTeam": "Kazakhstan U19",
+            "scoreHome": 0,
+            "scoreAway": 0,
+            "status": "1st half",
+            "shortStatus": "inprogress",
+            "tournament": "U19 UEFA Euro. Champ. Qualif. League A R1, Gr. 6",
+            "isLive": true
+        },
+        {
+            "id": 16271374,
+            "homeTeam": "FC Prishtina U21",
+            "awayTeam": "KF Malisheva U21",
+            "scoreHome": 2,
+            "scoreAway": 2,
+            "status": "2nd half",
+            "shortStatus": "inprogress",
+            "tournament": "Kosovo U21 League",
+            "isLive": true
+        },
+        {
+            "id": 16271404,
+            "homeTeam": "Drenica Skenderaj U21",
+            "awayTeam": "Dukagjini U21",
+            "scoreHome": 1,
+            "scoreAway": 1,
+            "status": "1st half",
+            "shortStatus": "inprogress",
+            "tournament": "Kosovo U21 League",
+            "isLive": true
+        }
+    ]
+}

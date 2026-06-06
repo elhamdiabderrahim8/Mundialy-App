@@ -1,0 +1,600 @@
+{
+    "response": {
+        "event": {
+            "id": 16233033,
+            "homeTeam": {
+                "id": 4791,
+                "name": "Philippines",
+                "nameCode": "PHI",
+                "logo": "https://www.sofascore.com/api/v1/team/4791/image"
+            },
+            "awayTeam": {
+                "id": 23493,
+                "name": "Guam",
+                "nameCode": "GUM",
+                "logo": "https://www.sofascore.com/api/v1/team/23493/image"
+            },
+            "homeScore": {
+                "current": 5,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 1,
+                "penalties": null
+            },
+            "winnerCode": 1,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780486200
+        },
+        "venue": {
+            "name": "RIzal Memorial Stadium",
+            "city": "Manila",
+            "capacity": "12873"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Carles Cuadrat"
+            },
+            "away": {
+                "name": "Ross Awa"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4791,
+                    "name": "Philippines",
+                    "nameCode": "PHI"
+                },
+                "formation": "4-1-4-1",
+                "coach": {
+                    "name": "Carles Cuadrat"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1123422,
+                            "name": "Q. Kammeraad",
+                            "number": 16,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1482657,
+                            "name": "S. Rublico",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1214079,
+                            "name": "J. Rosquillo",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 843357,
+                            "name": "D. Sato",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 873011,
+                            "name": "J. Tabinas",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1165719,
+                            "name": "S. Reyes",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1126411,
+                            "name": "P. Bugas",
+                            "number": 39,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1809240,
+                            "name": "C. Mrowka",
+                            "number": 29,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 867435,
+                            "name": "O. Kekkonen",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1214087,
+                            "name": "S. Woods",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1123408,
+                            "name": "J. Gayoso",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 809740,
+                            "name": "P. Deyto",
+                            "number": 15,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1124811,
+                            "name": "P. B. Tabinas",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1490899,
+                            "name": "N. Leddel",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1142321,
+                            "name": "J. Lucero",
+                            "number": 10,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1013037,
+                            "name": "C. Rontini",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1086439,
+                            "name": "A. Leipold",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2220241,
+                            "name": "K. Nishioka",
+                            "number": 22,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 163693,
+                            "name": "M. Ott",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 910080,
+                            "name": "R. Schneider",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2497307,
+                            "name": "S. Beraque",
+                            "number": 18,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 23493,
+                    "name": "Guam",
+                    "nameCode": "GUM"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Ross Awa"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1584853,
+                            "name": "J. Jones",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2238296,
+                            "name": "G. Baker",
+                            "number": 2,
+                            "pos": ""
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 992858,
+                            "name": "K. Halehale",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1121970,
+                            "name": "M. McKenna",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1139575,
+                            "name": "E. J. Sablan",
+                            "number": 14,
+                            "pos": ""
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 986307,
+                            "name": "J. Cunliffe",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1150106,
+                            "name": "A. Taitague",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2254861,
+                            "name": "E. Ochoa",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1139586,
+                            "name": "N. Norton",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1632907,
+                            "name": "J. Castro",
+                            "number": 13,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1568050,
+                            "name": "L. Berg",
+                            "number": 9,
+                            "pos": "M"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 2238302,
+                            "name": "J. Toves",
+                            "number": 18,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1139581,
+                            "name": "K. Pahl",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2616227,
+                            "name": "N. Sablan",
+                            "number": 3,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2016315,
+                            "name": "S. Suzuki",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2538250,
+                            "name": "J. Cruz",
+                            "number": 12,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1150112,
+                            "name": "J. Gomez",
+                            "number": 7,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2538248,
+                            "name": "J. Bargeron",
+                            "number": 20,
+                            "pos": ""
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1139585,
+                            "name": "M. Castaneda",
+                            "number": 17,
+                            "pos": ""
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 2254871,
+                            "name": "L. Diaz",
+                            "number": 6,
+                            "pos": ""
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 5,
+                "addedTime": null,
+                "displayTime": "5'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1809240,
+                    "name": "C. Mrowka"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 18,
+                "addedTime": null,
+                "displayTime": "18'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1123408,
+                    "name": "J. Gayoso"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 37,
+                "addedTime": null,
+                "displayTime": "37'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1123408,
+                    "name": "J. Gayoso"
+                },
+                "reason": ""
+            },
+            {
+                "time": 42,
+                "addedTime": null,
+                "displayTime": "42'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1121970,
+                    "name": "M. McKenna"
+                },
+                "reason": ""
+            },
+            {
+                "time": 44,
+                "addedTime": null,
+                "displayTime": "44'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 0,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1482657,
+                    "name": "S. Rublico"
+                },
+                "from": "regular",
+                "assist": {
+                    "id": 873011,
+                    "name": "J. Tabinas"
+                }
+            },
+            {
+                "time": 45,
+                "addedTime": 1,
+                "displayTime": "45+1'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "reason": ""
+            },
+            {
+                "time": 60,
+                "addedTime": null,
+                "displayTime": "60'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 3,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1568050,
+                    "name": "L. Berg"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 64,
+                "addedTime": null,
+                "displayTime": "64'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 4,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1086439,
+                    "name": "A. Leipold"
+                },
+                "from": "regular",
+                "assist": {
+                    "id": 1123408,
+                    "name": "J. Gayoso"
+                }
+            },
+            {
+                "time": 90,
+                "addedTime": 2,
+                "displayTime": "90+2'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 5,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1086439,
+                    "name": "A. Leipold"
+                },
+                "from": "regular",
+                "assist": {
+                    "id": 1126411,
+                    "name": "P. Bugas"
+                }
+            },
+            {
+                "time": 90,
+                "addedTime": 5,
+                "displayTime": "90+5'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 0,
+                    "name": "Joueur"
+                },
+                "reason": ""
+            }
+        ],
+        "kitColors": {
+            "home": "ffffff",
+            "away": "ffffff"
+        }
+    }
+}

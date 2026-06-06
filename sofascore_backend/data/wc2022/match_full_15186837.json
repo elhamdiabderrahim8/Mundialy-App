@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186837,
+            "homeTeam": {
+                "id": 4717,
+                "name": "Belgium",
+                "nameCode": "BEL",
+                "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+            },
+            "awayTeam": {
+                "id": 4758,
+                "name": "Egypt",
+                "nameCode": "EGY",
+                "logo": "https://api.sofascore.app/api/v1/team/4758/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781550000
+        },
+        "venue": {
+            "name": "Lumen Field",
+            "city": "Seattle",
+            "capacity": "68740"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Rudi Garcia"
+            },
+            "away": {
+                "name": "Hossam Hassan"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4717,
+                    "name": "Belgium",
+                    "nameCode": "BEL"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Rudi Garcia"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4758,
+                    "name": "Egypt",
+                    "nameCode": "EGY"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Hossam Hassan"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

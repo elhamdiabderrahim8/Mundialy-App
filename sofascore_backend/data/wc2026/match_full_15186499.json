@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186499,
+            "homeTeam": {
+                "id": 4717,
+                "name": "Belgium",
+                "nameCode": "BEL",
+                "logo": "https://www.sofascore.com/api/v1/team/4717/image"
+            },
+            "awayTeam": {
+                "id": 4766,
+                "name": "Iran",
+                "nameCode": "IRI",
+                "logo": "https://www.sofascore.com/api/v1/team/4766/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1782068400
+        },
+        "venue": {
+            "name": "SoFi Stadium",
+            "city": "Inglewood",
+            "capacity": "70242"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Rudi Garcia"
+            },
+            "away": {
+                "name": "Amir Ghalenoei"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4717,
+                    "name": "Belgium",
+                    "nameCode": "BEL"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Rudi Garcia"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4766,
+                    "name": "Iran",
+                    "nameCode": "IRI"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Amir Ghalenoei"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

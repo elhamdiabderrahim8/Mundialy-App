@@ -1,0 +1,137 @@
+{
+    "response": {
+        "event": {
+            "id": 16251066,
+            "homeTeam": {
+                "id": 6911,
+                "name": "Maldives",
+                "nameCode": "MDV",
+                "logo": "https://www.sofascore.com/api/v1/team/6911/image"
+            },
+            "awayTeam": {
+                "id": 6081,
+                "name": "Pakistan",
+                "nameCode": "PAK",
+                "logo": "https://www.sofascore.com/api/v1/team/6081/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 3,
+                "penalties": null
+            },
+            "winnerCode": 2,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780570800
+        },
+        "venue": {
+            "name": "National Football Stadium",
+            "city": "Malé",
+            "capacity": "11850"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Istvan Urbanyi"
+            },
+            "away": {
+                "name": "Nolberto Solano"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 6911,
+                    "name": "Maldives",
+                    "nameCode": "MDV"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Istvan Urbanyi"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 6081,
+                    "name": "Pakistan",
+                    "nameCode": "PAK"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Nolberto Solano"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [
+            {
+                "time": 54,
+                "addedTime": null,
+                "displayTime": "54'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 0,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 2363658,
+                    "name": "U. Nawaz"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 84,
+                "addedTime": null,
+                "displayTime": "84'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 0,
+                "awayScore": 2,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1392025,
+                    "name": "A. Arshad"
+                },
+                "from": "regular"
+            },
+            {
+                "time": 87,
+                "addedTime": null,
+                "displayTime": "87'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 0,
+                "awayScore": 3,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1480416,
+                    "name": "H. Hamid"
+                },
+                "from": "regular"
+            }
+        ],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

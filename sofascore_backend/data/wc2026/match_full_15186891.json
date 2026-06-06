@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186891,
+            "homeTeam": {
+                "id": 4789,
+                "name": "Paraguay",
+                "nameCode": "PAR",
+                "logo": "https://api.sofascore.app/api/v1/team/4789/image"
+            },
+            "awayTeam": {
+                "id": 4741,
+                "name": "Australia",
+                "nameCode": "AUS",
+                "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1782439200
+        },
+        "venue": {
+            "name": "Levi's Stadium",
+            "city": "Santa Clara",
+            "capacity": "68500"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Gustavo Alfaro"
+            },
+            "away": {
+                "name": "Tony Popovic"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4789,
+                    "name": "Paraguay",
+                    "nameCode": "PAR"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Gustavo Alfaro"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "nameCode": "AUS"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Tony Popovic"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

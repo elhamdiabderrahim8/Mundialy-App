@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 15186504,
+            "homeTeam": {
+                "id": 4713,
+                "name": "England",
+                "nameCode": "ENG",
+                "logo": "https://www.sofascore.com/api/v1/team/4713/image"
+            },
+            "awayTeam": {
+                "id": 4715,
+                "name": "Croatia",
+                "nameCode": "CRO",
+                "logo": "https://www.sofascore.com/api/v1/team/4715/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781726400
+        },
+        "venue": {
+            "name": "AT&T Stadium",
+            "city": "Arlington",
+            "capacity": "80000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Thomas Tuchel"
+            },
+            "away": {
+                "name": "Zlatko Dalić"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4713,
+                    "name": "England",
+                    "nameCode": "ENG"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Thomas Tuchel"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "nameCode": "CRO"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Zlatko Dalić"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

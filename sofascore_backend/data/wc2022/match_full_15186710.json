@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186710,
+            "homeTeam": {
+                "id": 4781,
+                "name": "Mexico",
+                "nameCode": "MEX",
+                "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+            },
+            "awayTeam": {
+                "id": 4736,
+                "name": "South Africa",
+                "nameCode": "RSA",
+                "logo": "https://api.sofascore.app/api/v1/team/4736/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781204400
+        },
+        "venue": {
+            "name": "Estadio Azteca",
+            "city": "Mexico City",
+            "capacity": "87523"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Javier Aguirre"
+            },
+            "away": {
+                "name": "Hugo Broos"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4781,
+                    "name": "Mexico",
+                    "nameCode": "MEX"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Javier Aguirre"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 990408,
+                            "name": "R. Rangel",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 832868,
+                            "name": "J. Sánchez",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 818406,
+                            "name": "C. Montes",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 889785,
+                            "name": "J. Vásquez",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 770253,
+                            "name": "J. Gallardo",
+                            "number": 23,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 850404,
+                            "name": "O. Pineda",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 847151,
+                            "name": "E. Álvarez",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 192442,
+                            "name": "R. Jiménez",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 838629,
+                            "name": "Á. Fidalgo",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 865500,
+                            "name": "R. Alvarado",
+                            "number": 25,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 815637,
+                            "name": "A. Vega",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4736,
+                    "name": "South Africa",
+                    "nameCode": "RSA"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Hugo Broos"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 539792,
+                            "name": "R. Williams",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 936047,
+                            "name": "K. Mudau",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 902117,
+                            "name": "N. Sibisi",
+                            "number": 19,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1910804,
+                            "name": "K. Ndamane",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 837099,
+                            "name": "A. Modiba",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 822684,
+                            "name": "S. Sithole",
+                            "number": 13,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 881117,
+                            "name": "T. Mokoena",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 984505,
+                            "name": "O. Appollis",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1564998,
+                            "name": "R. Mofokeng",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 559504,
+                            "name": "T. Zwane",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 901907,
+                            "name": "L. Foster",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186951,
+            "homeTeam": {
+                "id": 4688,
+                "name": "Sweden",
+                "nameCode": "SWE",
+                "logo": "https://api.sofascore.app/api/v1/team/4688/image"
+            },
+            "awayTeam": {
+                "id": 4729,
+                "name": "Tunisia",
+                "nameCode": "TUN",
+                "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781488800
+        },
+        "venue": {
+            "name": "Estadio BBVA",
+            "city": "Monterrey",
+            "capacity": "53500"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Graham Potter"
+            },
+            "away": {
+                "name": "Sabri Lamouchi"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4688,
+                    "name": "Sweden",
+                    "nameCode": "SWE"
+                },
+                "formation": "3-4-2-1",
+                "coach": {
+                    "name": "Graham Potter"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 22596,
+                            "name": "K. Nordfeldt",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 360718,
+                            "name": "C. Starfelt",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 965263,
+                            "name": "G. Lagerbielke",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 143334,
+                            "name": "V. Lindelöf",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1021272,
+                            "name": "D. Svensson",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 227894,
+                            "name": "J. Karlström",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1036269,
+                            "name": "Y. Ayari",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 834308,
+                            "name": "G. Gudmundsson",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 979232,
+                            "name": "A. Elanga",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 918517,
+                            "name": "B. Nygren",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 804508,
+                            "name": "V. Gyökeres",
+                            "number": 17,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4729,
+                    "name": "Tunisia",
+                    "nameCode": "TUN"
+                },
+                "formation": "4-3-3",
+                "coach": {
+                    "name": "Sabri Lamouchi"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 1198374,
+                            "name": "A. Dahmen",
+                            "number": 16,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 826202,
+                            "name": "Y. Valery",
+                            "number": 20,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 845271,
+                            "name": "D. Bronn",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 879618,
+                            "name": "M. Talbi",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 919027,
+                            "name": "A. Abdi",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1009386,
+                            "name": "H. Mejbri",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 591706,
+                            "name": "E. Skhiri",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1113488,
+                            "name": "I. Gharbi",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 957143,
+                            "name": "S. Tounekti",
+                            "number": 26,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1991585,
+                            "name": "H. Mastouri",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 945204,
+                            "name": "E. Achouri",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

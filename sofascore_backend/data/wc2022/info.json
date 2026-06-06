@@ -1,0 +1,23 @@
+{
+    "response": {
+        "info": {
+            "season": {
+                "name": "World Cup 2022",
+                "year": "2022",
+                "editor": false,
+                "id": 41087
+            },
+            "goals": 172,
+            "yellowCards": 227,
+            "redCards": 4,
+            "newcomersUpperDivision": [],
+            "newcomersLowerDivision": [],
+            "newcomersOther": [],
+            "numberOfCompetitors": 32,
+            "id": 23352,
+            "hostCountries": [
+                "Qatar"
+            ]
+        }
+    }
+}

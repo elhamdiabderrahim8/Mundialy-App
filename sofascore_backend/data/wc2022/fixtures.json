@@ -1,0 +1,2500 @@
+{
+    "response": [
+        {
+            "fixture": {
+                "id": 10230541,
+                "date": "2022-11-20T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4792,
+                    "name": "Qatar",
+                    "logo": "https://api.sofascore.app/api/v1/team/4792/image"
+                },
+                "away": {
+                    "id": 4757,
+                    "name": "Ecuador",
+                    "logo": "https://api.sofascore.app/api/v1/team/4757/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230543,
+                "date": "2022-11-21T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4713,
+                    "name": "England",
+                    "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                },
+                "away": {
+                    "id": 4766,
+                    "name": "Iran",
+                    "logo": "https://api.sofascore.app/api/v1/team/4766/image"
+                }
+            },
+            "goals": {
+                "home": 6,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 6,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230533,
+                "date": "2022-11-21T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4739,
+                    "name": "Senegal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+                },
+                "away": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230548,
+                "date": "2022-11-21T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4724,
+                    "name": "USA",
+                    "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+                },
+                "away": {
+                    "id": 4702,
+                    "name": "Wales",
+                    "logo": "https://api.sofascore.app/api/v1/team/4702/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230528,
+                "date": "2022-11-22T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                },
+                "away": {
+                    "id": 4834,
+                    "name": "Saudi Arabia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230576,
+                "date": "2022-11-22T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4476,
+                    "name": "Denmark",
+                    "logo": "https://api.sofascore.app/api/v1/team/4476/image"
+                },
+                "away": {
+                    "id": 4729,
+                    "name": "Tunisia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230565,
+                "date": "2022-11-22T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4781,
+                    "name": "Mexico",
+                    "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+                },
+                "away": {
+                    "id": 4703,
+                    "name": "Poland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230563,
+                "date": "2022-11-22T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                },
+                "away": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+                }
+            },
+            "goals": {
+                "home": 4,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 4,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230570,
+                "date": "2022-11-23T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                },
+                "away": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230562,
+                "date": "2022-11-23T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4711,
+                    "name": "Germany",
+                    "logo": "https://api.sofascore.app/api/v1/team/4711/image"
+                },
+                "away": {
+                    "id": 4770,
+                    "name": "Japan",
+                    "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230571,
+                "date": "2022-11-23T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4698,
+                    "name": "Spain",
+                    "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+                },
+                "away": {
+                    "id": 4756,
+                    "name": "Costa Rica",
+                    "logo": "https://api.sofascore.app/api/v1/team/4756/image"
+                }
+            },
+            "goals": {
+                "home": 7,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 7,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230559,
+                "date": "2022-11-23T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4717,
+                    "name": "Belgium",
+                    "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+                },
+                "away": {
+                    "id": 4752,
+                    "name": "Canada",
+                    "logo": "https://api.sofascore.app/api/v1/team/4752/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230569,
+                "date": "2022-11-24T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4699,
+                    "name": "Switzerland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+                },
+                "away": {
+                    "id": 4751,
+                    "name": "Cameroon",
+                    "logo": "https://api.sofascore.app/api/v1/team/4751/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230530,
+                "date": "2022-11-24T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4725,
+                    "name": "Uruguay",
+                    "logo": "https://api.sofascore.app/api/v1/team/4725/image"
+                },
+                "away": {
+                    "id": 4735,
+                    "name": "South Korea",
+                    "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230534,
+                "date": "2022-11-24T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4704,
+                    "name": "Portugal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                },
+                "away": {
+                    "id": 4764,
+                    "name": "Ghana",
+                    "logo": "https://api.sofascore.app/api/v1/team/4764/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230567,
+                "date": "2022-11-24T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J1"
+            },
+            "teams": {
+                "home": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                },
+                "away": {
+                    "id": 6355,
+                    "name": "Serbia",
+                    "logo": "https://api.sofascore.app/api/v1/team/6355/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230556,
+                "date": "2022-11-25T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4702,
+                    "name": "Wales",
+                    "logo": "https://api.sofascore.app/api/v1/team/4702/image"
+                },
+                "away": {
+                    "id": 4766,
+                    "name": "Iran",
+                    "logo": "https://api.sofascore.app/api/v1/team/4766/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230537,
+                "date": "2022-11-25T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4792,
+                    "name": "Qatar",
+                    "logo": "https://api.sofascore.app/api/v1/team/4792/image"
+                },
+                "away": {
+                    "id": 4739,
+                    "name": "Senegal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230529,
+                "date": "2022-11-25T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                },
+                "away": {
+                    "id": 4757,
+                    "name": "Ecuador",
+                    "logo": "https://api.sofascore.app/api/v1/team/4757/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230557,
+                "date": "2022-11-25T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4713,
+                    "name": "England",
+                    "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                },
+                "away": {
+                    "id": 4724,
+                    "name": "USA",
+                    "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230574,
+                "date": "2022-11-26T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4729,
+                    "name": "Tunisia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+                },
+                "away": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230542,
+                "date": "2022-11-26T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4703,
+                    "name": "Poland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+                },
+                "away": {
+                    "id": 4834,
+                    "name": "Saudi Arabia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230577,
+                "date": "2022-11-26T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                },
+                "away": {
+                    "id": 4476,
+                    "name": "Denmark",
+                    "logo": "https://api.sofascore.app/api/v1/team/4476/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230540,
+                "date": "2022-11-26T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                },
+                "away": {
+                    "id": 4781,
+                    "name": "Mexico",
+                    "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230564,
+                "date": "2022-11-27T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4770,
+                    "name": "Japan",
+                    "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+                },
+                "away": {
+                    "id": 4756,
+                    "name": "Costa Rica",
+                    "logo": "https://api.sofascore.app/api/v1/team/4756/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230545,
+                "date": "2022-11-27T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4717,
+                    "name": "Belgium",
+                    "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+                },
+                "away": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230550,
+                "date": "2022-11-27T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                },
+                "away": {
+                    "id": 4752,
+                    "name": "Canada",
+                    "logo": "https://api.sofascore.app/api/v1/team/4752/image"
+                }
+            },
+            "goals": {
+                "home": 4,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 4,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230575,
+                "date": "2022-11-27T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4698,
+                    "name": "Spain",
+                    "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+                },
+                "away": {
+                    "id": 4711,
+                    "name": "Germany",
+                    "logo": "https://api.sofascore.app/api/v1/team/4711/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230568,
+                "date": "2022-11-28T11:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4751,
+                    "name": "Cameroon",
+                    "logo": "https://api.sofascore.app/api/v1/team/4751/image"
+                },
+                "away": {
+                    "id": 6355,
+                    "name": "Serbia",
+                    "logo": "https://api.sofascore.app/api/v1/team/6355/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230552,
+                "date": "2022-11-28T14:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4735,
+                    "name": "South Korea",
+                    "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+                },
+                "away": {
+                    "id": 4764,
+                    "name": "Ghana",
+                    "logo": "https://api.sofascore.app/api/v1/team/4764/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230561,
+                "date": "2022-11-28T17:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                },
+                "away": {
+                    "id": 4699,
+                    "name": "Switzerland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230539,
+                "date": "2022-11-28T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J2"
+            },
+            "teams": {
+                "home": {
+                    "id": 4704,
+                    "name": "Portugal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                },
+                "away": {
+                    "id": 4725,
+                    "name": "Uruguay",
+                    "logo": "https://api.sofascore.app/api/v1/team/4725/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230551,
+                "date": "2022-11-29T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4757,
+                    "name": "Ecuador",
+                    "logo": "https://api.sofascore.app/api/v1/team/4757/image"
+                },
+                "away": {
+                    "id": 4739,
+                    "name": "Senegal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230538,
+                "date": "2022-11-29T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                },
+                "away": {
+                    "id": 4792,
+                    "name": "Qatar",
+                    "logo": "https://api.sofascore.app/api/v1/team/4792/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230536,
+                "date": "2022-11-29T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4766,
+                    "name": "Iran",
+                    "logo": "https://api.sofascore.app/api/v1/team/4766/image"
+                },
+                "away": {
+                    "id": 4724,
+                    "name": "USA",
+                    "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230532,
+                "date": "2022-11-29T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4702,
+                    "name": "Wales",
+                    "logo": "https://api.sofascore.app/api/v1/team/4702/image"
+                },
+                "away": {
+                    "id": 4713,
+                    "name": "England",
+                    "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230560,
+                "date": "2022-11-30T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+                },
+                "away": {
+                    "id": 4476,
+                    "name": "Denmark",
+                    "logo": "https://api.sofascore.app/api/v1/team/4476/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230555,
+                "date": "2022-11-30T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4729,
+                    "name": "Tunisia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4729/image"
+                },
+                "away": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230547,
+                "date": "2022-11-30T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4703,
+                    "name": "Poland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+                },
+                "away": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230546,
+                "date": "2022-11-30T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4834,
+                    "name": "Saudi Arabia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4834/image"
+                },
+                "away": {
+                    "id": 4781,
+                    "name": "Mexico",
+                    "logo": "https://api.sofascore.app/api/v1/team/4781/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230531,
+                "date": "2022-12-01T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4752,
+                    "name": "Canada",
+                    "logo": "https://api.sofascore.app/api/v1/team/4752/image"
+                },
+                "away": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230535,
+                "date": "2022-12-01T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                },
+                "away": {
+                    "id": 4717,
+                    "name": "Belgium",
+                    "logo": "https://api.sofascore.app/api/v1/team/4717/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230573,
+                "date": "2022-12-01T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4756,
+                    "name": "Costa Rica",
+                    "logo": "https://api.sofascore.app/api/v1/team/4756/image"
+                },
+                "away": {
+                    "id": 4711,
+                    "name": "Germany",
+                    "logo": "https://api.sofascore.app/api/v1/team/4711/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 4
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 4
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230554,
+                "date": "2022-12-01T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4770,
+                    "name": "Japan",
+                    "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+                },
+                "away": {
+                    "id": 4698,
+                    "name": "Spain",
+                    "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230549,
+                "date": "2022-12-02T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4764,
+                    "name": "Ghana",
+                    "logo": "https://api.sofascore.app/api/v1/team/4764/image"
+                },
+                "away": {
+                    "id": 4725,
+                    "name": "Uruguay",
+                    "logo": "https://api.sofascore.app/api/v1/team/4725/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230544,
+                "date": "2022-12-02T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4735,
+                    "name": "South Korea",
+                    "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+                },
+                "away": {
+                    "id": 4704,
+                    "name": "Portugal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230553,
+                "date": "2022-12-02T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 4751,
+                    "name": "Cameroon",
+                    "logo": "https://api.sofascore.app/api/v1/team/4751/image"
+                },
+                "away": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230558,
+                "date": "2022-12-02T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Group Stage J3"
+            },
+            "teams": {
+                "home": {
+                    "id": 6355,
+                    "name": "Serbia",
+                    "logo": "https://api.sofascore.app/api/v1/team/6355/image"
+                },
+                "away": {
+                    "id": 4699,
+                    "name": "Switzerland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230638,
+                "date": "2022-12-03T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                },
+                "away": {
+                    "id": 4724,
+                    "name": "USA",
+                    "logo": "https://api.sofascore.app/api/v1/team/4724/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230641,
+                "date": "2022-12-03T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                },
+                "away": {
+                    "id": 4741,
+                    "name": "Australia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4741/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230579,
+                "date": "2022-12-04T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                },
+                "away": {
+                    "id": 4703,
+                    "name": "Poland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230632,
+                "date": "2022-12-04T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4713,
+                    "name": "England",
+                    "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                },
+                "away": {
+                    "id": 4739,
+                    "name": "Senegal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4739/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230582,
+                "date": "2022-12-05T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4770,
+                    "name": "Japan",
+                    "logo": "https://api.sofascore.app/api/v1/team/4770/image"
+                },
+                "away": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": 1,
+                    "away": 3
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230633,
+                "date": "2022-12-05T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                },
+                "away": {
+                    "id": 4735,
+                    "name": "South Korea",
+                    "logo": "https://api.sofascore.app/api/v1/team/4735/image"
+                }
+            },
+            "goals": {
+                "home": 4,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 4,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230636,
+                "date": "2022-12-06T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                },
+                "away": {
+                    "id": 4698,
+                    "name": "Spain",
+                    "logo": "https://api.sofascore.app/api/v1/team/4698/image"
+                }
+            },
+            "goals": {
+                "home": 0,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 0,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": 3,
+                    "away": 0
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230631,
+                "date": "2022-12-06T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Round of 16"
+            },
+            "teams": {
+                "home": {
+                    "id": 4704,
+                    "name": "Portugal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                },
+                "away": {
+                    "id": 4699,
+                    "name": "Switzerland",
+                    "logo": "https://api.sofascore.app/api/v1/team/4699/image"
+                }
+            },
+            "goals": {
+                "home": 6,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 6,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230640,
+                "date": "2022-12-09T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Quarterfinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                },
+                "away": {
+                    "id": 4748,
+                    "name": "Brazil",
+                    "logo": "https://api.sofascore.app/api/v1/team/4748/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": 4,
+                    "away": 2
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230639,
+                "date": "2022-12-09T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Quarterfinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "logo": "https://api.sofascore.app/api/v1/team/4705/image"
+                },
+                "away": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": 3,
+                    "away": 4
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230581,
+                "date": "2022-12-10T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Quarterfinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                },
+                "away": {
+                    "id": 4704,
+                    "name": "Portugal",
+                    "logo": "https://api.sofascore.app/api/v1/team/4704/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230634,
+                "date": "2022-12-10T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Quarterfinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4713,
+                    "name": "England",
+                    "logo": "https://api.sofascore.app/api/v1/team/4713/image"
+                },
+                "away": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                }
+            },
+            "goals": {
+                "home": 1,
+                "away": 2
+            },
+            "score": {
+                "fulltime": {
+                    "home": 1,
+                    "away": 2
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230580,
+                "date": "2022-12-13T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Semifinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                },
+                "away": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230578,
+                "date": "2022-12-14T20:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Semifinals"
+            },
+            "teams": {
+                "home": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                },
+                "away": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 0
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 0
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230637,
+                "date": "2022-12-17T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Match for 3rd place"
+            },
+            "teams": {
+                "home": {
+                    "id": 4715,
+                    "name": "Croatia",
+                    "logo": "https://api.sofascore.app/api/v1/team/4715/image"
+                },
+                "away": {
+                    "id": 4778,
+                    "name": "Morocco",
+                    "logo": "https://api.sofascore.app/api/v1/team/4778/image"
+                }
+            },
+            "goals": {
+                "home": 2,
+                "away": 1
+            },
+            "score": {
+                "fulltime": {
+                    "home": 2,
+                    "away": 1
+                },
+                "penalty": {
+                    "home": null,
+                    "away": null
+                }
+            }
+        },
+        {
+            "fixture": {
+                "id": 10230635,
+                "date": "2022-12-18T16:00:00",
+                "status": {
+                    "short": "FT",
+                    "long": "Finished"
+                }
+            },
+            "league": {
+                "round": "Final"
+            },
+            "teams": {
+                "home": {
+                    "id": 4819,
+                    "name": "Argentina",
+                    "logo": "https://api.sofascore.app/api/v1/team/4819/image"
+                },
+                "away": {
+                    "id": 4481,
+                    "name": "France",
+                    "logo": "https://api.sofascore.app/api/v1/team/4481/image"
+                }
+            },
+            "goals": {
+                "home": 3,
+                "away": 3
+            },
+            "score": {
+                "fulltime": {
+                    "home": 3,
+                    "away": 3
+                },
+                "penalty": {
+                    "home": 4,
+                    "away": 2
+                }
+            }
+        }
+    ]
+}

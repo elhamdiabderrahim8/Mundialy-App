@@ -1,0 +1,263 @@
+{
+    "response": {
+        "event": {
+            "id": 15186945,
+            "homeTeam": {
+                "id": 4705,
+                "name": "Netherlands",
+                "nameCode": "NED",
+                "logo": "https://www.sofascore.com/api/v1/team/4705/image"
+            },
+            "awayTeam": {
+                "id": 4770,
+                "name": "Japan",
+                "nameCode": "JPN",
+                "logo": "https://www.sofascore.com/api/v1/team/4770/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 0,
+                "description": "Not started",
+                "type": "notstarted"
+            },
+            "startTimestamp": 1781467200
+        },
+        "venue": {
+            "name": "AT&T Stadium",
+            "city": "Arlington",
+            "capacity": "80000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Ronald Koeman"
+            },
+            "away": {
+                "name": "Hajime Moriyasu"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4705,
+                    "name": "Netherlands",
+                    "nameCode": "NED"
+                },
+                "formation": "4-2-3-1",
+                "coach": {
+                    "name": "Ronald Koeman"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 994363,
+                            "name": "B. Verbruggen",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 759520,
+                            "name": "D. Dumfries",
+                            "number": 22,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 151545,
+                            "name": "V. van Dijk",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 998247,
+                            "name": "M. van de Ven",
+                            "number": 15,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 149663,
+                            "name": "N. Aké",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 803033,
+                            "name": "T. Koopmeiners",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 795222,
+                            "name": "F. de Jong",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 803039,
+                            "name": "D. Malen",
+                            "number": 18,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 893549,
+                            "name": "T. Reijnders",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 862967,
+                            "name": "C. Gakpo",
+                            "number": 11,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 138833,
+                            "name": "M. Depay",
+                            "number": 10,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4770,
+                    "name": "Japan",
+                    "nameCode": "JPN"
+                },
+                "formation": "3-4-2-1",
+                "coach": {
+                    "name": "Hajime Moriyasu"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 905351,
+                            "name": "Z. Suzuki",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 804434,
+                            "name": "T. Tomiyasu",
+                            "number": 22,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 386958,
+                            "name": "S. Taniguchi",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 790989,
+                            "name": "K. Itakura",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 790965,
+                            "name": "R. Doan",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 143040,
+                            "name": "W. Endo",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 871886,
+                            "name": "A. Tanaka",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 905352,
+                            "name": "K. Nakamura",
+                            "number": 13,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 880218,
+                            "name": "T. Kubo",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 783278,
+                            "name": "J. Ito",
+                            "number": 14,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 985823,
+                            "name": "A. Ueda",
+                            "number": 18,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}

@@ -1,0 +1,1133 @@
+{
+    "response": {
+        "event": {
+            "id": 16048005,
+            "homeTeam": {
+                "id": 4703,
+                "name": "Poland",
+                "nameCode": "POL",
+                "logo": "https://api.sofascore.app/api/v1/team/4703/image"
+            },
+            "awayTeam": {
+                "id": 4785,
+                "name": "Nigeria",
+                "nameCode": "NIG",
+                "logo": "https://api.sofascore.app/api/v1/team/4785/image"
+            },
+            "homeScore": {
+                "current": 2,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 2,
+                "penalties": null
+            },
+            "winnerCode": 3,
+            "status": {
+                "code": 100,
+                "description": "Ended",
+                "type": "finished"
+            },
+            "startTimestamp": 1780512300
+        },
+        "venue": {
+            "name": "PGE Narodowy",
+            "city": "Warsaw",
+            "capacity": "58500"
+        },
+        "referee": {
+            "name": "Marian Barbu",
+            "country": "Romania"
+        },
+        "managers": {
+            "home": {
+                "name": "Jan Urban"
+            },
+            "away": {
+                "name": "Eric Chelle"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 4703,
+                    "name": "Poland",
+                    "nameCode": "POL"
+                },
+                "formation": "3-4-3",
+                "coach": {
+                    "name": "Jan Urban"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 902080,
+                            "name": "K. Grabara",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 931266,
+                            "name": "P. Wiśniewski",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 286085,
+                            "name": "J. Bednarek",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1548910,
+                            "name": "K. Potulski",
+                            "number": 25,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 801263,
+                            "name": "J. Kamiński",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 844500,
+                            "name": "B. Slisz",
+                            "number": 6,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 138605,
+                            "name": "P. Zieliński",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 984184,
+                            "name": "N. Zalewski",
+                            "number": 21,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 847983,
+                            "name": "S. Szymański",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 41789,
+                            "name": "R. Lewandowski",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 576438,
+                            "name": "K. Świderski",
+                            "number": 11,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 1020545,
+                            "name": "N. Wojtuszek",
+                            "number": 2,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 984602,
+                            "name": "K. Kozłowski",
+                            "number": 23,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 976037,
+                            "name": "J. Kiwior",
+                            "number": 14,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1548929,
+                            "name": "O. Pietuszewski",
+                            "number": 17,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1006858,
+                            "name": "K. Czubak",
+                            "number": 24,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 889590,
+                            "name": "M. Bułka",
+                            "number": 12,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 851249,
+                            "name": "M. Kochalski",
+                            "number": 22,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 138595,
+                            "name": "T. Kędziora",
+                            "number": 4,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1173623,
+                            "name": "O. Wojcik",
+                            "number": 26,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 309648,
+                            "name": "B. Kapustka",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 971481,
+                            "name": "A. Pyrka",
+                            "number": 15,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 825271,
+                            "name": "J. Piotrowski",
+                            "number": 16,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1423454,
+                            "name": "F. Rózga",
+                            "number": 18,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 942479,
+                            "name": "M. Skóraś",
+                            "number": 19,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 993996,
+                            "name": "M. Żukowski",
+                            "number": 13,
+                            "pos": "F"
+                        }
+                    }
+                ]
+            },
+            "away": {
+                "team": {
+                    "id": 4785,
+                    "name": "Nigeria",
+                    "nameCode": "NIG"
+                },
+                "formation": "4-4-2",
+                "coach": {
+                    "name": "Eric Chelle"
+                },
+                "startXI": [
+                    {
+                        "player": {
+                            "id": 891656,
+                            "name": "M. Okoye",
+                            "number": 23,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1981301,
+                            "name": "A. Bewene",
+                            "number": 2,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 927493,
+                            "name": "I. Ogbu",
+                            "number": 5,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1129032,
+                            "name": "E. Fernandez",
+                            "number": 18,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1134441,
+                            "name": "O. Bruno",
+                            "number": 13,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 330051,
+                            "name": "M. Simon",
+                            "number": 15,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 885864,
+                            "name": "F. Onyeka",
+                            "number": 8,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 787885,
+                            "name": "W. Ndidi",
+                            "number": 4,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1191892,
+                            "name": "T. Nnadi",
+                            "number": 12,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 946381,
+                            "name": "A. Adams",
+                            "number": 22,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 894396,
+                            "name": "T. Moffi",
+                            "number": 9,
+                            "pos": "F"
+                        }
+                    }
+                ],
+                "substitutes": [
+                    {
+                        "player": {
+                            "id": 307274,
+                            "name": "S. Ajayi",
+                            "number": 6,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 987510,
+                            "name": "Z. Sanusi",
+                            "number": 3,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 861972,
+                            "name": "C. Bassey",
+                            "number": 21,
+                            "pos": "D"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1129862,
+                            "name": "R. Onyedika",
+                            "number": 20,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 988476,
+                            "name": "P. Otele",
+                            "number": 7,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 295123,
+                            "name": "P. Onuachu",
+                            "number": 19,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1152386,
+                            "name": "R. Durosinmi",
+                            "number": 14,
+                            "pos": "F"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 910121,
+                            "name": "F. Dele-Bashiru",
+                            "number": 10,
+                            "pos": "M"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 359670,
+                            "name": "F. Uzoho",
+                            "number": 1,
+                            "pos": "G"
+                        }
+                    },
+                    {
+                        "player": {
+                            "id": 1109561,
+                            "name": "A. Okonkwo",
+                            "number": 16,
+                            "pos": "G"
+                        }
+                    }
+                ]
+            }
+        },
+        "statistics": [
+            {
+                "period": "ALL",
+                "groups": [
+                    {
+                        "groupName": "Match overview",
+                        "statisticsItems": [
+                            {
+                                "name": "Ball possession",
+                                "home": "49%",
+                                "away": "51%",
+                                "compareCode": 2,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 49,
+                                "awayValue": 51,
+                                "renderType": 2,
+                                "key": "ballPossession"
+                            },
+                            {
+                                "name": "Expected goals",
+                                "home": "2.54",
+                                "away": "1.80",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 2.54,
+                                "awayValue": 1.8,
+                                "renderType": 1,
+                                "key": "expectedGoals"
+                            },
+                            {
+                                "name": "Total shots",
+                                "home": "12",
+                                "away": "9",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 12,
+                                "awayValue": 9,
+                                "renderType": 1,
+                                "key": "totalShotsOnGoal"
+                            },
+                            {
+                                "name": "Goalkeeper saves",
+                                "home": "3",
+                                "away": "6",
+                                "compareCode": 2,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 3,
+                                "awayValue": 6,
+                                "renderType": 1,
+                                "key": "goalkeeperSaves"
+                            },
+                            {
+                                "name": "Corner kicks",
+                                "home": "5",
+                                "away": "2",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 5,
+                                "awayValue": 2,
+                                "renderType": 1,
+                                "key": "cornerKicks"
+                            },
+                            {
+                                "name": "Fouls",
+                                "home": "9",
+                                "away": "11",
+                                "compareCode": 2,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 9,
+                                "awayValue": 11,
+                                "renderType": 1,
+                                "key": "fouls"
+                            },
+                            {
+                                "name": "Free kicks",
+                                "home": "11",
+                                "away": "10",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 11,
+                                "awayValue": 10,
+                                "renderType": 1,
+                                "key": "freeKicks"
+                            },
+                            {
+                                "name": "Yellow cards",
+                                "home": "2",
+                                "away": "2",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 2,
+                                "awayValue": 2,
+                                "renderType": 1,
+                                "key": "yellowCards"
+                            },
+                            {
+                                "name": "Red cards",
+                                "home": "0",
+                                "away": "0",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 0,
+                                "awayValue": 0,
+                                "renderType": 1,
+                                "key": "redCards"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Shots",
+                        "statisticsItems": [
+                            {
+                                "name": "Total shots",
+                                "home": "12",
+                                "away": "9",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 12,
+                                "awayValue": 9,
+                                "renderType": 1,
+                                "key": "totalShotsOnGoal"
+                            },
+                            {
+                                "name": "Shots on target",
+                                "home": "8",
+                                "away": "5",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 8,
+                                "awayValue": 5,
+                                "renderType": 1,
+                                "key": "shotsOnGoal"
+                            },
+                            {
+                                "name": "Shots off target",
+                                "home": "3",
+                                "away": "3",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 3,
+                                "awayValue": 3,
+                                "renderType": 1,
+                                "key": "shotsOffGoal"
+                            },
+                            {
+                                "name": "Blocked shots",
+                                "home": "1",
+                                "away": "1",
+                                "compareCode": 3,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 1,
+                                "awayValue": 1,
+                                "renderType": 1,
+                                "key": "blockedScoringAttempt"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Attack",
+                        "statisticsItems": [
+                            {
+                                "name": "Offsides",
+                                "home": "1",
+                                "away": "0",
+                                "compareCode": 1,
+                                "statisticsType": "negative",
+                                "valueType": "event",
+                                "homeValue": 1,
+                                "awayValue": 0,
+                                "renderType": 1,
+                                "key": "offsides"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Passes",
+                        "statisticsItems": [
+                            {
+                                "name": "Throw-ins",
+                                "home": "16",
+                                "away": "15",
+                                "compareCode": 1,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 16,
+                                "awayValue": 15,
+                                "renderType": 1,
+                                "key": "throwIns"
+                            }
+                        ]
+                    },
+                    {
+                        "groupName": "Goalkeeping",
+                        "statisticsItems": [
+                            {
+                                "name": "Total saves",
+                                "home": "3",
+                                "away": "6",
+                                "compareCode": 2,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 3,
+                                "awayValue": 6,
+                                "renderType": 1,
+                                "key": "goalkeeperSaves"
+                            },
+                            {
+                                "name": "Goal kicks",
+                                "home": "6",
+                                "away": "8",
+                                "compareCode": 2,
+                                "statisticsType": "positive",
+                                "valueType": "event",
+                                "homeValue": 6,
+                                "awayValue": 8,
+                                "renderType": 1,
+                                "key": "goalKicks"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "incidents": [
+            {
+                "time": 21,
+                "addedTime": null,
+                "displayTime": "21'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 844500,
+                    "name": "B. Slisz"
+                },
+                "reason": ""
+            },
+            {
+                "time": 23,
+                "addedTime": null,
+                "displayTime": "23'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 0,
+                "awayScore": 1,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 894396,
+                    "name": "T. Moffi"
+                },
+                "from": "shot",
+                "assist": {
+                    "id": 330051,
+                    "name": "M. Simon"
+                }
+            },
+            {
+                "time": 45,
+                "addedTime": 0,
+                "displayTime": "45'",
+                "incidentType": "injuryTime",
+                "incidentClass": "",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": null,
+                "length": 3,
+                "sequence": null
+            },
+            {
+                "time": 45,
+                "addedTime": 1,
+                "displayTime": "45+1'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 1,
+                "awayScore": 1,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1548910,
+                    "name": "K. Potulski"
+                },
+                "from": "shot",
+                "assist": {
+                    "id": 984184,
+                    "name": "N. Zalewski"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 295123,
+                    "name": "P. Onuachu"
+                },
+                "playerOut": {
+                    "id": 894396,
+                    "name": "T. Moffi"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 861972,
+                    "name": "C. Bassey"
+                },
+                "playerOut": {
+                    "id": 927493,
+                    "name": "I. Ogbu"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 987510,
+                    "name": "Z. Sanusi"
+                },
+                "playerOut": {
+                    "id": 1134441,
+                    "name": "O. Bruno"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 307274,
+                    "name": "S. Ajayi"
+                },
+                "playerOut": {
+                    "id": 1129032,
+                    "name": "E. Fernandez"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1129862,
+                    "name": "R. Onyedika"
+                },
+                "playerOut": {
+                    "id": 885864,
+                    "name": "F. Onyeka"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 988476,
+                    "name": "P. Otele"
+                },
+                "playerOut": {
+                    "id": 946381,
+                    "name": "A. Adams"
+                }
+            },
+            {
+                "time": 46,
+                "addedTime": null,
+                "displayTime": "46'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1152386,
+                    "name": "R. Durosinmi"
+                },
+                "playerOut": {
+                    "id": 1191892,
+                    "name": "T. Nnadi"
+                }
+            },
+            {
+                "time": 59,
+                "addedTime": null,
+                "displayTime": "59'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1981301,
+                    "name": "A. Bewene"
+                },
+                "reason": ""
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1020545,
+                    "name": "N. Wojtuszek"
+                },
+                "playerOut": {
+                    "id": 576438,
+                    "name": "K. Świderski"
+                }
+            },
+            {
+                "time": 62,
+                "addedTime": null,
+                "displayTime": "62'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 984602,
+                    "name": "K. Kozłowski"
+                },
+                "playerOut": {
+                    "id": 847983,
+                    "name": "S. Szymański"
+                }
+            },
+            {
+                "time": 63,
+                "addedTime": null,
+                "displayTime": "63'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 910121,
+                    "name": "F. Dele-Bashiru"
+                },
+                "playerOut": {
+                    "id": 330051,
+                    "name": "M. Simon"
+                }
+            },
+            {
+                "time": 77,
+                "addedTime": null,
+                "displayTime": "77'",
+                "incidentType": "goal",
+                "incidentClass": "penalty",
+                "homeScore": 1,
+                "awayScore": 2,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 295123,
+                    "name": "P. Onuachu"
+                },
+                "from": "penalty"
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": false,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 1129862,
+                    "name": "R. Onyedika"
+                },
+                "reason": ""
+            },
+            {
+                "time": 80,
+                "addedTime": null,
+                "displayTime": "80'",
+                "incidentType": "card",
+                "incidentClass": "yellow",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 41789,
+                    "name": "R. Lewandowski"
+                },
+                "reason": ""
+            },
+            {
+                "time": 82,
+                "addedTime": null,
+                "displayTime": "82'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 976037,
+                    "name": "J. Kiwior"
+                },
+                "playerOut": {
+                    "id": 1548910,
+                    "name": "K. Potulski"
+                }
+            },
+            {
+                "time": 89,
+                "addedTime": null,
+                "displayTime": "89'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1006858,
+                    "name": "K. Czubak"
+                },
+                "playerOut": {
+                    "id": 138605,
+                    "name": "P. Zieliński"
+                }
+            },
+            {
+                "time": 89,
+                "addedTime": null,
+                "displayTime": "89'",
+                "incidentType": "substitution",
+                "incidentClass": "regular",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "playerIn": {
+                    "id": 1548929,
+                    "name": "O. Pietuszewski"
+                },
+                "playerOut": {
+                    "id": 984184,
+                    "name": "N. Zalewski"
+                }
+            },
+            {
+                "time": 90,
+                "addedTime": 0,
+                "displayTime": "90'",
+                "incidentType": "injuryTime",
+                "incidentClass": "",
+                "homeScore": null,
+                "awayScore": null,
+                "isHome": null,
+                "length": 5,
+                "sequence": null
+            },
+            {
+                "time": 90,
+                "addedTime": 5,
+                "displayTime": "90+5'",
+                "incidentType": "goal",
+                "incidentClass": "regular",
+                "homeScore": 2,
+                "awayScore": 2,
+                "isHome": true,
+                "length": null,
+                "sequence": null,
+                "player": {
+                    "id": 931266,
+                    "name": "P. Wiśniewski"
+                },
+                "from": "shot",
+                "assist": {
+                    "id": 1020545,
+                    "name": "N. Wojtuszek"
+                }
+            }
+        ],
+        "kitColors": {
+            "home": "ffffff",
+            "away": "1cb56e"
+        }
+    }
+}

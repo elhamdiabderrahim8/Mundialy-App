@@ -1,0 +1,85 @@
+{
+    "response": {
+        "event": {
+            "id": 16223222,
+            "homeTeam": {
+                "id": 7930,
+                "name": "Kyrgyzstan",
+                "nameCode": "KGZ",
+                "logo": "https://www.sofascore.com/api/v1/team/7930/image"
+            },
+            "awayTeam": {
+                "id": 4773,
+                "name": "Kenya",
+                "nameCode": "KEN",
+                "logo": "https://www.sofascore.com/api/v1/team/4773/image"
+            },
+            "homeScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "awayScore": {
+                "current": 0,
+                "penalties": null
+            },
+            "winnerCode": null,
+            "status": {
+                "code": 70,
+                "description": "Canceled",
+                "type": "canceled"
+            },
+            "startTimestamp": 1780489800
+        },
+        "venue": {
+            "name": "Dolen Omurzakov Stadium",
+            "city": "Bishkek",
+            "capacity": "23000"
+        },
+        "referee": {
+            "name": "",
+            "country": ""
+        },
+        "managers": {
+            "home": {
+                "name": "Robert Prosinečki"
+            },
+            "away": {
+                "name": "Benni McCarthy"
+            }
+        },
+        "lineups": {
+            "home": {
+                "team": {
+                    "id": 7930,
+                    "name": "Kyrgyzstan",
+                    "nameCode": "KGZ"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Robert Prosinečki"
+                },
+                "startXI": [],
+                "substitutes": []
+            },
+            "away": {
+                "team": {
+                    "id": 4773,
+                    "name": "Kenya",
+                    "nameCode": "KEN"
+                },
+                "formation": "N/A",
+                "coach": {
+                    "name": "Benni McCarthy"
+                },
+                "startXI": [],
+                "substitutes": []
+            }
+        },
+        "statistics": [],
+        "incidents": [],
+        "kitColors": {
+            "home": "000000",
+            "away": "000000"
+        }
+    }
+}
