@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import '../utils/global_config.dart';
 
 class SofaScraperService {
-  // L'adresse IP de ton PC.
-  // IMPORTANT: Si tu es sur émulateur Android, utilise 'http://10.0.2.2:5000'
-  // Si tu es sur ton vrai téléphone Infinix, utilise l'IP de ton PC (ex: 'http://192.168.1.15:5000')
-  static const String _baseUrl = 'http://10.0.2.2:5000';
+  static String get _baseUrl => GlobalConfig.backendUrl;
 
   /// Récupère les compositions d'équipes et positions via le pont Python
   static Future<Map<String, dynamic>?> fetchLineups(String matchId) async {
