@@ -136,13 +136,17 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       'away': widget.match.awayTeam,
       'homeCode': widget.match.homeCode,
       'awayCode': widget.match.awayCode,
-      'score': '${widget.match.scoreHome ?? 0} - ${widget.match.scoreAway ?? 0}',
+      'score':
+          '${widget.match.scoreHome ?? 0} - ${widget.match.scoreAway ?? 0}',
       'minute': widget.match.matchMinute ?? '',
     });
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Match épinglé ! Vous pouvez fermer l\'application.'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Match épinglé ! Vous pouvez fermer l\'application.'),
+          backgroundColor: Colors.green,
+        ),
       );
     }
   }
@@ -262,12 +266,21 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             children: [
               if (widget.match.streamUrl != null && widget.match.isLive)
                 IconButton(
-                  onPressed: () => _openLiveStream(context, widget.match.streamUrl!),
-                  icon: const Icon(Icons.live_tv_rounded, color: kGold, size: 24),
+                  onPressed: () =>
+                      _openLiveStream(context, widget.match.streamUrl!),
+                  icon: const Icon(
+                    Icons.live_tv_rounded,
+                    color: kGold,
+                    size: 24,
+                  ),
                 ),
               IconButton(
                 onPressed: _pinMatch,
-                icon: const Icon(Icons.push_pin_outlined, color: kGold, size: 24),
+                icon: const Icon(
+                  Icons.push_pin_outlined,
+                  color: kGold,
+                  size: 24,
+                ),
               ),
             ],
           ),
@@ -436,14 +449,18 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       final minStr = e.minute.toUpperCase();
       final min = int.tryParse(e.minute.replaceAll("'", "")) ?? 0;
       return e.detail.toLowerCase().contains('shootout') ||
-             minStr.contains('TAB') ||
-             minStr.contains('PEN') ||
-             (e.title.toLowerCase().contains('penalty') && min > 120) ||
-             e.title.toLowerCase().contains('tirs au but');
+          minStr.contains('TAB') ||
+          minStr.contains('PEN') ||
+          (e.title.toLowerCase().contains('penalty') && min > 120) ||
+          e.title.toLowerCase().contains('tirs au but');
     }).toList();
 
-    final homeEvents = shootoutEvents.where((e) => e.teamName == homeTeam).toList();
-    final awayEvents = shootoutEvents.where((e) => e.teamName == awayTeam).toList();
+    final homeEvents = shootoutEvents
+        .where((e) => e.teamName == homeTeam)
+        .toList();
+    final awayEvents = shootoutEvents
+        .where((e) => e.teamName == awayTeam)
+        .toList();
 
     // Score cumulé
     int homeScore = _details!.overview.penaltyHome ?? 0;
@@ -486,7 +503,10 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               _ShootoutTeamLogo(teamId: homeId, code: homeCode),
               const SizedBox(width: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: kGold.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
@@ -544,7 +564,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               // Divider vertical
               Container(
                 width: 1,
-                height: (homeEvents.length > awayEvents.length ? homeEvents.length : awayEvents.length) * 44.0 + 50,
+                height:
+                    (homeEvents.length > awayEvents.length
+                            ? homeEvents.length
+                            : awayEvents.length) *
+                        44.0 +
+                    50,
                 color: textColor.withValues(alpha: 0.08),
                 margin: const EdgeInsets.symmetric(horizontal: 12),
               ),
@@ -615,11 +640,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       final minute = int.tryParse(minStr) ?? 0;
       // Exclure les tirs au but de la liste principale
       final minUpper = e.minute.toUpperCase();
-      final isShootout = e.detail.toLowerCase().contains('shootout') ||
-                         minUpper.contains('TAB') ||
-                         minUpper.contains('PEN') ||
-                         (e.title.toLowerCase().contains('penalty') && minute > 120) ||
-                         e.title.toLowerCase().contains('tirs au but');
+      final isShootout =
+          e.detail.toLowerCase().contains('shootout') ||
+          minUpper.contains('TAB') ||
+          minUpper.contains('PEN') ||
+          (e.title.toLowerCase().contains('penalty') && minute > 120) ||
+          e.title.toLowerCase().contains('tirs au but');
       if (isShootout) continue;
 
       int period;
@@ -1252,7 +1278,10 @@ class _PlayerJersey extends StatelessWidget {
                 top: -10,
                 left: -10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(4),
@@ -1268,7 +1297,8 @@ class _PlayerJersey extends StatelessWidget {
                       if (player.assists > 0)
                         ...List.generate(
                           player.assists,
-                          (_) => const Text('👟', style: TextStyle(fontSize: 9)),
+                          (_) =>
+                              const Text('👟', style: TextStyle(fontSize: 9)),
                         ),
                       if (player.redCard)
                         const Padding(
@@ -1280,7 +1310,11 @@ class _PlayerJersey extends StatelessWidget {
                           player.yellowCards,
                           (_) => const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 1.0),
-                            child: Icon(Icons.square, size: 8, color: Colors.yellow),
+                            child: Icon(
+                              Icons.square,
+                              size: 8,
+                              color: Colors.yellow,
+                            ),
                           ),
                         ),
                     ],
@@ -2129,7 +2163,6 @@ Color _eventAccent(MatchEventIcon icon) {
   };
 }
 
-
 /// Logo d'équipe sans cercle pour la section tirs au but
 class _ShootoutTeamLogo extends StatelessWidget {
   const _ShootoutTeamLogo({required this.teamId, required this.code});
@@ -2202,8 +2235,9 @@ class _ShootoutRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment:
-            isHome ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment: isHome
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
         children: isHome
             ? [circle, const SizedBox(width: 8), Expanded(child: playerName)]
             : [Expanded(child: playerName), const SizedBox(width: 8), circle],

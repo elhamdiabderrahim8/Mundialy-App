@@ -81,7 +81,10 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kGold.withValues(alpha: 0.1), _kGold.withValues(alpha: 0)],
+                  colors: [
+                    _kGold.withValues(alpha: 0.1),
+                    _kGold.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
@@ -103,7 +106,11 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                             colors: [_kGold, _kGold.withValues(alpha: 0.6)],
                           ),
                         ),
-                        child: const Icon(Icons.live_tv_rounded, color: Color(0xFF0E1A24), size: 22),
+                        child: const Icon(
+                          Icons.live_tv_rounded,
+                          color: Color(0xFF0E1A24),
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Column(
@@ -120,38 +127,72 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                           ),
                           Text(
                             '${_categories.length} catégories disponibles',
-                            style: TextStyle(color: textColor.withValues(alpha: 0.4), fontSize: 12),
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.4),
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.8),
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.3)
+                              : Colors.white.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: _kGold.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: _kGold.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.logout_rounded, color: _kGold, size: 20),
+                          icon: const Icon(
+                            Icons.logout_rounded,
+                            color: _kGold,
+                            size: 20,
+                          ),
                           onPressed: () {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
-                                backgroundColor: isDark ? _kCardDark : Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                title: Text('Déconnexion', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-                                content: Text('Se déconnecter du serveur IPTV ?', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
+                                backgroundColor: isDark
+                                    ? _kCardDark
+                                    : Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                title: Text(
+                                  'Déconnexion',
+                                  style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                content: Text(
+                                  'Se déconnecter du serveur IPTV ?',
+                                  style: TextStyle(
+                                    color: textColor.withValues(alpha: 0.7),
+                                  ),
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
-                                    child: Text('Annuler', style: TextStyle(color: textColor.withValues(alpha: 0.5))),
+                                    child: Text(
+                                      'Annuler',
+                                      style: TextStyle(
+                                        color: textColor.withValues(alpha: 0.5),
+                                      ),
+                                    ),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(ctx);
                                       widget.onLogout();
                                     },
-                                    child: const Text('Déconnexion', style: TextStyle(color: Colors.redAccent)),
+                                    child: const Text(
+                                      'Déconnexion',
+                                      style: TextStyle(color: Colors.redAccent),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -172,8 +213,15 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                     style: TextStyle(color: textColor, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Rechercher une catégorie...',
-                      hintStyle: TextStyle(color: textColor.withValues(alpha: 0.3), fontSize: 14),
-                      prefixIcon: Icon(Icons.search_rounded, color: _kGold.withValues(alpha: 0.6), size: 20),
+                      hintStyle: TextStyle(
+                        color: textColor.withValues(alpha: 0.3),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: _kGold.withValues(alpha: 0.6),
+                        size: 20,
+                      ),
                       filled: true,
                       fillColor: fieldBg,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -183,7 +231,9 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: _kGold.withValues(alpha: 0.4)),
+                        borderSide: BorderSide(
+                          color: _kGold.withValues(alpha: 0.4),
+                        ),
                       ),
                     ),
                   ),
@@ -199,114 +249,144 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                             children: [
                               const CircularProgressIndicator(color: _kGold),
                               const SizedBox(height: 16),
-                              Text('Chargement des catégories...', style: TextStyle(color: textColor.withValues(alpha: 0.4))),
+                              Text(
+                                'Chargement des catégories...',
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.4),
+                                ),
+                              ),
                             ],
                           ),
                         )
                       : _filteredCategories.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.category_rounded, color: _kGold.withValues(alpha: 0.3), size: 48),
-                                  const SizedBox(height: 12),
-                                  Text('Aucune catégorie trouvée', style: TextStyle(color: textColor.withValues(alpha: 0.5))),
-                                ],
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.category_rounded,
+                                color: _kGold.withValues(alpha: 0.3),
+                                size: 48,
                               ),
-                            )
-                          : GridView.builder(
-                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              const SizedBox(height: 12),
+                              Text(
+                                'Aucune catégorie trouvée',
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : GridView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 childAspectRatio: 2.2,
                                 crossAxisSpacing: 14,
                                 mainAxisSpacing: 14,
                               ),
-                              itemCount: _filteredCategories.length,
-                              itemBuilder: (context, index) {
-                                final cat = _filteredCategories[index];
-                                final name = cat['category_name']?.toString() ?? 'Inconnu';
-                                final id = cat['category_id']?.toString() ?? '';
+                          itemCount: _filteredCategories.length,
+                          itemBuilder: (context, index) {
+                            final cat = _filteredCategories[index];
+                            final name =
+                                cat['category_name']?.toString() ?? 'Inconnu';
+                            final id = cat['category_id']?.toString() ?? '';
 
-                                return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => IptvChannelsScreen(
-                                          iptvService: widget.iptvService,
-                                          categoryId: id,
-                                          categoryName: name,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: isDark ? _kCardDark : Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(color: _kGold.withValues(alpha: 0.15)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        // Subtle gold accent top-right
-                                        Positioned(
-                                          top: -8,
-                                          right: -8,
-                                          child: Container(
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: _kGold.withValues(alpha: 0.08),
-                                            ),
-                                          ),
-                                        ),
-                                        Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  width: 36,
-                                                  height: 36,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    color: _kGold.withValues(alpha: 0.12),
-                                                  ),
-                                                  child: Icon(Icons.folder_rounded, color: _kGold, size: 18),
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    name,
-                                                    style: TextStyle(
-                                                      color: textColor,
-                                                      fontSize: 13,
-                                                      fontWeight: FontWeight.w700,
-                                                      height: 1.2,
-                                                    ),
-                                                    maxLines: 2,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => IptvChannelsScreen(
+                                      iptvService: widget.iptvService,
+                                      categoryId: id,
+                                      categoryName: name,
                                     ),
                                   ),
                                 );
                               },
-                            ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? _kCardDark : Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: _kGold.withValues(alpha: 0.15),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: isDark ? 0.3 : 0.06,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    // Subtle gold accent top-right
+                                    Positioned(
+                                      top: -8,
+                                      right: -8,
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _kGold.withValues(alpha: 0.08),
+                                        ),
+                                      ),
+                                    ),
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 36,
+                                              height: 36,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                color: _kGold.withValues(
+                                                  alpha: 0.12,
+                                                ),
+                                              ),
+                                              child: Icon(
+                                                Icons.folder_rounded,
+                                                color: _kGold,
+                                                size: 18,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                name,
+                                                style: TextStyle(
+                                                  color: textColor,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                  height: 1.2,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),

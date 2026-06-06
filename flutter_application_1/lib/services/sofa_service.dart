@@ -10,7 +10,9 @@ class SofaService {
 
   static Future<Map<String, dynamic>> fetchWorldCup2026CompleteData() async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/api/worldcup/complete-data'));
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/worldcup/complete-data'),
+      );
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map) {
@@ -31,7 +33,7 @@ class SofaService {
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         List<dynamic> news = [];
-        
+
         if (decoded is Map && decoded.containsKey('news')) {
           news = decoded['news'] as List<dynamic>;
         } else if (decoded is List) {
@@ -41,14 +43,15 @@ class SofaService {
         return news.map((n) {
           String? img = n['imageURL'];
           if (img == null && n['imageRelativePath'] != null) {
-            img = 'https://image.365scores.com/image/upload/${n['imageRelativePath']}';
+            img =
+                'https://image.365scores.com/image/upload/${n['imageRelativePath']}';
           }
           return {
             "title": n['title'] ?? 'Sans titre',
             "desc": n['teaser'] ?? n['description'] ?? '',
             "img": img,
             "url": n['link'],
-            "source": "365Scores"
+            "source": "365Scores",
           };
         }).toList();
       }
@@ -58,7 +61,10 @@ class SofaService {
     return [];
   }
 
-  static LiveMatch mapJsonToLiveMatch(dynamic g, [Map<int, dynamic>? competitorsMap]) {
+  static LiveMatch mapJsonToLiveMatch(
+    dynamic g, [
+    Map<int, dynamic>? competitorsMap,
+  ]) {
     var home = g['homeCompetitor'];
     var away = g['awayCompetitor'];
 
@@ -73,24 +79,32 @@ class SofaService {
 
     home ??= {};
     away ??= {};
-    
+
     return LiveMatch(
       id: '${g['id']}',
       dateLabel: g['startTime']?.toString().substring(0, 10) ?? '',
       localTime: g['startTime']?.toString().substring(11, 16) ?? '',
       city: 'Coupe du Monde 2026',
       homeTeam: home['name'] ?? 'TBD',
-      homeCode: resolveCountryCode(home['name'] ?? ''), 
+      homeCode: resolveCountryCode(home['name'] ?? ''),
       homeTeamId: (home['id'] as num?)?.toInt(),
-      homeLogoUrl: home['imageURL'] ?? (home['imageRelativePath'] != null ? 'https://image.365scores.com/image/upload/${home['imageRelativePath']}' : null),
+      homeLogoUrl:
+          home['imageURL'] ??
+          (home['imageRelativePath'] != null
+              ? 'https://image.365scores.com/image/upload/${home['imageRelativePath']}'
+              : null),
       awayTeam: away['name'] ?? 'TBD',
       awayCode: resolveCountryCode(away['name'] ?? ''),
       awayTeamId: (away['id'] as num?)?.toInt(),
-      awayLogoUrl: away['imageURL'] ?? (away['imageRelativePath'] != null ? 'https://image.365scores.com/image/upload/${away['imageRelativePath']}' : null),
+      awayLogoUrl:
+          away['imageURL'] ??
+          (away['imageRelativePath'] != null
+              ? 'https://image.365scores.com/image/upload/${away['imageRelativePath']}'
+              : null),
       scoreHome: (g['homeCompetitor']?['score'] as num?)?.toInt(),
       scoreAway: (g['awayCompetitor']?['score'] as num?)?.toInt(),
       phaseLabel: g['statusText'] ?? '',
-      isLive: g['status'] == 2, 
+      isLive: g['status'] == 2,
       source: MatchDataSource.wc2026api,
     );
   }

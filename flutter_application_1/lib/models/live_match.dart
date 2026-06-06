@@ -67,16 +67,23 @@ class LiveMatch {
 
   /// True if the match is finished
   bool get isFinished =>
-      statusShort == 'FT' || statusShort == 'AET' || statusShort == 'PEN' || statusShort?.toLowerCase() == 'finished';
+      statusShort == 'FT' ||
+      statusShort == 'AET' ||
+      statusShort == 'PEN' ||
+      statusShort?.toLowerCase() == 'finished';
 
   /// True if the match hasn't started yet
-  bool get isNotStarted => statusShort == 'NS' || statusShort == null || statusShort?.toLowerCase() == 'notstarted';
+  bool get isNotStarted =>
+      statusShort == 'NS' ||
+      statusShort == null ||
+      statusShort?.toLowerCase() == 'notstarted';
 
   /// Display label for the match status area
   String get statusDisplay {
     String? currentMin = matchMinute;
-    final bool isHalftime = statusShort == 'HT' || statusShort?.toUpperCase() == 'HALFTIME';
-    
+    final bool isHalftime =
+        statusShort == 'HT' || statusShort?.toUpperCase() == 'HALFTIME';
+
     if (periodStart != null && periodBaseMinute != null && !isHalftime) {
       int diff = DateTime.now().difference(periodStart!).inMinutes;
       currentMin = '${periodBaseMinute! + diff}';
@@ -145,22 +152,40 @@ class LiveMatch {
       final date = DateTime.tryParse(dateStr)?.toLocal() ?? DateTime.now();
 
       final timeObj = json['time'] ?? fixture['time'] ?? status['time'] ?? {};
-      final startTsRaw = timeObj['currentPeriodStartTimestamp'] ?? json['currentPeriodStartTimestamp'] ?? fixture['currentPeriodStartTimestamp'] ?? status['currentPeriodStartTimestamp'];
-      final int? startTs = startTsRaw != null ? int.tryParse(startTsRaw.toString()) : null;
-      
-      String? minuteStr = (status['elapsed'] ?? status['currentMinute'] ?? timeObj['currentMinute'] ?? timeObj['played'] ?? json['currentMinute'])?.toString();
+      final startTsRaw =
+          timeObj['currentPeriodStartTimestamp'] ??
+          json['currentPeriodStartTimestamp'] ??
+          fixture['currentPeriodStartTimestamp'] ??
+          status['currentPeriodStartTimestamp'];
+      final int? startTs = startTsRaw != null
+          ? int.tryParse(startTsRaw.toString())
+          : null;
+
+      String? minuteStr =
+          (status['elapsed'] ??
+                  status['currentMinute'] ??
+                  timeObj['currentMinute'] ??
+                  timeObj['played'] ??
+                  json['currentMinute'])
+              ?.toString();
       DateTime? pStart;
       int? pBase;
 
       if (startTs != null) {
         final isMs = startTs > 9999999999;
-        pStart = DateTime.fromMillisecondsSinceEpoch(isMs ? startTs : startTs * 1000);
-        final code = status['code'] ?? status['short'] ?? json['status']?['code'];
+        pStart = DateTime.fromMillisecondsSinceEpoch(
+          isMs ? startTs : startTs * 1000,
+        );
+        final code =
+            status['code'] ?? status['short'] ?? json['status']?['code'];
         pBase = 0;
-        if (code == 7 || code == '2H') pBase = 45;
-        else if (code == 24 || code == 'ET1') pBase = 90;
-        else if (code == 25 || code == 'ET2') pBase = 105;
-        
+        if (code == 7 || code == '2H')
+          pBase = 45;
+        else if (code == 24 || code == 'ET1')
+          pBase = 90;
+        else if (code == 25 || code == 'ET2')
+          pBase = 105;
+
         if (minuteStr == null || minuteStr.isEmpty) {
           if (code == 31 || code == 'HT') {
             minuteStr = 'HT';
@@ -190,16 +215,18 @@ class LiveMatch {
         scoreAway: goals['away'],
         penaltyHome: (json['score'] as Map?)?['penalty']?['home'] as int?,
         penaltyAway: (json['score'] as Map?)?['penalty']?['away'] as int?,
-        isLive: [
-          '1H',
-          '2H',
-          'HT',
-          'ET',
-          'BT',
-          'P',
-          'LIVE',
-          'INPROGRESS',
-        ].contains(status['short']?.toString().toUpperCase()) || (status['type']?.toString().toLowerCase() == 'inprogress'),
+        isLive:
+            [
+              '1H',
+              '2H',
+              'HT',
+              'ET',
+              'BT',
+              'P',
+              'LIVE',
+              'INPROGRESS',
+            ].contains(status['short']?.toString().toUpperCase()) ||
+            (status['type']?.toString().toLowerCase() == 'inprogress'),
         statusShort: (status['short'] ?? status['type'])?.toString(),
         statusLong: status['long'] as String?,
         matchMinute: minuteStr,

@@ -21,10 +21,11 @@ class TopScorer {
 
   factory TopScorer.fromApi(Map<String, dynamic> json, int rank) {
     final player = json['player'] ?? {};
-    final statistics = (json['statistics'] != null && (json['statistics'] as List).isNotEmpty) 
-        ? json['statistics'][0] 
+    final statistics =
+        (json['statistics'] != null && (json['statistics'] as List).isNotEmpty)
+        ? json['statistics'][0]
         : {};
-    
+
     final team = statistics['team'] ?? {};
     final goalsData = statistics['goals'] ?? {};
 

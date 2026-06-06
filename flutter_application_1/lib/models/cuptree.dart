@@ -7,9 +7,7 @@ class CupTree {
     // SofaScore cuptrees is usually a list of rounds or a structured object
     // Depending on the version, it might be inside 'cupTree' key
     final list = (json['cupTree'] as List? ?? []);
-    return CupTree(
-      rounds: list.map((e) => CupTreeNode.fromApi(e)).toList(),
-    );
+    return CupTree(rounds: list.map((e) => CupTreeNode.fromApi(e)).toList());
   }
 }
 

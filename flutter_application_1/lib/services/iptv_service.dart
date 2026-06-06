@@ -32,7 +32,9 @@ class IptvService {
     }
 
     try {
-      final url = Uri.parse('$serverUrl/player_api.php?username=$username&password=$password');
+      final url = Uri.parse(
+        '$serverUrl/player_api.php?username=$username&password=$password',
+      );
       final response = await http.get(url).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -71,7 +73,9 @@ class IptvService {
   Future<List<dynamic>> getLiveCategories() async {
     if (!isConfigured) return [];
     try {
-      final url = Uri.parse('$_serverUrl/player_api.php?username=$_username&password=$_password&action=get_live_categories');
+      final url = Uri.parse(
+        '$_serverUrl/player_api.php?username=$_username&password=$_password&action=get_live_categories',
+      );
       final response = await http.get(url).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
@@ -85,7 +89,9 @@ class IptvService {
   Future<List<dynamic>> getLiveStreams(String categoryId) async {
     if (!isConfigured) return [];
     try {
-      final url = Uri.parse('$_serverUrl/player_api.php?username=$_username&password=$_password&action=get_live_streams&category_id=$categoryId');
+      final url = Uri.parse(
+        '$_serverUrl/player_api.php?username=$_username&password=$_password&action=get_live_streams&category_id=$categoryId',
+      );
       final response = await http.get(url).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;

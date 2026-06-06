@@ -31,7 +31,8 @@ class AnimatedGoalOverlay extends StatefulWidget {
   State<AnimatedGoalOverlay> createState() => _AnimatedGoalOverlayState();
 }
 
-class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerProviderStateMixin {
+class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
+    with TickerProviderStateMixin {
   ui.Image? _flagImage;
   bool _isLoadingImage = true;
 
@@ -52,9 +53,18 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
   }
 
   void _setupAnimations() {
-    _goalTextController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _transitionController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
-    _scorePulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _goalTextController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _transitionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _scorePulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
 
     // Staggered "GOAL"
     _letterScales = [];
@@ -62,12 +72,22 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
     for (int i = 0; i < 4; i++) {
       final start = i * 0.15;
       final end = start + 0.3;
-      _letterScales.add(Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _goalTextController, curve: Interval(start, end, curve: Curves.elasticOut)),
-      ));
-      _letterFades.add(Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _goalTextController, curve: Interval(start, end, curve: Curves.easeIn)),
-      ));
+      _letterScales.add(
+        Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: _goalTextController,
+            curve: Interval(start, end, curve: Curves.elasticOut),
+          ),
+        ),
+      );
+      _letterFades.add(
+        Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: _goalTextController,
+            curve: Interval(start, end, curve: Curves.easeIn),
+          ),
+        ),
+      );
     }
 
     _scorePulseController.addStatusListener((status) {
@@ -83,16 +103,21 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
 
     if (flagUrl != null) {
       try {
-        final ImageStream stream = NetworkImage(flagUrl).resolve(ImageConfiguration.empty);
+        final ImageStream stream = NetworkImage(
+          flagUrl,
+        ).resolve(ImageConfiguration.empty);
         final Completer<ui.Image> completer = Completer<ui.Image>();
         late ImageStreamListener listener;
-        listener = ImageStreamListener((ImageInfo info, bool synchronousCall) {
-          if (!completer.isCompleted) completer.complete(info.image);
-          stream.removeListener(listener);
-        }, onError: (e, s) {
-          if (!completer.isCompleted) completer.completeError(e);
-          stream.removeListener(listener);
-        });
+        listener = ImageStreamListener(
+          (ImageInfo info, bool synchronousCall) {
+            if (!completer.isCompleted) completer.complete(info.image);
+            stream.removeListener(listener);
+          },
+          onError: (e, s) {
+            if (!completer.isCompleted) completer.completeError(e);
+            stream.removeListener(listener);
+          },
+        );
         stream.addListener(listener);
         _flagImage = await completer.future;
       } catch (e) {
@@ -115,7 +140,7 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
 
     // 2. Transition to Score
     await _transitionController.forward();
-    
+
     // 3. Pulse Score
     _scorePulseController.forward();
 
@@ -149,9 +174,15 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
             decoration: BoxDecoration(
               color: AppColors.surface.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 5),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
               ],
             ),
             child: AnimatedBuilder(
@@ -194,9 +225,9 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
                         blendMode: BlendMode.srcIn,
                         shaderCallback: (bounds) {
                           final matrix = Matrix4.diagonal3Values(
-                            bounds.width / _flagImage!.width, 
-                            bounds.height / _flagImage!.height, 
-                            1.0
+                            bounds.width / _flagImage!.width,
+                            bounds.height / _flagImage!.height,
+                            1.0,
                           );
                           return ImageShader(
                             _flagImage!,
@@ -205,9 +236,24 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
                             matrix.storage,
                           );
                         },
-                        child: Text(letters[index], style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900, height: 1)),
+                        child: Text(
+                          letters[index],
+                          style: const TextStyle(
+                            fontSize: 60,
+                            fontWeight: FontWeight.w900,
+                            height: 1,
+                          ),
+                        ),
                       )
-                    : Text(letters[index], style: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900, color: AppColors.primary, height: 1)),
+                    : Text(
+                        letters[index],
+                        style: const TextStyle(
+                          fontSize: 60,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          height: 1,
+                        ),
+                      ),
               ),
             );
           },
@@ -236,13 +282,34 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(homeTeam, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(
+              homeTeam,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
             const SizedBox(width: 16),
             _buildScoreNumber(homeScore, homeScored),
-            const Text(' - ', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white54)),
+            const Text(
+              ' - ',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white54,
+              ),
+            ),
             _buildScoreNumber(awayScore, awayScored),
             const SizedBox(width: 16),
-            Text(awayTeam, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(
+              awayTeam,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
         if (scorer.isNotEmpty)
@@ -251,11 +318,19 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.sports_soccer, color: AppColors.secondary, size: 16),
+                const Icon(
+                  Icons.sports_soccer,
+                  color: AppColors.secondary,
+                  size: 16,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   "$scorer ${minute.isNotEmpty ? "$minute'" : ""}${isPenalty ? " (P)" : ""}",
-                  style: const TextStyle(color: AppColors.secondary, fontSize: 14, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -266,7 +341,14 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
 
   Widget _buildScoreNumber(String score, bool didScore) {
     if (!didScore) {
-      return Text(score, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white));
+      return Text(
+        score,
+        style: const TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      );
     }
     return AnimatedBuilder(
       animation: _scorePulseController,
@@ -276,7 +358,11 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay> with TickerPr
           scale: scale,
           child: Text(
             score,
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.redAccent),
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.redAccent,
+            ),
           ),
         );
       },

@@ -5,12 +5,12 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer une adresse email';
     }
-    
+
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value)) {
       return 'Adresse email invalide';
     }
-    
+
     return null; // null = pas d'erreur!
   }
 
@@ -19,11 +19,11 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer un mot de passe';
     }
-    
+
     if (value.length < 6) {
       return 'Le mot de passe doit contenir au moins 6 caractères';
     }
-    
+
     return null;
   }
 
@@ -40,12 +40,12 @@ class Validators {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer un numéro de téléphone';
     }
-    
+
     final phoneRegex = RegExp(r'^[0-9]{10}$');
     if (!phoneRegex.hasMatch(value.replaceAll(RegExp(r'[^0-9]'), ''))) {
       return 'Numéro de téléphone invalide';
     }
-    
+
     return null;
   }
 }

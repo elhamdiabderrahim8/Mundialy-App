@@ -84,7 +84,10 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kGold.withValues(alpha: 0.1), _kGold.withValues(alpha: 0)],
+                  colors: [
+                    _kGold.withValues(alpha: 0.1),
+                    _kGold.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
@@ -98,7 +101,11 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back_ios_new_rounded, color: _kGold, size: 20),
+                        icon: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: _kGold,
+                          size: 20,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 4),
@@ -120,7 +127,10 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                             if (!_isLoading)
                               Text(
                                 '${_filteredChannels.length} chaîne${_filteredChannels.length > 1 ? 's' : ''}',
-                                style: TextStyle(color: textColor.withValues(alpha: 0.4), fontSize: 12),
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.4),
+                                  fontSize: 12,
+                                ),
                               ),
                           ],
                         ),
@@ -138,8 +148,15 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                     style: TextStyle(color: textColor, fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Rechercher une chaîne...',
-                      hintStyle: TextStyle(color: textColor.withValues(alpha: 0.3), fontSize: 14),
-                      prefixIcon: Icon(Icons.search_rounded, color: _kGold.withValues(alpha: 0.6), size: 20),
+                      hintStyle: TextStyle(
+                        color: textColor.withValues(alpha: 0.3),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: _kGold.withValues(alpha: 0.6),
+                        size: 20,
+                      ),
                       filled: true,
                       fillColor: fieldBg,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -149,7 +166,9 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(color: _kGold.withValues(alpha: 0.4)),
+                        borderSide: BorderSide(
+                          color: _kGold.withValues(alpha: 0.4),
+                        ),
                       ),
                     ),
                   ),
@@ -165,125 +184,186 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                             children: [
                               const CircularProgressIndicator(color: _kGold),
                               const SizedBox(height: 16),
-                              Text('Chargement des chaînes...', style: TextStyle(color: textColor.withValues(alpha: 0.4))),
+                              Text(
+                                'Chargement des chaînes...',
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.4),
+                                ),
+                              ),
                             ],
                           ),
                         )
                       : _filteredChannels.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.tv_off_rounded, color: _kGold.withValues(alpha: 0.3), size: 48),
-                                  const SizedBox(height: 12),
-                                  Text('Aucune chaîne trouvée', style: TextStyle(color: textColor.withValues(alpha: 0.5))),
-                                ],
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.tv_off_rounded,
+                                color: _kGold.withValues(alpha: 0.3),
+                                size: 48,
                               ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                              itemCount: _filteredChannels.length,
-                              itemBuilder: (context, index) {
-                                final channel = _filteredChannels[index];
-                                final name = channel['name']?.toString() ?? 'Inconnu';
-                                final logo = channel['stream_icon']?.toString() ?? '';
-                                final streamId = channel['stream_id'];
+                              const SizedBox(height: 12),
+                              Text(
+                                'Aucune chaîne trouvée',
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          itemCount: _filteredChannels.length,
+                          itemBuilder: (context, index) {
+                            final channel = _filteredChannels[index];
+                            final name =
+                                channel['name']?.toString() ?? 'Inconnu';
+                            final logo =
+                                channel['stream_icon']?.toString() ?? '';
+                            final streamId = channel['stream_id'];
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      if (streamId != null) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => IptvPlayerScreen(
-                                              iptvService: widget.iptvService,
-                                              streamId: int.parse(streamId.toString()),
-                                              channelName: name,
-                                            ),
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (streamId != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => IptvPlayerScreen(
+                                          iptvService: widget.iptvService,
+                                          streamId: int.parse(
+                                            streamId.toString(),
                                           ),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? _kCardDark : Colors.white,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: _kGold.withValues(alpha: 0.12)),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
+                                          channelName: name,
+                                        ),
                                       ),
-                                      child: Row(
-                                        children: [
-                                          // Channel logo
-                                          Container(
-                                            width: 56,
-                                            height: 56,
-                                            decoration: BoxDecoration(
-                                              color: isDark ? const Color(0xFF152231) : const Color(0xFFF5F0E5),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: _kGold.withValues(alpha: 0.1)),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(11),
-                                              child: logo.isNotEmpty
-                                                  ? CachedNetworkImage(
-                                                      imageUrl: logo,
-                                                      fit: BoxFit.contain,
-                                                      placeholder: (_, __) => Icon(Icons.tv_rounded, color: _kGold.withValues(alpha: 0.3), size: 24),
-                                                      errorWidget: (_, __, ___) => Icon(Icons.tv_rounded, color: _kGold.withValues(alpha: 0.3), size: 24),
-                                                    )
-                                                  : Icon(Icons.tv_rounded, color: _kGold.withValues(alpha: 0.3), size: 24),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 14),
-                                          // Channel name
-                                          Expanded(
-                                            child: Text(
-                                              name,
-                                              style: TextStyle(
-                                                color: textColor,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          // Play button
-                                          Container(
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: LinearGradient(
-                                                colors: [_kGold, _kGold.withValues(alpha: 0.7)],
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: _kGold.withValues(alpha: 0.3),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            child: const Icon(Icons.play_arrow_rounded, color: Color(0xFF0E1A24), size: 22),
-                                          ),
-                                        ],
-                                      ),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? _kCardDark : Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _kGold.withValues(alpha: 0.12),
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: isDark ? 0.25 : 0.05,
+                                        ),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
+                                  child: Row(
+                                    children: [
+                                      // Channel logo
+                                      Container(
+                                        width: 56,
+                                        height: 56,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? const Color(0xFF152231)
+                                              : const Color(0xFFF5F0E5),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: _kGold.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                          ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            11,
+                                          ),
+                                          child: logo.isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl: logo,
+                                                  fit: BoxFit.contain,
+                                                  placeholder: (_, __) => Icon(
+                                                    Icons.tv_rounded,
+                                                    color: _kGold.withValues(
+                                                      alpha: 0.3,
+                                                    ),
+                                                    size: 24,
+                                                  ),
+                                                  errorWidget: (_, __, ___) =>
+                                                      Icon(
+                                                        Icons.tv_rounded,
+                                                        color: _kGold
+                                                            .withValues(
+                                                              alpha: 0.3,
+                                                            ),
+                                                        size: 24,
+                                                      ),
+                                                )
+                                              : Icon(
+                                                  Icons.tv_rounded,
+                                                  color: _kGold.withValues(
+                                                    alpha: 0.3,
+                                                  ),
+                                                  size: 24,
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      // Channel name
+                                      Expanded(
+                                        child: Text(
+                                          name,
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Play button
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              _kGold,
+                                              _kGold.withValues(alpha: 0.7),
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: _kGold.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: const Icon(
+                                          Icons.play_arrow_rounded,
+                                          color: Color(0xFF0E1A24),
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),

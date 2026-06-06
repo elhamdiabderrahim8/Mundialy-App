@@ -27,10 +27,13 @@ class TeamPlayer {
     this.injured = false,
   });
 
-  factory TeamPlayer.fromApi(Map<String, dynamic> json, String teamNationality) {
+  factory TeamPlayer.fromApi(
+    Map<String, dynamic> json,
+    String teamNationality,
+  ) {
     final player = json['player'] ?? json;
     final nationality = player['nationality'] ?? teamNationality;
-    
+
     // API-SPORTS renvoie souvent la position dans 'statistics[0].games.position'
     String pos = "";
     int? num;

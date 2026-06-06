@@ -24,11 +24,12 @@ class CustomButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor ?? AppColors.primary,
         minimumSize: const Size(double.infinity, AppSizes.buttonHeight),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         elevation: 0,
-        textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.2),
+        textStyle: const TextStyle(
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.2,
+        ),
       ),
       child: isLoading
           ? const SizedBox(

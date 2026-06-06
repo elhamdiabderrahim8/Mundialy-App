@@ -2,11 +2,14 @@ String resolveCountryCode(String? rawName, {String fallback = 'UN'}) {
   if (rawName == null) return fallback;
   // If it's already a raw code like GB-ENG, pass it through directly
   final upper = rawName.trim().toUpperCase();
-  if (upper.length <= 6 && RegExp(r'^[A-Z]{2}(-[A-Z]{2,3})?$').hasMatch(upper)) {
+  if (upper.length <= 6 &&
+      RegExp(r'^[A-Z]{2}(-[A-Z]{2,3})?$').hasMatch(upper)) {
     return upper;
   }
   final normalized = _normalizeCountryName(rawName);
-  final dynFallback = rawName.length >= 3 ? rawName.substring(0, 3).toUpperCase() : fallback;
+  final dynFallback = rawName.length >= 3
+      ? rawName.substring(0, 3).toUpperCase()
+      : fallback;
   return _countryCodeByName[normalized] ?? dynFallback;
 }
 
@@ -14,8 +17,8 @@ String _normalizeCountryName(String? value) {
   return (value ?? '')
       .trim()
       .toLowerCase()
-      .replaceAll('ç', 'c')   // curaçao → curacao
-      .replaceAll('ô', 'o')   // côte → cote
+      .replaceAll('ç', 'c') // curaçao → curacao
+      .replaceAll('ô', 'o') // côte → cote
       .replaceAll('é', 'e')
       .replaceAll('è', 'e')
       .replaceAll('ê', 'e')
@@ -24,7 +27,10 @@ String _normalizeCountryName(String? value) {
       .replaceAll('ü', 'u')
       .replaceAll('ö', 'o')
       .replaceAll('&', 'and')
-      .replaceAll(RegExp(r"['\']"), ' ')  // apostrophes → space: cote d'ivoire → cote d ivoire
+      .replaceAll(
+        RegExp(r"['\']"),
+        ' ',
+      ) // apostrophes → space: cote d'ivoire → cote d ivoire
       .replaceAll(RegExp(r'[^a-z0-9 -]'), '')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
@@ -39,7 +45,10 @@ const Map<String, String> _countryCodeByName = {
   'bahamas': 'BS', 'bahrain': 'BH', 'bangladesh': 'BD', 'barbados': 'BB',
   'belarus': 'BY', 'belgium': 'BE', 'belize': 'BZ', 'benin': 'BJ',
   'bermuda': 'BM', 'bhutan': 'BT', 'bolivia': 'BO',
-  'bosnia and herzegovina': 'BA', 'bosnia herz': 'BA', 'bosnia': 'BA', 'bih': 'BA',
+  'bosnia and herzegovina': 'BA',
+  'bosnia herz': 'BA',
+  'bosnia': 'BA',
+  'bih': 'BA',
   'botswana': 'BW', 'brazil': 'BR', 'brunei': 'BN', 'bulgaria': 'BG',
   'burkina faso': 'BF', 'burundi': 'BI',
   // C
@@ -127,4 +136,3 @@ const Map<String, String> _countryCodeByName = {
   // Z
   'zambia': 'ZM', 'zimbabwe': 'ZW',
 };
-

@@ -3,7 +3,7 @@ import '../models/match_details.dart';
 
 MatchDetails getMockMatchDetails(LiveMatch match) {
   final seed = match.id.hashCode;
-  
+
   // Données spécifiques pour les matchs connus de 2022 si l'API fait défaut
   List<MatchEvent> events = [
     MatchEvent(
@@ -16,17 +16,57 @@ MatchDetails getMockMatchDetails(LiveMatch match) {
 
   if (match.homeTeam == 'Qatar' && match.awayTeam == 'Ecuador') {
     events = [
-      MatchEvent(minute: "16'", title: 'But', description: 'Enner Valencia (Penalty)', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "31'", title: 'But', description: 'Enner Valencia', icon: MatchEventIcon.goal),
+      MatchEvent(
+        minute: "16'",
+        title: 'But',
+        description: 'Enner Valencia (Penalty)',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "31'",
+        title: 'But',
+        description: 'Enner Valencia',
+        icon: MatchEventIcon.goal,
+      ),
     ];
   } else if (match.homeTeam == 'Argentina' && match.awayTeam == 'France') {
     events = [
-      MatchEvent(minute: "23'", title: 'But', description: 'Lionel Messi (Penalty)', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "36'", title: 'But', description: 'Angel Di Maria', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "80'", title: 'But', description: 'Kylian Mbappé (Penalty)', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "81'", title: 'But', description: 'Kylian Mbappé', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "108'", title: 'But', description: 'Lionel Messi', icon: MatchEventIcon.goal),
-      MatchEvent(minute: "118'", title: 'But', description: 'Kylian Mbappé (Penalty)', icon: MatchEventIcon.goal),
+      MatchEvent(
+        minute: "23'",
+        title: 'But',
+        description: 'Lionel Messi (Penalty)',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "36'",
+        title: 'But',
+        description: 'Angel Di Maria',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "80'",
+        title: 'But',
+        description: 'Kylian Mbappé (Penalty)',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "81'",
+        title: 'But',
+        description: 'Kylian Mbappé',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "108'",
+        title: 'But',
+        description: 'Lionel Messi',
+        icon: MatchEventIcon.goal,
+      ),
+      MatchEvent(
+        minute: "118'",
+        title: 'But',
+        description: 'Kylian Mbappé (Penalty)',
+        icon: MatchEventIcon.goal,
+      ),
     ];
   }
 
@@ -52,7 +92,9 @@ MatchDetails getMockMatchDetails(LiveMatch match) {
         nationality: 'Pologne',
       ),
       venue: MatchVenue(
-        stadium: match.city == 'Lusail' ? 'Lusail Stadium' : '${match.city} Stadium',
+        stadium: match.city == 'Lusail'
+            ? 'Lusail Stadium'
+            : '${match.city} Stadium',
         capacity: '88,966 places',
         city: match.city,
       ),
@@ -82,7 +124,14 @@ MatchDetails getMockMatchDetails(LiveMatch match) {
         PlayerSpot(name: 'Défenseur', role: 'DF', number: 5, x: 0.60, y: 0.72),
         PlayerSpot(name: 'Défenseur', role: 'DF', number: 3, x: 0.80, y: 0.70),
         PlayerSpot(name: 'Milieu', role: 'MF', number: 6, x: 0.30, y: 0.50),
-        PlayerSpot(name: 'Milieu', role: 'MF', number: 8, x: 0.50, y: 0.55, isCaptain: true),
+        PlayerSpot(
+          name: 'Milieu',
+          role: 'MF',
+          number: 8,
+          x: 0.50,
+          y: 0.55,
+          isCaptain: true,
+        ),
         PlayerSpot(name: 'Milieu', role: 'MF', number: 10, x: 0.70, y: 0.50),
         PlayerSpot(name: 'Attaquant', role: 'FW', number: 11, x: 0.20, y: 0.25),
         PlayerSpot(name: 'Attaquant', role: 'FW', number: 9, x: 0.50, y: 0.18),
@@ -107,7 +156,14 @@ MatchDetails getMockMatchDetails(LiveMatch match) {
         PlayerSpot(name: 'Défenseur', role: 'DF', number: 5, x: 0.60, y: 0.72),
         PlayerSpot(name: 'Défenseur', role: 'DF', number: 3, x: 0.80, y: 0.70),
         PlayerSpot(name: 'Milieu', role: 'MF', number: 6, x: 0.30, y: 0.50),
-        PlayerSpot(name: 'Milieu', role: 'MF', number: 8, x: 0.50, y: 0.55, isCaptain: true),
+        PlayerSpot(
+          name: 'Milieu',
+          role: 'MF',
+          number: 8,
+          x: 0.50,
+          y: 0.55,
+          isCaptain: true,
+        ),
         PlayerSpot(name: 'Milieu', role: 'MF', number: 10, x: 0.70, y: 0.50),
         PlayerSpot(name: 'Attaquant', role: 'FW', number: 11, x: 0.20, y: 0.25),
         PlayerSpot(name: 'Attaquant', role: 'FW', number: 9, x: 0.50, y: 0.18),

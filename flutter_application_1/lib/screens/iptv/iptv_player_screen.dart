@@ -46,14 +46,19 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
     _chewieController?.dispose();
     _videoPlayerController?.dispose();
 
-    final streamUrl = widget.iptvService.getStreamUrl(widget.streamId, useM3u8: useM3u8);
+    final streamUrl = widget.iptvService.getStreamUrl(
+      widget.streamId,
+      useM3u8: useM3u8,
+    );
 
     setState(() {
       _isLoading = true;
       _isError = false;
     });
 
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(streamUrl));
+    _videoPlayerController = VideoPlayerController.networkUrl(
+      Uri.parse(streamUrl),
+    );
 
     try {
       await _videoPlayerController!.initialize();
@@ -76,13 +81,17 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
       );
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
-      debugPrint('Video Player Error (${ useM3u8 ? "M3U8" : "TS" }): $e');
+      debugPrint('Video Player Error (${useM3u8 ? "M3U8" : "TS"}): $e');
       // If M3U8 failed, try TS
       if (useM3u8 && !_triedTs) {
         _triedTs = true;
         _initializePlayer(useM3u8: false);
       } else {
-        if (mounted) setState(() { _isLoading = false; _isError = true; });
+        if (mounted)
+          setState(() {
+            _isLoading = false;
+            _isError = true;
+          });
       }
     }
   }
@@ -109,12 +118,20 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
                 shape: BoxShape.circle,
                 color: Colors.redAccent.withValues(alpha: 0.15),
               ),
-              child: const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 32),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.redAccent,
+                size: 32,
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
               'Impossible de charger le flux',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -127,15 +144,23 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kGold,
                 foregroundColor: _kDarkBg,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
               ),
               onPressed: () {
                 _triedTs = false;
                 _initializePlayer(useM3u8: true);
               },
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Réessayer', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text(
+                'Réessayer',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -157,7 +182,11 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
               shape: BoxShape.circle,
               color: Colors.black.withValues(alpha: 0.5),
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: _kGold, size: 18),
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: _kGold,
+              size: 18,
+            ),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -166,7 +195,11 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
           children: [
             Text(
               widget.channelName,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -177,14 +210,20 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
                   height: 7,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _isError ? Colors.redAccent : (_isLoading ? Colors.orange : Colors.greenAccent),
+                    color: _isError
+                        ? Colors.redAccent
+                        : (_isLoading ? Colors.orange : Colors.greenAccent),
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  _isError ? 'Hors ligne' : (_isLoading ? 'Connexion...' : 'En direct'),
+                  _isError
+                      ? 'Hors ligne'
+                      : (_isLoading ? 'Connexion...' : 'En direct'),
                   style: TextStyle(
-                    color: _isError ? Colors.redAccent : (_isLoading ? Colors.orange : Colors.greenAccent),
+                    color: _isError
+                        ? Colors.redAccent
+                        : (_isLoading ? Colors.orange : Colors.greenAccent),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -215,15 +254,21 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
                   const SizedBox(height: 6),
                   Text(
                     widget.channelName,
-                    style: TextStyle(color: _kGold.withValues(alpha: 0.6), fontSize: 12),
+                    style: TextStyle(
+                      color: _kGold.withValues(alpha: 0.6),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               )
             : _isError
-                ? _buildErrorWidget('Le flux vidéo n\'est pas accessible. Vérifiez votre connexion ou votre abonnement IPTV.')
-                : (_chewieController != null && _chewieController!.videoPlayerController.value.isInitialized)
-                    ? Chewie(controller: _chewieController!)
-                    : const SizedBox.shrink(),
+            ? _buildErrorWidget(
+                'Le flux vidéo n\'est pas accessible. Vérifiez votre connexion ou votre abonnement IPTV.',
+              )
+            : (_chewieController != null &&
+                  _chewieController!.videoPlayerController.value.isInitialized)
+            ? Chewie(controller: _chewieController!)
+            : const SizedBox.shrink(),
       ),
     );
   }

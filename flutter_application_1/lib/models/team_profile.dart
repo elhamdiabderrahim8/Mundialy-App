@@ -23,10 +23,14 @@ class TeamProfile {
     required this.players,
   });
 
-  factory TeamProfile.fromApi(Map<String, dynamic> json, int teamId, String teamName) {
+  factory TeamProfile.fromApi(
+    Map<String, dynamic> json,
+    int teamId,
+    String teamName,
+  ) {
     final List playerList = json['response'] as List? ?? [];
-    final coachData = json['coach'] ?? {}; 
-    
+    final coachData = json['coach'] ?? {};
+
     return TeamProfile(
       id: teamId,
       name: teamName,

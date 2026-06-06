@@ -55,7 +55,11 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     ]);
 
     final List<LiveMatch> allMatches = results[1] as List<LiveMatch>;
-    final List<LiveMatch> teamMatches = allMatches.where((m) => m.homeTeamId == widget.teamId || m.awayTeamId == widget.teamId).toList();
+    final List<LiveMatch> teamMatches = allMatches
+        .where(
+          (m) => m.homeTeamId == widget.teamId || m.awayTeamId == widget.teamId,
+        )
+        .toList();
 
     if (!mounted) return;
 
@@ -91,9 +95,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: bgColor,
-        body: const Center(
-          child: CircularProgressIndicator(color: _gold),
-        ),
+        body: const Center(child: CircularProgressIndicator(color: _gold)),
       );
     }
 
@@ -140,7 +142,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     return SliverAppBar(
       pinned: true,
       expandedHeight: 236,
-      backgroundColor: isDark ? const Color(0xFF132231) : const Color(0xFFF2E5CA),
+      backgroundColor: isDark
+          ? const Color(0xFF132231)
+          : const Color(0xFFF2E5CA),
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios_new, color: textColor),
         onPressed: () => Navigator.pop(context),
@@ -162,7 +166,8 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
               children: [
                 const SizedBox(height: 40),
                 NationFlagBadge(
-                  countryCode: _profile?.code ?? resolveCountryCode(widget.teamName),
+                  countryCode:
+                      _profile?.code ?? resolveCountryCode(widget.teamName),
                   size: 100,
                   imageUrlOverride: _profile?.logoUrl,
                 ),
@@ -187,7 +192,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   Widget _buildOverviewCard(bool isDark) {
     final primaryText = isDark ? Colors.white : const Color(0xFF16324A);
     final secondaryText = isDark ? Colors.white60 : const Color(0xFF6D7F8C);
-    final cardColor = isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94);
+    final cardColor = isDark
+        ? const Color(0xFF182531)
+        : Colors.white.withValues(alpha: 0.94);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -249,7 +256,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
   Widget _buildCoachCard(bool isDark) {
     final coach = _profile!.coach!;
-    final cardColor = isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94);
+    final cardColor = isDark
+        ? const Color(0xFF182531)
+        : Colors.white.withValues(alpha: 0.94);
     final textColor = isDark ? Colors.white : const Color(0xFF16324A);
 
     return Container(
@@ -257,7 +266,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.white10 : const Color(0xFFD9E0E6)),
+        border: Border.all(
+          color: isDark ? Colors.white10 : const Color(0xFFD9E0E6),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,8 +281,15 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
                   coach.photoUrl ?? '',
-                  width: 60, height: 60, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: _gold.withValues(alpha: 0.1), child: const Icon(Icons.person, color: _gold)),
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 60,
+                    height: 60,
+                    color: _gold.withValues(alpha: 0.1),
+                    child: const Icon(Icons.person, color: _gold),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -279,9 +297,22 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(coach.name, style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      coach.name,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('${coach.nationality} • ${coach.age ?? "?"} ans', style: TextStyle(color: textColor.withValues(alpha: 0.6), fontSize: 13)),
+                    Text(
+                      '${coach.nationality} • ${coach.age ?? "?"} ans',
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.6),
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -295,7 +326,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
   Widget _buildStandingCard(bool isDark) {
     final row = _standingRow!;
-    final cardColor = isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94);
+    final cardColor = isDark
+        ? const Color(0xFF182531)
+        : Colors.white.withValues(alpha: 0.94);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -322,7 +355,10 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: _gold.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(10),
@@ -418,7 +454,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94),
+        color: isDark
+            ? const Color(0xFF182531)
+            : Colors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDark ? Colors.white10 : const Color(0xFFD9E0E6),
@@ -443,14 +481,16 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 ...entry.value.map(
                   (player) => GestureDetector(
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => PlayerProfileScreen(entity: player, season: widget.year)
-                      ));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PlayerProfileScreen(
+                            entity: player,
+                            season: widget.year,
+                          ),
+                        ),
+                      );
                     },
-                    child: _PlayerRow(
-                      player: player,
-                      isDark: isDark,
-                    ),
+                    child: _PlayerRow(player: player, isDark: isDark),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -461,15 +501,14 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     );
   }
 
-  Widget _buildEmptyCard({
-    required bool isDark,
-    required String message,
-  }) {
+  Widget _buildEmptyCard({required bool isDark, required String message}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94),
+        color: isDark
+            ? const Color(0xFF182531)
+            : Colors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDark ? Colors.white10 : const Color(0xFFD9E0E6),
@@ -502,7 +541,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     if (value.contains('goal')) return 'Gardiens';
     if (value.contains('def')) return 'Defenseurs';
     if (value.contains('mid')) return 'Milieux';
-    if (value.contains('for') || value.contains('att') || value.contains('str')) {
+    if (value.contains('for') ||
+        value.contains('att') ||
+        value.contains('str')) {
       return 'Attaquants';
     }
     return 'Autres';
@@ -525,7 +566,9 @@ class _InfoTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF7F2E8),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : const Color(0xFFF7F2E8),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -576,7 +619,9 @@ class _StatPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlight
             ? _TeamProfileScreenState._gold.withValues(alpha: 0.16)
-            : (isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF7F2E8)),
+            : (isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : const Color(0xFFF7F2E8)),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -638,7 +683,9 @@ class _TeamMatchCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF182531) : Colors.white.withValues(alpha: 0.94),
+          color: isDark
+              ? const Color(0xFF182531)
+              : Colors.white.withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isDark ? Colors.white10 : const Color(0xFFD9E0E6),
@@ -665,7 +712,10 @@ class _TeamMatchCard extends StatelessWidget {
                 ),
                 if (match.isLive)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFD94141),
                       borderRadius: BorderRadius.circular(16),
@@ -751,10 +801,7 @@ class _TeamMatchCard extends StatelessWidget {
 }
 
 class _PlayerRow extends StatelessWidget {
-  const _PlayerRow({
-    required this.player,
-    required this.isDark,
-  });
+  const _PlayerRow({required this.player, required this.isDark});
 
   final TeamPlayer player;
   final bool isDark;
@@ -763,12 +810,14 @@ class _PlayerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : const Color(0xFF16324A);
     final secondaryText = isDark ? Colors.white60 : const Color(0xFF6D7F8C);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.04) : const Color(0xFFF7F2E8),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : const Color(0xFFF7F2E8),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -784,7 +833,10 @@ class _PlayerRow extends StatelessWidget {
                 width: 44,
                 height: 44,
                 color: _TeamProfileScreenState._gold.withValues(alpha: 0.1),
-                child: const Icon(Icons.person, color: _TeamProfileScreenState._gold),
+                child: const Icon(
+                  Icons.person,
+                  color: _TeamProfileScreenState._gold,
+                ),
               ),
             ),
           ),
@@ -805,14 +857,14 @@ class _PlayerRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    NationFlagBadge(countryCode: player.nationalityCode, size: 18),
+                    NationFlagBadge(
+                      countryCode: player.nationalityCode,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${player.position} • ${player.ageLabel} ans',
-                      style: TextStyle(
-                        color: secondaryText,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: secondaryText, fontSize: 12),
                     ),
                   ],
                 ),

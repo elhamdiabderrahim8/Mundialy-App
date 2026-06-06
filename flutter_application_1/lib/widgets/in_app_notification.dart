@@ -4,7 +4,13 @@ import '../models/live_match.dart';
 import '../utils/country_flags.dart';
 
 class InAppNotification {
-  static void show(BuildContext context, LiveMatch match, String title, String message, {bool isGoal = true}) {
+  static void show(
+    BuildContext context,
+    LiveMatch match,
+    String title,
+    String message, {
+    bool isGoal = true,
+  }) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
 
@@ -21,7 +27,7 @@ class InAppNotification {
     );
 
     overlay.insert(entry);
-    
+
     // Auto-dismiss after 4 seconds
     Future.delayed(const Duration(seconds: 4), () {
       if (entry.mounted) {
@@ -50,16 +56,22 @@ class _AnimatedBanner extends StatefulWidget {
   State<_AnimatedBanner> createState() => _AnimatedBannerState();
 }
 
-class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProviderStateMixin {
+class _AnimatedBannerState extends State<_AnimatedBanner>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, -1.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
   }
@@ -76,8 +88,10 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = widget.isGoal ? const Color(0xFFD4AF37) : const Color(0xFFE7C16A);
-    
+    final accentColor = widget.isGoal
+        ? const Color(0xFFD4AF37)
+        : const Color(0xFFE7C16A);
+
     return Positioned(
       top: MediaQuery.of(context).padding.top + 10,
       left: 16,
@@ -97,7 +111,10 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0E1A24).withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(24),
@@ -110,7 +127,7 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                           color: accentColor.withValues(alpha: 0.15),
                           blurRadius: 20,
                           spreadRadius: 4,
-                        )
+                        ),
                       ],
                     ),
                     child: Row(
@@ -120,18 +137,24 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                              ),
                             ],
                           ),
                           child: CircleAvatar(
                             radius: 22,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: NetworkImage('https://flagcdn.com/w80/${resolveCountryCode(widget.match.homeTeam).toLowerCase()}.png'),
-                            onBackgroundImageError: (_, __) => const Icon(Icons.flag, color: Colors.white70),
+                            backgroundImage: NetworkImage(
+                              'https://flagcdn.com/w80/${resolveCountryCode(widget.match.homeTeam).toLowerCase()}.png',
+                            ),
+                            onBackgroundImageError: (_, __) =>
+                                const Icon(Icons.flag, color: Colors.white70),
                           ),
                         ),
                         const SizedBox(width: 14),
-                        
+
                         // Match Info
                         Expanded(
                           child: Column(
@@ -142,7 +165,9 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    widget.isGoal ? Icons.sports_soccer : Icons.notifications_active_rounded,
+                                    widget.isGoal
+                                        ? Icons.sports_soccer
+                                        : Icons.notifications_active_rounded,
                                     color: accentColor,
                                     size: 14,
                                   ),
@@ -162,24 +187,32 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                               Text(
                                 widget.message,
                                 style: const TextStyle(
-                                  color: Colors.white, 
-                                  fontSize: 18, 
+                                  color: Colors.white,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              if (widget.match.matchMinute != null && widget.match.matchMinute!.isNotEmpty) ...[
+                              if (widget.match.matchMinute != null &&
+                                  widget.match.matchMinute!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: accentColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     '${widget.match.matchMinute}\'',
-                                    style: TextStyle(color: accentColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      color: accentColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -193,14 +226,20 @@ class _AnimatedBannerState extends State<_AnimatedBanner> with SingleTickerProvi
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                              ),
                             ],
                           ),
                           child: CircleAvatar(
                             radius: 22,
                             backgroundColor: Colors.transparent,
-                            backgroundImage: NetworkImage('https://flagcdn.com/w80/${resolveCountryCode(widget.match.awayTeam).toLowerCase()}.png'),
-                            onBackgroundImageError: (_, __) => const Icon(Icons.flag, color: Colors.white70),
+                            backgroundImage: NetworkImage(
+                              'https://flagcdn.com/w80/${resolveCountryCode(widget.match.awayTeam).toLowerCase()}.png',
+                            ),
+                            onBackgroundImageError: (_, __) =>
+                                const Icon(Icons.flag, color: Colors.white70),
                           ),
                         ),
                       ],

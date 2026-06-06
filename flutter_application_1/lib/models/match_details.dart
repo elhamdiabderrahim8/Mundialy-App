@@ -17,7 +17,10 @@ class MatchDetails {
 
   factory MatchDetails.fromApi(Map<String, dynamic> json) {
     // Détecte le format BFF v2 (response.event + response.venue + response.referee séparés)
-    final bool isBFFv2 = json.containsKey('event') && json.containsKey('venue') && json.containsKey('referee');
+    final bool isBFFv2 =
+        json.containsKey('event') &&
+        json.containsKey('venue') &&
+        json.containsKey('referee');
     // Format BFF v1 legacy (event contient tout)
     final bool isCombined = json.containsKey('event');
     // Format API-Sports (fixture + teams + goals)
@@ -33,8 +36,12 @@ class MatchDetails {
     } else {
       details = _parseBFFv2(json);
     }
-    
-    _applyEventsToLineups(details.summary.events, details.homeLineup, details.awayLineup);
+
+    _applyEventsToLineups(
+      details.summary.events,
+      details.homeLineup,
+      details.awayLineup,
+    );
     return details;
   }
 
@@ -64,16 +71,23 @@ class MatchDetails {
     String startTimeStr = '';
     if (ts > 0) {
       final dt = DateTime.fromMillisecondsSinceEpoch(ts * 1000).toLocal();
-      startTimeStr = '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+      startTimeStr =
+          '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
     }
 
     // Coach names
-    final String homeCoach = (managers['home'] as Map<String, dynamic>?)?['name']?.toString() ?? '';
-    final String awayCoach = (managers['away'] as Map<String, dynamic>?)?['name']?.toString() ?? '';
+    final String homeCoach =
+        (managers['home'] as Map<String, dynamic>?)?['name']?.toString() ?? '';
+    final String awayCoach =
+        (managers['away'] as Map<String, dynamic>?)?['name']?.toString() ?? '';
 
     // Kit colors
-    final int homeKitColor = _parseHexColor(kitColors['home']?.toString() ?? '660000');
-    final int awayKitColor = _parseHexColor(kitColors['away']?.toString() ?? '003399');
+    final int homeKitColor = _parseHexColor(
+      kitColors['home']?.toString() ?? '660000',
+    );
+    final int awayKitColor = _parseHexColor(
+      kitColors['away']?.toString() ?? '003399',
+    );
 
     return MatchDetails(
       matchId: event['id']?.toString() ?? '0',
@@ -93,7 +107,13 @@ class MatchDetails {
         minute: 'FT',
       ),
       summary: MatchSummary(
-        events: _parseIncidents(json['incidents'], homeTeam, awayTeam, homeCode, awayCode),
+        events: _parseIncidents(
+          json['incidents'],
+          homeTeam,
+          awayTeam,
+          homeCode,
+          awayCode,
+        ),
         referee: MatchOfficial(
           name: referee['name']?.toString() ?? '',
           nationality: referee['country']?.toString() ?? '',
@@ -107,143 +127,158 @@ class MatchDetails {
       ),
       stats: _parseStats(json['statistics'], true),
       homeLineup: _parseLineupBFF(
-        json['lineups']?['home'], 
-        homeTeam['name'] ?? '', 
-        homeCode, 
-        homeCoach, 
+        json['lineups']?['home'],
+        homeTeam['name'] ?? '',
+        homeCode,
+        homeCoach,
         homeKitColor,
       ),
       awayLineup: _parseLineupBFF(
-        json['lineups']?['away'], 
-        awayTeam['name'] ?? '', 
-        awayCode, 
-        awayCoach, 
+        json['lineups']?['away'],
+        awayTeam['name'] ?? '',
+        awayCode,
+        awayCoach,
         awayKitColor,
       ),
     );
   }
 
   /// Parse les incidents BFF v2
-  static List<MatchEvent> _parseIncidents(dynamic incidentsJson, Map<String, dynamic> homeTeam, Map<String, dynamic> awayTeam, String homeCode, String awayCode) {
+  static List<MatchEvent> _parseIncidents(
+    dynamic incidentsJson,
+    Map<String, dynamic> homeTeam,
+    Map<String, dynamic> awayTeam,
+    String homeCode,
+    String awayCode,
+  ) {
     if (incidentsJson is! List) return [];
-    return incidentsJson.map<MatchEvent?>((e) {
-      final json = e as Map<String, dynamic>;
-      final type = json['incidentType']?.toString().toLowerCase() ?? '';
-      final incidentClass = json['incidentClass']?.toString().toLowerCase() ?? '';
-      final from = json['from']?.toString().toLowerCase() ?? '';
-      final isHome = json['isHome'] as bool?;
+    return incidentsJson
+        .map<MatchEvent?>((e) {
+          final json = e as Map<String, dynamic>;
+          final type = json['incidentType']?.toString().toLowerCase() ?? '';
+          final incidentClass =
+              json['incidentClass']?.toString().toLowerCase() ?? '';
+          final from = json['from']?.toString().toLowerCase() ?? '';
+          final isHome = json['isHome'] as bool?;
 
-      String tName = '';
-      String tCode = '';
-      int? tId;
+          String tName = '';
+          String tCode = '';
+          int? tId;
 
-      if (isHome != null) {
-        if (isHome) {
-          tName = homeTeam['name']?.toString() ?? '';
-          tCode = homeCode;
-          tId = _toIntOrNull(homeTeam['id']);
-        } else {
-          tName = awayTeam['name']?.toString() ?? '';
-          tCode = awayCode;
-          tId = _toIntOrNull(awayTeam['id']);
-        }
-      }
+          if (isHome != null) {
+            if (isHome) {
+              tName = homeTeam['name']?.toString() ?? '';
+              tCode = homeCode;
+              tId = _toIntOrNull(homeTeam['id']);
+            } else {
+              tName = awayTeam['name']?.toString() ?? '';
+              tCode = awayCode;
+              tId = _toIntOrNull(awayTeam['id']);
+            }
+          }
 
-      MatchEventIcon icon = MatchEventIcon.goal;
-      String title = 'Action';
-      String description = '';
+          MatchEventIcon icon = MatchEventIcon.goal;
+          String title = 'Action';
+          String description = '';
 
-      if (type == 'goal') {
-        icon = MatchEventIcon.goal;
-        final playerName = json['player']?['name'] ?? 'Joueur';
-        final assistName = json['assist']?['name'];
-        if (incidentClass == 'penalty' || from == 'penalty') {
-          title = "PENALTY MARQUÉ";
-        } else if (incidentClass == 'owngoal' || incidentClass == 'own-goal') {
-          title = "BUT CONTRE SON CAMP";
-        } else {
-          title = "BUT !";
-        }
-        description = playerName;
-        if (assistName != null && assistName.isNotEmpty) {
-          description += ' (pass. $assistName)';
-        }
-      } else if (type == 'penaltyshootout') {
-        final isScored = incidentClass == 'scored';
-        icon = isScored ? MatchEventIcon.goal : MatchEventIcon.penaltyMissed;
-        title = isScored ? "TIR AU BUT MARQUÉ" : "TIR AU BUT MANQUÉ";
-        description = json['player']?['name'] ?? 'Joueur';
-        
-        final homeScore = json['homeScore'];
-        final awayScore = json['awayScore'];
-        if (homeScore != null && awayScore != null) {
-          description += ' ($homeScore - $awayScore)';
-        }
-      } else if (type == 'substitution') {
-        icon = MatchEventIcon.substitution;
-        title = "CHANGEMENT";
-        final pIn = json['playerIn']?['name'] ?? 'Entrant';
-        final pOut = json['playerOut']?['name'] ?? 'Sortant';
-        description = "$pIn remplace $pOut";
-      } else if (type == 'card') {
-        if (incidentClass == 'red' || incidentClass == 'yellowred') {
-          icon = MatchEventIcon.redCard;
-          title = incidentClass == 'yellowred' ? "SECOND JAUNE" : "CARTON ROUGE";
-        } else {
-          icon = MatchEventIcon.yellowCard;
-          title = "CARTON JAUNE";
-        }
-        description = json['player']?['name'] ?? 'Joueur';
-        final reason = json['reason']?.toString() ?? '';
-        if (reason.isNotEmpty) description += ' ($reason)';
-      } else if (type == 'vardecision') {
-        icon = MatchEventIcon.varReview;
-        title = "DÉCISION VAR";
-        description = json['player']?['name'] ?? '';
-        if (incidentClass == 'goalawarded') {
-          title = "VAR: BUT ACCORDÉ";
-        } else if (incidentClass == 'goalnotawarded') {
-          title = "VAR: BUT ANNULÉ";
-          icon = MatchEventIcon.cancelledGoal;
-        }
-      } else if (type == 'injurytime') {
-        return MatchEvent(
-          minute: "${json['time'] ?? 45}'",
-          title: "TEMPS ADDITIONNEL",
-          description: "+${json['length'] ?? '?'} min",
-          icon: MatchEventIcon.offside,
-          detail: '',
-        );
-      } else {
-        return null;
-      }
+          if (type == 'goal') {
+            icon = MatchEventIcon.goal;
+            final playerName = json['player']?['name'] ?? 'Joueur';
+            final assistName = json['assist']?['name'];
+            if (incidentClass == 'penalty' || from == 'penalty') {
+              title = "PENALTY MARQUÉ";
+            } else if (incidentClass == 'owngoal' ||
+                incidentClass == 'own-goal') {
+              title = "BUT CONTRE SON CAMP";
+            } else {
+              title = "BUT !";
+            }
+            description = playerName;
+            if (assistName != null && assistName.isNotEmpty) {
+              description += ' (pass. $assistName)';
+            }
+          } else if (type == 'penaltyshootout') {
+            final isScored = incidentClass == 'scored';
+            icon = isScored
+                ? MatchEventIcon.goal
+                : MatchEventIcon.penaltyMissed;
+            title = isScored ? "TIR AU BUT MARQUÉ" : "TIR AU BUT MANQUÉ";
+            description = json['player']?['name'] ?? 'Joueur';
 
-      return MatchEvent(
-        minute: json['displayTime']?.toString() ?? "${json['time'] ?? 0}'",
-        title: title,
-        description: description,
-        icon: icon,
-        detail: incidentClass,
-        teamId: tId,
-        teamName: tName,
-        teamCode: tCode,
-        playerId: _toIntOrNull(json['player']?['id']),
-        playerIn: json['playerIn']?['name'],
-        playerInId: _toIntOrNull(json['playerIn']?['id']),
-        playerOut: json['playerOut']?['name'],
-        playerOutId: _toIntOrNull(json['playerOut']?['id']),
-        assistant: json['assist']?['name'],
-        assistantId: _toIntOrNull(json['assist']?['id']),
-      );
-    }).whereType<MatchEvent>().toList();
+            final homeScore = json['homeScore'];
+            final awayScore = json['awayScore'];
+            if (homeScore != null && awayScore != null) {
+              description += ' ($homeScore - $awayScore)';
+            }
+          } else if (type == 'substitution') {
+            icon = MatchEventIcon.substitution;
+            title = "CHANGEMENT";
+            final pIn = json['playerIn']?['name'] ?? 'Entrant';
+            final pOut = json['playerOut']?['name'] ?? 'Sortant';
+            description = "$pIn remplace $pOut";
+          } else if (type == 'card') {
+            if (incidentClass == 'red' || incidentClass == 'yellowred') {
+              icon = MatchEventIcon.redCard;
+              title = incidentClass == 'yellowred'
+                  ? "SECOND JAUNE"
+                  : "CARTON ROUGE";
+            } else {
+              icon = MatchEventIcon.yellowCard;
+              title = "CARTON JAUNE";
+            }
+            description = json['player']?['name'] ?? 'Joueur';
+            final reason = json['reason']?.toString() ?? '';
+            if (reason.isNotEmpty) description += ' ($reason)';
+          } else if (type == 'vardecision') {
+            icon = MatchEventIcon.varReview;
+            title = "DÉCISION VAR";
+            description = json['player']?['name'] ?? '';
+            if (incidentClass == 'goalawarded') {
+              title = "VAR: BUT ACCORDÉ";
+            } else if (incidentClass == 'goalnotawarded') {
+              title = "VAR: BUT ANNULÉ";
+              icon = MatchEventIcon.cancelledGoal;
+            }
+          } else if (type == 'injurytime') {
+            return MatchEvent(
+              minute: "${json['time'] ?? 45}'",
+              title: "TEMPS ADDITIONNEL",
+              description: "+${json['length'] ?? '?'} min",
+              icon: MatchEventIcon.offside,
+              detail: '',
+            );
+          } else {
+            return null;
+          }
+
+          return MatchEvent(
+            minute: json['displayTime']?.toString() ?? "${json['time'] ?? 0}'",
+            title: title,
+            description: description,
+            icon: icon,
+            detail: incidentClass,
+            teamId: tId,
+            teamName: tName,
+            teamCode: tCode,
+            playerId: _toIntOrNull(json['player']?['id']),
+            playerIn: json['playerIn']?['name'],
+            playerInId: _toIntOrNull(json['playerIn']?['id']),
+            playerOut: json['playerOut']?['name'],
+            playerOutId: _toIntOrNull(json['playerOut']?['id']),
+            assistant: json['assist']?['name'],
+            assistantId: _toIntOrNull(json['assist']?['id']),
+          );
+        })
+        .whereType<MatchEvent>()
+        .toList();
   }
 
   /// Parse les lineups BFF v2
   static TeamLineup _parseLineupBFF(
-    dynamic lineupJson, 
-    String teamName, 
-    String teamCode, 
-    String coach, 
+    dynamic lineupJson,
+    String teamName,
+    String teamCode,
+    String coach,
     int kitColor,
   ) {
     if (lineupJson is! Map<String, dynamic>) {
@@ -265,7 +300,8 @@ class MatchDetails {
         name: player['name']?.toString() ?? '',
         number: _toIntSafe(player['number']),
         role: player['pos']?.toString() ?? '',
-        x: 0, y: 0,
+        x: 0,
+        y: 0,
       );
     }).toList();
 
@@ -276,7 +312,8 @@ class MatchDetails {
         name: player['name']?.toString() ?? '',
         number: _toIntSafe(player['number']),
         role: player['pos']?.toString() ?? '',
-        x: 0, y: 0,
+        x: 0,
+        y: 0,
       );
     }).toList();
 
@@ -306,7 +343,7 @@ class MatchDetails {
       'penalty': {
         'home': event['homeScore']?['penalties'],
         'away': event['awayScore']?['penalties'],
-      }
+      },
     };
 
     return MatchDetails(
@@ -314,10 +351,16 @@ class MatchDetails {
       overview: MatchOverview(
         title: '${teams['home']?['name']} vs ${teams['away']?['name']}',
         homeTeam: teams['home']?['name'] ?? 'Home',
-        homeCode: teams['home']?['nameCode']?.toString() ?? teams['home']?['id']?.toString() ?? 'H',
+        homeCode:
+            teams['home']?['nameCode']?.toString() ??
+            teams['home']?['id']?.toString() ??
+            'H',
         homeLogoUrl: teams['home']?['logo'] ?? '',
         awayTeam: teams['away']?['name'] ?? 'Away',
-        awayCode: teams['away']?['nameCode']?.toString() ?? teams['away']?['id']?.toString() ?? 'A',
+        awayCode:
+            teams['away']?['nameCode']?.toString() ??
+            teams['away']?['id']?.toString() ??
+            'A',
         awayLogoUrl: teams['away']?['logo'] ?? '',
         scoreHome: _toIntSafe(goals['home']),
         scoreAway: _toIntSafe(goals['away']),
@@ -327,18 +370,22 @@ class MatchDetails {
         minute: 'FT',
       ),
       summary: MatchSummary(
-        events: (json['incidents'] is List 
+        events: (json['incidents'] is List
             ? _parseIncidents(
-                json['incidents'], 
-                teams['home'] as Map<String, dynamic>? ?? {}, 
-                teams['away'] as Map<String, dynamic>? ?? {}, 
-                teams['home']?['nameCode']?.toString() ?? '', 
-                teams['away']?['nameCode']?.toString() ?? ''
-              ) 
-            : (json['events'] as List? ?? []).map((e) => MatchEvent.fromApi(e as Map<String, dynamic>)).toList()),
+                json['incidents'],
+                teams['home'] as Map<String, dynamic>? ?? {},
+                teams['away'] as Map<String, dynamic>? ?? {},
+                teams['home']?['nameCode']?.toString() ?? '',
+                teams['away']?['nameCode']?.toString() ?? '',
+              )
+            : (json['events'] as List? ?? [])
+                  .map((e) => MatchEvent.fromApi(e as Map<String, dynamic>))
+                  .toList()),
         referee: MatchOfficial(
-          name: json['referee']?['name']?.toString() ?? 
-                json['managers']?['home']?['name']?.toString() ?? 'Arbitre',
+          name:
+              json['referee']?['name']?.toString() ??
+              json['managers']?['home']?['name']?.toString() ??
+              'Arbitre',
           nationality: json['referee']?['country']?.toString() ?? '',
         ),
         venue: MatchVenue(
@@ -379,8 +426,13 @@ class MatchDetails {
         minute: fixture['status']?['elapsed']?.toString() ?? '0',
       ),
       summary: MatchSummary(
-        events: (json['events'] as List? ?? []).map((e) => MatchEvent.fromApi(e as Map<String, dynamic>)).toList(),
-        referee: MatchOfficial(name: fixture['referee']?.toString() ?? 'Arbitre', nationality: ''),
+        events: (json['events'] as List? ?? [])
+            .map((e) => MatchEvent.fromApi(e as Map<String, dynamic>))
+            .toList(),
+        referee: MatchOfficial(
+          name: fixture['referee']?.toString() ?? 'Arbitre',
+          nationality: '',
+        ),
         venue: MatchVenue(
           stadium: fixture['venue']?['name']?.toString() ?? 'Stadium',
           capacity: '',
@@ -389,8 +441,16 @@ class MatchDetails {
         startTime: fixture['date']?.toString() ?? '',
       ),
       stats: _parseStats(json['statistics'], false),
-      homeLineup: TeamLineup.fromApi(json['lineups'] is List && (json['lineups'] as List).isNotEmpty ? json['lineups'][0] : {}),
-      awayLineup: TeamLineup.fromApi(json['lineups'] is List && (json['lineups'] as List).length > 1 ? json['lineups'][1] : {}),
+      homeLineup: TeamLineup.fromApi(
+        json['lineups'] is List && (json['lineups'] as List).isNotEmpty
+            ? json['lineups'][0]
+            : {},
+      ),
+      awayLineup: TeamLineup.fromApi(
+        json['lineups'] is List && (json['lineups'] as List).length > 1
+            ? json['lineups'][1]
+            : {},
+      ),
     );
   }
 
@@ -418,7 +478,7 @@ class MatchDetails {
   static List<MatchStat> _parseStats(dynamic statsJson, bool isCombined) {
     if (statsJson == null) return [];
     final List<MatchStat> result = [];
-    
+
     if (statsJson is List) {
       for (var period in statsJson) {
         if (period is Map && period['period'] == 'ALL') {
@@ -427,18 +487,20 @@ class MatchDetails {
             final items = group['statisticsItems'] as List? ?? [];
             for (var item in items) {
               if (item is Map) {
-                result.add(MatchStat(
-                  label: item['name']?.toString() ?? '',
-                  homeValue: MatchStat._p(item['homeValue']),
-                  awayValue: MatchStat._p(item['awayValue']),
-                ));
+                result.add(
+                  MatchStat(
+                    label: item['name']?.toString() ?? '',
+                    homeValue: MatchStat._p(item['homeValue']),
+                    awayValue: MatchStat._p(item['awayValue']),
+                  ),
+                );
               }
             }
           }
         }
       }
     }
-    
+
     if (result.isNotEmpty) return result;
     if (statsJson is List) {
       return statsJson
@@ -449,8 +511,16 @@ class MatchDetails {
     return [];
   }
 
-  static void _applyEventsToLineups(List<MatchEvent> events, TeamLineup homeLineup, TeamLineup awayLineup) {
-    PlayerSpot? findTarget(Iterable<PlayerSpot> players, int? id, String? name) {
+  static void _applyEventsToLineups(
+    List<MatchEvent> events,
+    TeamLineup homeLineup,
+    TeamLineup awayLineup,
+  ) {
+    PlayerSpot? findTarget(
+      Iterable<PlayerSpot> players,
+      int? id,
+      String? name,
+    ) {
       if (id != null) {
         for (final p in players) {
           if (p.id == id) return p;
@@ -465,26 +535,47 @@ class MatchDetails {
     }
 
     for (final event in events) {
-      final isHome = (event.teamName == homeLineup.teamName || event.teamCode == homeLineup.teamCode);
+      final isHome =
+          (event.teamName == homeLineup.teamName ||
+          event.teamCode == homeLineup.teamCode);
       final lineup = isHome ? homeLineup : awayLineup;
-      final Iterable<PlayerSpot> allPlayers = [...lineup.players, ...lineup.bench];
+      final Iterable<PlayerSpot> allPlayers = [
+        ...lineup.players,
+        ...lineup.bench,
+      ];
 
       if (event.icon == MatchEventIcon.substitution) {
-        final inTarget = findTarget(allPlayers, event.playerInId, event.playerIn);
+        final inTarget = findTarget(
+          allPlayers,
+          event.playerInId,
+          event.playerIn,
+        );
         if (inTarget != null) inTarget.substitutedIn = true;
-        
-        final outTarget = findTarget(allPlayers, event.playerOutId, event.playerOut);
+
+        final outTarget = findTarget(
+          allPlayers,
+          event.playerOutId,
+          event.playerOut,
+        );
         if (outTarget != null) outTarget.substitutedOut = true;
       } else {
-        final target = findTarget(allPlayers, event.playerId, event.description);
+        final target = findTarget(
+          allPlayers,
+          event.playerId,
+          event.description,
+        );
         if (target != null) {
           if (event.icon == MatchEventIcon.goal) target.goals++;
           if (event.icon == MatchEventIcon.yellowCard) target.yellowCards++;
           if (event.icon == MatchEventIcon.redCard) target.redCard = true;
         }
-        
+
         if (event.assistant != null || event.assistantId != null) {
-          final astTarget = findTarget(allPlayers, event.assistantId, event.assistant);
+          final astTarget = findTarget(
+            allPlayers,
+            event.assistantId,
+            event.assistant,
+          );
           if (astTarget != null) astTarget.assists++;
         }
       }
@@ -574,13 +665,16 @@ class MatchEvent {
   final int? assistantId;
 
   factory MatchEvent.fromApi(Map<String, dynamic> json) {
-    final type = json['incidentType']?.toString().toLowerCase() ?? json['type']?.toString().toLowerCase() ?? '';
+    final type =
+        json['incidentType']?.toString().toLowerCase() ??
+        json['type']?.toString().toLowerCase() ??
+        '';
     final incidentClass = json['incidentClass']?.toString().toLowerCase() ?? '';
 
     MatchEventIcon icon = MatchEventIcon.goal;
     String title = json['type']?.toString() ?? 'Action';
     String description = json['player']?['name']?.toString() ?? 'Joueur';
-    
+
     if (type == 'goal') {
       icon = MatchEventIcon.goal;
       if (incidentClass == 'penalty') {
@@ -625,9 +719,13 @@ class MatchEvent {
   static int? _readElapsedMinute(Map<String, dynamic> json) {
     final dynamic timeValue = json['time'];
     if (timeValue is Map) {
-      return _toInt(timeValue['elapsed']) ?? _toInt(timeValue['current']) ?? _toInt(timeValue['minute']);
+      return _toInt(timeValue['elapsed']) ??
+          _toInt(timeValue['current']) ??
+          _toInt(timeValue['minute']);
     }
-    return _toInt(timeValue) ?? _toInt(json['elapsed']) ?? _toInt(json['minute']);
+    return _toInt(timeValue) ??
+        _toInt(json['elapsed']) ??
+        _toInt(json['minute']);
   }
 
   static int? _toInt(dynamic value) {
@@ -650,10 +748,7 @@ enum MatchEventIcon {
 }
 
 class MatchOfficial {
-  const MatchOfficial({
-    required this.name,
-    required this.nationality,
-  });
+  const MatchOfficial({required this.name, required this.nationality});
 
   final String name;
   final String nationality;
@@ -689,7 +784,11 @@ class MatchStat {
       awayValue: _p(json['away']),
     );
   }
-  static double _p(dynamic v) { if (v == null) return 0; if (v is String) return double.tryParse(v.replaceAll('%', '')) ?? 0; return (v as num).toDouble(); }
+  static double _p(dynamic v) {
+    if (v == null) return 0;
+    if (v is String) return double.tryParse(v.replaceAll('%', '')) ?? 0;
+    return (v as num).toDouble();
+  }
 }
 
 class PlayerSpot {
@@ -732,7 +831,8 @@ class PlayerSpot {
       name: player['name']?.toString() ?? '',
       number: player['number'] ?? json['number'] ?? json['jerseyNumber'] ?? 0,
       role: player['pos']?.toString() ?? player['position']?.toString() ?? '',
-      x: 0, y: 0,
+      x: 0,
+      y: 0,
     );
   }
 }
@@ -758,9 +858,13 @@ class TeamLineup {
 
   factory TeamLineup.fromApi(Map<String, dynamic> json) {
     final team = json['team'] ?? {};
-    final startXI = (json['startXI'] as List? ?? []).map((p) => PlayerSpot.fromApi(p as Map<String, dynamic>)).toList();
-    final substitutes = (json['substitutes'] as List? ?? []).map((p) => PlayerSpot.fromApi(p as Map<String, dynamic>)).toList();
-    
+    final startXI = (json['startXI'] as List? ?? [])
+        .map((p) => PlayerSpot.fromApi(p as Map<String, dynamic>))
+        .toList();
+    final substitutes = (json['substitutes'] as List? ?? [])
+        .map((p) => PlayerSpot.fromApi(p as Map<String, dynamic>))
+        .toList();
+
     return TeamLineup(
       teamName: team['name']?.toString() ?? '',
       teamCode: team['nameCode']?.toString() ?? team['id']?.toString() ?? '',
@@ -774,10 +878,7 @@ class TeamLineup {
 }
 
 class MatchInsight {
-  const MatchInsight({
-    required this.label,
-    required this.value,
-  });
+  const MatchInsight({required this.label, required this.value});
 
   final String label;
   final double value;

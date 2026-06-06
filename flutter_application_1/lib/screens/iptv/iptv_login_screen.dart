@@ -57,7 +57,9 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
           content: const Text('Veuillez remplir tous les champs'),
           backgroundColor: _kCardDark,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -73,10 +75,14 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Connexion échouée — vérifiez vos identifiants'),
+            content: const Text(
+              'Connexion échouée — vérifiez vos identifiants',
+            ),
             backgroundColor: Colors.redAccent.shade700,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -106,7 +112,10 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kGold.withValues(alpha: 0.12), _kGold.withValues(alpha: 0)],
+                  colors: [
+                    _kGold.withValues(alpha: 0.12),
+                    _kGold.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
@@ -121,7 +130,10 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kGold.withValues(alpha: 0.08), _kGold.withValues(alpha: 0)],
+                  colors: [
+                    _kGold.withValues(alpha: 0.08),
+                    _kGold.withValues(alpha: 0),
+                  ],
                 ),
               ),
             ),
@@ -157,7 +169,11 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.live_tv_rounded, size: 44, color: Color(0xFF0E1A24)),
+                          child: const Icon(
+                            Icons.live_tv_rounded,
+                            size: 44,
+                            color: Color(0xFF0E1A24),
+                          ),
                         ),
                       );
                     },
@@ -170,13 +186,22 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                       fontWeight: FontWeight.w900,
                       letterSpacing: 4,
                       color: _kGold,
-                      shadows: [Shadow(color: _kGold.withValues(alpha: 0.3), blurRadius: 12)],
+                      shadows: [
+                        Shadow(
+                          color: _kGold.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Xtream Codes IPTV',
-                    style: TextStyle(fontSize: 14, color: textColor.withValues(alpha: 0.5), letterSpacing: 1),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textColor.withValues(alpha: 0.5),
+                      letterSpacing: 1,
+                    ),
                   ),
                   const SizedBox(height: 40),
 
@@ -189,7 +214,9 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                       border: Border.all(color: _kGold.withValues(alpha: 0.15)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.4 : 0.08,
+                          ),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -228,11 +255,14 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                           obscure: _obscurePass,
                           suffix: IconButton(
                             icon: Icon(
-                              _obscurePass ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                              _obscurePass
+                                  ? Icons.visibility_off_rounded
+                                  : Icons.visibility_rounded,
                               color: _kGold.withValues(alpha: 0.6),
                               size: 20,
                             ),
-                            onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                            onPressed: () =>
+                                setState(() => _obscurePass = !_obscurePass),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -243,7 +273,9 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _kGold,
                               foregroundColor: const Color(0xFF0E1A24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               elevation: 6,
                               shadowColor: _kGold.withValues(alpha: 0.4),
                             ),
@@ -252,11 +284,18 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                                 ? const SizedBox(
                                     width: 24,
                                     height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF0E1A24)),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Color(0xFF0E1A24),
+                                    ),
                                   )
                                 : const Text(
                                     'CONNEXION',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 2),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 2,
+                                    ),
                                   ),
                           ),
                         ),
@@ -307,14 +346,20 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
             suffixIcon: suffix,
             filled: true,
             fillColor: fieldBg,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: _kGold.withValues(alpha: 0.5), width: 1.5),
+              borderSide: BorderSide(
+                color: _kGold.withValues(alpha: 0.5),
+                width: 1.5,
+              ),
             ),
           ),
         ),

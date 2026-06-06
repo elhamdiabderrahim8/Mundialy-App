@@ -50,7 +50,7 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       return;
     }
     // Fixed: used to call WorldCupRepository.fetchTeamProfile
-    final profile = null; 
+    final profile = null;
     if (!mounted) return;
     setState(() {
       _profile = profile;
@@ -99,7 +99,11 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
           child: Text(
             widget.teamName,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(width: 48),
@@ -116,16 +120,33 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       ),
       child: Column(
         children: [
-          _DiamondFlag(countryCode: widget.teamCode, size: 82, imageUrlOverride: widget.logoUrl ?? _profile?.logoUrl),
+          _DiamondFlag(
+            countryCode: widget.teamCode,
+            size: 82,
+            imageUrlOverride: widget.logoUrl ?? _profile?.logoUrl,
+          ),
           const SizedBox(height: 14),
-          Text(widget.teamName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
+          Text(
+            widget.teamName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           if ((_profile?.coach?.name ?? '').isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('Coach: ${_profile!.coach!.name}', style: const TextStyle(color: Colors.white70)),
+            Text(
+              'Coach: ${_profile!.coach!.name}',
+              style: const TextStyle(color: Colors.white70),
+            ),
           ],
           if ((_profile?.venue ?? '').isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(_profile!.venue, style: const TextStyle(color: Colors.white54)),
+            Text(
+              _profile!.venue,
+              style: const TextStyle(color: Colors.white54),
+            ),
           ],
         ],
       ),
@@ -141,7 +162,10 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
         borderRadius: BorderRadius.circular(22),
       ),
       child: standing == null
-          ? const Text('Classement indisponible', style: TextStyle(color: Colors.white70))
+          ? const Text(
+              'Classement indisponible',
+              style: TextStyle(color: Colors.white70),
+            )
           : Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -164,14 +188,28 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Matchs de l’equipe', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+          const Text(
+            'Matchs de l’equipe',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: 12),
           if (widget.matches.isEmpty)
-            const Text('Aucun match trouve', style: TextStyle(color: Colors.white70))
+            const Text(
+              'Aucun match trouve',
+              style: TextStyle(color: Colors.white70),
+            )
           else
             ...widget.matches.map(
               (match) => InkWell(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match))),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => MatchDetailsScreen(match: match),
+                  ),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
@@ -179,13 +217,19 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                       Expanded(
                         child: Text(
                           '${match.homeTeam} vs ${match.awayTeam}',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         '${match.scoreHome ?? '-'} - ${match.scoreAway ?? '-'}',
-                        style: const TextStyle(color: kTeamGold, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          color: kTeamGold,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ],
                   ),
@@ -209,7 +253,11 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
         children: [
           Text(
             players.isEmpty ? 'Joueurs indisponibles' : 'Liste des joueurs',
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           if (players.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -234,7 +282,10 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                       alignment: Alignment.center,
                       child: Text(
                         player.shirtNumber?.toString() ?? '-',
-                        style: const TextStyle(color: kTeamGold, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          color: kTeamGold,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -242,11 +293,24 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(player.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                          Text(
+                            player.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
-                            [player.position, player.nationality, player.ageLabel].where((e) => e.isNotEmpty).join(' • '),
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            [
+                              player.position,
+                              player.nationality,
+                              player.ageLabel,
+                            ].where((e) => e.isNotEmpty).join(' • '),
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -261,6 +325,7 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
     );
   }
 }
+
 class _StatChip extends StatelessWidget {
   const _StatChip({required this.label, required this.value});
 
@@ -271,9 +336,19 @@ class _StatChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: kTeamGold, fontWeight: FontWeight.w800, fontSize: 20)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: kTeamGold,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        ),
       ],
     );
   }
