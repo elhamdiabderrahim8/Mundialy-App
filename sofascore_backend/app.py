@@ -12,7 +12,12 @@ app = Flask(__name__)
 
 # Firebase admin initialization
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_creds = os.environ.get('FIREBASE_CREDENTIALS')
+    if firebase_creds:
+        cred_dict = json.loads(firebase_creds)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        cred = credentials.Certificate("serviceAccountKey.json")
     firebase_admin.initialize_app(cred)
     print("Firebase Admin initialized successfully.")
 except Exception as e:
