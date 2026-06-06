@@ -23,6 +23,14 @@ try:
 except Exception as e:
     print(f"Error initializing Firebase Admin: {e}")
 
+@app.route('/')
+def home():
+    return jsonify({"status": "ok", "message": "Mundialy API is running!"}), 200
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
 # --- CONFIGURATION ---
 IPTV_STREAM_URL = "https://sample.vodobox.net/skate_phantom_flex_4k/skate_phantom_flex_4k.m3u8"
 UT_ID = 16
