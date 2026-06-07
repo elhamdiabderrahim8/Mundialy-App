@@ -42,6 +42,28 @@ class ApiService {
   static final Map<String, _CacheEntry> _cache = {};
   static String? pinnedMatchId;
 
+  /// Helper HTTP pour les appels au backend Render.
+  /// Gère le "cold start" du plan gratuit (30-60s de réveil)
+  /// avec un timeout généreux et un retry automatique.
+  static Future<http.Response?> _backendGet(String path, {int retries = 1}) async {
+    final url = Uri.parse('${GlobalConfig.backendUrl}$path');
+    for (int attempt = 0; attempt <= retries; attempt++) {
+      try {
+        final response = await http
+            .get(url)
+            .timeout(const Duration(seconds: 60));
+        if (response.statusCode == 200) return response;
+        debugPrint('[Backend] Status ${response.statusCode} pour $path (tentative ${attempt + 1})');
+      } catch (e) {
+        debugPrint('[Backend] Erreur tentative ${attempt + 1}/$retries pour $path: $e');
+      }
+      if (attempt < retries) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+    return null;
+  }
+
   static T? _getCache<T>(String key, {int ttlMinutes = 5}) {
     if (_cache.containsKey(key)) {
       final entry = _cache[key]!;
@@ -270,10 +292,8 @@ class ApiService {
     try {
       if (year == 2022) {
         // 2022 : on garde le backend (cache statique, jamais bloqué)
-        final response = await http.get(
-          Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/fixtures'),
-        );
-        if (response.statusCode == 200) {
+        final response = await _backendGet('/api/wc2022/fixtures');
+        if (response != null) {
           final data = _parseMatchesResponse(response.body);
           _setCache(cacheKey, data);
           return data;
@@ -304,10 +324,8 @@ class ApiService {
     try {
       if (year == 2022) {
         // 2022 : backend (cache statique)
-        final response = await http.get(
-          Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/standings'),
-        );
-        if (response.statusCode == 200) {
+        final response = await _backendGet('/api/wc2022/standings');
+        if (response != null) {
           final data = _parseStandingsResponse(response.body);
           _setCache(cacheKey, data);
           return data;
@@ -344,10 +362,8 @@ class ApiService {
 
       if (year == 2022) {
         // 2022 : backend (cache statique)
-        final response = await http.get(
-          Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId'),
-        );
-        if (response.statusCode == 200) {
+        final response = await _backendGet('/api/match/$fixtureId');
+        if (response != null) {
           decoded = jsonDecode(response.body);
         }
       } else {
@@ -399,15 +415,14 @@ class ApiService {
         // 2022 : backend
         final seasonQuery = '?season=$year';
         final results = await Future.wait([
-          http.get(Uri.parse(
-              '${GlobalConfig.backendUrl}/api/team/$teamId/coach$seasonQuery')),
-          http.get(Uri.parse(
-              '${GlobalConfig.backendUrl}/api/team/$teamId/squad$seasonQuery')),
+          _backendGet('/api/team/$teamId/coach$seasonQuery'),
+          _backendGet('/api/team/$teamId/squad$seasonQuery'),
         ]);
+        if (results[0] == null || results[1] == null) return null;
         final coachData =
-            jsonDecode(results[0].body)['response'] as List? ?? [];
+            jsonDecode(results[0]!.body)['response'] as List? ?? [];
         final playersData =
-            jsonDecode(results[1].body)['response'] as List? ?? [];
+            jsonDecode(results[1]!.body)['response'] as List? ?? [];
         TeamCoach? coach;
         if (coachData.isNotEmpty) coach = TeamCoach.fromApi(coachData[0]);
         final List<TeamPlayer> squad = playersData
@@ -463,12 +478,8 @@ class ApiService {
   }) async {
     try {
       final seasonQuery = season != null ? '?season=$season' : '';
-      final response = await http.get(
-        Uri.parse(
-          '${GlobalConfig.backendUrl}/api/player/$playerId/stats$seasonQuery',
-        ),
-      );
-      if (response.statusCode == 200) return jsonDecode(response.body);
+      final response = await _backendGet('/api/player/$playerId/stats$seasonQuery');
+      if (response != null) return jsonDecode(response.body);
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
     }
@@ -488,10 +499,8 @@ class ApiService {
       List data;
       if (season == 2022) {
         // 2022 : backend (cache statique)
-        final response = await http.get(
-          Uri.parse('${GlobalConfig.backendUrl}/api/topscorers?season=$season'),
-        );
-        if (response.statusCode != 200) return [];
+        final response = await _backendGet('/api/topscorers?season=$season');
+        if (response == null) return [];
         final body = jsonDecode(response.body);
         data = body['response'] as List? ?? [];
       } else {
@@ -520,10 +529,8 @@ class ApiService {
   static Future<List<dynamic>> fetchNews({String? team}) async {
     try {
       final query = team != null && team.isNotEmpty ? '?team=$team' : '';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}/api/worldcup/news$query'),
-      );
-      if (response.statusCode == 200) {
+      final response = await _backendGet('/api/worldcup/news$query');
+      if (response != null) {
         final data = jsonDecode(response.body);
         // Backend returns a list of news items directly
         if (data is List) return data;
@@ -538,13 +545,11 @@ class ApiService {
 
   static Future<List<dynamic>> fetchVenues({int year = 2022}) async {
     try {
-      final String path = (year == 2022)
+      final String venuePath = (year == 2022)
           ? '/api/wc2022/venues'
           : '/api/venues?season=$year';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}$path'),
-      );
-      if (response.statusCode == 200) {
+      final response = await _backendGet(venuePath);
+      if (response != null) {
         final data = jsonDecode(response.body);
         return data['response'] as List? ?? [];
       }
@@ -556,13 +561,11 @@ class ApiService {
 
   static Future<Map<String, dynamic>?> fetchCupTree({int year = 2022}) async {
     try {
-      final String path = (year == 2022)
+      final String cupTreePath = (year == 2022)
           ? '/api/wc2022/cuptree'
           : '/api/cuptree?season=$year';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}$path'),
-      );
-      if (response.statusCode == 200) {
+      final response = await _backendGet(cupTreePath);
+      if (response != null) {
         final data = jsonDecode(response.body);
         return data['response'];
       }
@@ -575,13 +578,11 @@ class ApiService {
   static Future<List<dynamic>> fetchPowerRankings({int year = 2022}) async {
     try {
       // Power rankings fallback to 2022 or generic if not implemented yet
-      final String path = (year == 2022)
+      final String rankPath = (year == 2022)
           ? '/api/wc2022/power-rankings'
           : '/api/wc2022/power-rankings';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}$path'),
-      );
-      if (response.statusCode == 200) {
+      final response = await _backendGet(rankPath);
+      if (response != null) {
         final data = jsonDecode(response.body);
         return data['response'] as List? ?? [];
       }

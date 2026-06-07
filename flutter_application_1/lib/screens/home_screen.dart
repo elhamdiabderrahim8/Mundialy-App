@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _isLoading = true;
   int _selectedTab = 0;
-  int _selectedYear = 2022; // Qatar 2022 by default
+  int _selectedYear = 2026; // World Cup 2026 par défaut (tournoi en cours)
   int _matchFilterMode = 0; // 0=Par Date, 1=Par Équipe, 2=Par Groupe
 
   late PageController _pageController;
