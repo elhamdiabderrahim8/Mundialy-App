@@ -1,12 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../models/live_match.dart';
 import '../utils/country_flags.dart';
 
 class InAppNotification {
   static void show(
     BuildContext context,
-    LiveMatch match,
+    String homeTeam,
+    String awayTeam,
+    String? matchMinute,
     String title,
     String message, {
     bool isGoal = true,
@@ -17,7 +18,9 @@ class InAppNotification {
     entry = OverlayEntry(
       builder: (context) {
         return _AnimatedBanner(
-          match: match,
+          homeTeam: homeTeam,
+          awayTeam: awayTeam,
+          matchMinute: matchMinute,
           title: title,
           message: message,
           isGoal: isGoal,
@@ -38,14 +41,18 @@ class InAppNotification {
 }
 
 class _AnimatedBanner extends StatefulWidget {
-  final LiveMatch match;
+  final String homeTeam;
+  final String awayTeam;
+  final String? matchMinute;
   final String title;
   final String message;
   final bool isGoal;
   final VoidCallback onDismiss;
 
   const _AnimatedBanner({
-    required this.match,
+    required this.homeTeam,
+    required this.awayTeam,
+    this.matchMinute,
     required this.title,
     required this.message,
     required this.isGoal,
@@ -147,9 +154,9 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
                             radius: 22,
                             backgroundColor: Colors.transparent,
                             backgroundImage: NetworkImage(
-                              'https://flagcdn.com/w80/${resolveCountryCode(widget.match.homeTeam).toLowerCase()}.png',
+                              'https://flagcdn.com/w80/${resolveCountryCode(widget.homeTeam).toLowerCase()}.png',
                             ),
-                            onBackgroundImageError: (_, __) =>
+                            onBackgroundImageError: (e, stack) =>
                                 const Icon(Icons.flag, color: Colors.white70),
                           ),
                         ),
@@ -194,8 +201,8 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              if (widget.match.matchMinute != null &&
-                                  widget.match.matchMinute!.isNotEmpty) ...[
+                              if (widget.matchMinute != null &&
+                                  widget.matchMinute!.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -207,7 +214,7 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    '${widget.match.matchMinute}\'',
+                                    '${widget.matchMinute}\'',
                                     style: TextStyle(
                                       color: accentColor,
                                       fontSize: 11,
@@ -236,9 +243,9 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
                             radius: 22,
                             backgroundColor: Colors.transparent,
                             backgroundImage: NetworkImage(
-                              'https://flagcdn.com/w80/${resolveCountryCode(widget.match.awayTeam).toLowerCase()}.png',
+                              'https://flagcdn.com/w80/${resolveCountryCode(widget.awayTeam).toLowerCase()}.png',
                             ),
-                            onBackgroundImageError: (_, __) =>
+                            onBackgroundImageError: (e, stack) =>
                                 const Icon(Icons.flag, color: Colors.white70),
                           ),
                         ),

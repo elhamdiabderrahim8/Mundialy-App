@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -199,19 +200,33 @@ class ApiService {
           'minute': m.matchMinute,
         });
       } else {
-        InAppNotification.show(context, m, title, body, isGoal: isGoal);
+        InAppNotification.show(
+          context,
+          m.homeTeam,
+          m.awayTeam,
+          m.matchMinute,
+          title,
+          body,
+          isGoal: isGoal,
+        );
       }
     }
 
     // 2. System Push Notification (Local)
-    const android = AndroidNotificationDetails(
+    final android = AndroidNotificationDetails(
       'goal_channel',
       'Buts en Direct',
       importance: Importance.max,
       priority: Priority.high,
       icon: '@mipmap/launcher_icon',
+      color: const Color(0xFFD4AF37),
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+        summaryText: 'Mundialy Live',
+      ),
     );
-    const details = NotificationDetails(android: android);
+    final details = NotificationDetails(android: android);
     await _notifications.show(m.id.hashCode, title, body, details);
 
     // 3. Crowdsourcing Firebase Push Notification

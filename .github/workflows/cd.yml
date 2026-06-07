@@ -61,10 +61,13 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --obfuscate --split-debug-info=build/app/outputs/symbols
 
+      - name: Rename APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/mundialy.apk
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: flutter_application_1/build/app/outputs/flutter-apk/app-release.apk
+          files: flutter_application_1/build/app/outputs/flutter-apk/mundialy.apk
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false

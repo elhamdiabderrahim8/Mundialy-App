@@ -9,6 +9,7 @@ import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
 import 'services/theme_provider.dart';
 import 'widgets/animated_goal_overlay.dart';
+import 'widgets/in_app_notification.dart';
 import 'widgets/nation_flag_badge.dart';
 
 final GlobalKey<NavigatorState> globalNavigatorKey =
@@ -46,7 +47,7 @@ void main() async {
       final type = message.data['type'];
       final context = globalNavigatorKey.currentContext;
 
-      if (context != null) {
+      if (context != null && context.mounted) {
         if (type == 'goal') {
           // Animation élégante "GOAL" avec drapeau
           showGoalOverlay(context, message.data);
@@ -54,16 +55,32 @@ void main() async {
           // Alertes classiques (Mi-temps, match commencé, penalty)
           final title = message.notification?.title ?? "Alerte Match";
           final body = message.notification?.body ?? "";
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                '$title - $body',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+          final homeTeam = message.data['homeTeamName'] ?? '';
+          final awayTeam = message.data['awayTeamName'] ?? '';
+          final minute = message.data['minute'] ?? '';
+
+          if (homeTeam.isNotEmpty && awayTeam.isNotEmpty) {
+            InAppNotification.show(
+              context,
+              homeTeam,
+              awayTeam,
+              minute,
+              title,
+              body,
+              isGoal: false,
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '$title - $body',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: AppColors.primary,
+                duration: const Duration(seconds: 4),
               ),
-              backgroundColor: AppColors.primary,
-              duration: const Duration(seconds: 4),
-            ),
-          );
+            );
+          }
         }
       }
 
@@ -218,10 +235,11 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
   void initState() {
     super.initState();
     FlutterOverlayWindow.overlayListener.listen((event) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _data = event as Map<String, dynamic>?;
         });
+      }
     });
   }
 
