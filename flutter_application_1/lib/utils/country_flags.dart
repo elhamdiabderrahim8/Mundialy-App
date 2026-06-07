@@ -41,6 +41,14 @@ const Map<String, String> _countryCodeByName = {
   'afghanistan': 'AF', 'albania': 'AL', 'algeria': 'DZ', 'andorra': 'AD',
   'angola': 'AO', 'antigua and barbuda': 'AG', 'argentina': 'AR',
   'armenia': 'AM', 'australia': 'AU', 'austria': 'AT', 'azerbaijan': 'AZ',
+  // SofaScore aliases
+  'ir iran': 'IR',
+  'korea dpr': 'KP',
+  'timor-leste': 'TL',
+  'st kitts and nevis': 'KN', 'st lucia': 'LC',
+  'saint kitts and nevis': 'KN',
+  'brunei darussalam': 'BN', 'lao pdr': 'LA',
+  'kyrgyz republic': 'KG',
   // B
   'bahamas': 'BS', 'bahrain': 'BH', 'bangladesh': 'BD', 'barbados': 'BB',
   'belarus': 'BY', 'belgium': 'BE', 'belize': 'BZ', 'benin': 'BJ',

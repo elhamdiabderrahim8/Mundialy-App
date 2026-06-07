@@ -598,6 +598,34 @@ class ApiService {
     return data.map((j) => _mapSofaToMatch(j)).toList();
   }
 
+  /// Nettoie et normalise les noms d'équipes bruts de SofaScore
+  static String _cleanTeamName(String? raw) {
+    if (raw == null || raw.isEmpty) return 'TBD';
+    // Table de traduction : noms SofaScore → noms propres
+    const nameMap = {
+      'USA': 'United States',
+      'Korea Republic': 'South Korea',
+      'Korea DPR': 'North Korea',
+      'IR Iran': 'Iran',
+      'Türkiye': 'Turkey',
+      'Czechia': 'Czech Republic',
+      'Cabo Verde': 'Cape Verde',
+      'Chinese Taipei': 'Taiwan',
+      'Congo DR': 'DR Congo',
+      'Timor-Leste': 'Timor Leste',
+      'Eswatini': 'Swaziland',
+    };
+    return nameMap[raw] ?? raw;
+  }
+
+  /// Convertit une valeur de score brute en int propre
+  static int? _cleanScore(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    if (raw is double) return raw.toInt();
+    return int.tryParse(raw.toString());
+  }
+
   static LiveMatch _mapSofaToMatch(dynamic json) {
     final fixture = json['fixture'] ?? {};
     final teams = json['teams'] ?? {};
@@ -610,6 +638,13 @@ class ApiService {
     final String? longStatus =
         status['long']?.toString() ?? status['description']?.toString();
 
+    // Déterminer si le match est terminé AVANT tout le reste
+    final bool isFinished = shortStatus?.toUpperCase() == 'FT' ||
+        shortStatus?.toUpperCase() == 'AET' ||
+        shortStatus?.toUpperCase() == 'PEN' ||
+        shortStatus?.toUpperCase() == 'FINISHED' ||
+        status['type']?.toString().toLowerCase() == 'finished';
+
     final timeObj = json['time'] ?? fixture['time'] ?? status['time'] ?? {};
     final startTsRaw =
         timeObj['currentPeriodStartTimestamp'] ??
@@ -620,8 +655,9 @@ class ApiService {
         ? int.tryParse(startTsRaw.toString())
         : null;
 
-    bool live =
-        [
+    // isLive : seulement si le match est VRAIMENT en cours (pas terminé)
+    bool live = !isFinished &&
+        ([
           '1H',
           '2H',
           'HT',
@@ -630,8 +666,7 @@ class ApiService {
           'LIVE',
           'INPROGRESS',
         ].contains(shortStatus?.toUpperCase()) ||
-        status['type']?.toString().toLowerCase() == 'inprogress' ||
-        startTs != null;
+        status['type']?.toString().toLowerCase() == 'inprogress');
 
     String? minuteStr =
         (status['elapsed'] ??
@@ -651,7 +686,7 @@ class ApiService {
 
     DateTime? pStart;
     int? pBase;
-    if (startTs != null) {
+    if (startTs != null && live) {
       final isMs = startTs > 9999999999;
       pStart = DateTime.fromMillisecondsSinceEpoch(
         isMs ? startTs : startTs * 1000,
@@ -676,24 +711,48 @@ class ApiService {
       }
     }
 
+    // Nettoyage des noms d'équipes
+    final homeName = _cleanTeamName(teams['home']?['name']?.toString());
+    final awayName = _cleanTeamName(teams['away']?['name']?.toString());
+
+    // Extraction des IDs d'équipes (pour les liens vers le profil)
+    final int? homeId = teams['home']?['id'] is int
+        ? teams['home']['id'] as int
+        : int.tryParse(teams['home']?['id']?.toString() ?? '');
+    final int? awayId = teams['away']?['id'] is int
+        ? teams['away']['id'] as int
+        : int.tryParse(teams['away']?['id']?.toString() ?? '');
+
+    // Nettoyage du label de phase
+    String phaseLabel = json['league']?['round']?.toString() ?? 'World Cup';
+    // Harmoniser : "Group Stage - 1" → "Group Stage - 1" (déjà bon)
+    // Mais enlever les préfixes redondants comme "FIFA World Cup "
+    phaseLabel = phaseLabel
+        .replaceAll('FIFA World Cup 26: ', '')
+        .replaceAll('FIFA World Cup ', '')
+        .replaceAll('World Cup: ', '');
+
     return LiveMatch(
       id: fixture['id']?.toString() ?? '0',
       dateLabel:
           '${_formatDayName(date)} ${date.day} ${_formatMonthName(date)} ${date.year}',
-      localTime: '${date.hour}:${date.minute.toString().padLeft(2, '0')}',
+      localTime:
+          '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
       dateTime: date,
       city: fixture['venue']?['city'] ?? 'Stadium',
-      homeTeam: teams['home']?['name'] ?? 'TBD',
-      homeCode: resolveCountryCode(teams['home']?['name']),
+      homeTeam: homeName,
+      homeCode: resolveCountryCode(homeName),
+      homeTeamId: homeId,
       homeLogoUrl: teams['home']?['logo'],
-      scoreHome: goals['home'],
-      awayTeam: teams['away']?['name'] ?? 'TBD',
-      awayCode: resolveCountryCode(teams['away']?['name']),
+      scoreHome: _cleanScore(goals['home']),
+      awayTeam: awayName,
+      awayCode: resolveCountryCode(awayName),
+      awayTeamId: awayId,
       awayLogoUrl: teams['away']?['logo'],
-      scoreAway: goals['away'],
-      penaltyHome: score['penalty']?['home'],
-      penaltyAway: score['penalty']?['away'],
-      phaseLabel: json['league']?['round'] ?? 'World Cup',
+      scoreAway: _cleanScore(goals['away']),
+      penaltyHome: _cleanScore(score['penalty']?['home']),
+      penaltyAway: _cleanScore(score['penalty']?['away']),
+      phaseLabel: phaseLabel,
       isLive: live,
       statusShort: shortStatus,
       statusLong: longStatus,
