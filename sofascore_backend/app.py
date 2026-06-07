@@ -50,48 +50,64 @@ for d in [DATA_DIR, WC2022_DIR, WC2026_DIR]:
 from curl_cffi import requests as cffi_requests
 import random
 
-# Profils d'impersonation à rotater pour éviter le blocage
-_IMPERSONATE_PROFILES = ['chrome124', 'chrome120', 'chrome119']
+# Profils d'impersonation robustes pour bypass Cloudflare
+_PROFILES = [
+    {"impersonate": "chrome124", "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"},
+    {"impersonate": "safari_ios", "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"},
+    {"impersonate": "safari17_0", "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"},
+    {"impersonate": "chrome120", "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+]
 
-# Headers réalistes d'un vrai navigateur Chrome sur SofaScore
+# Headers de base
 _SOFA_HEADERS = {
     'Accept': 'application/json, text/plain, */*',
     'Accept-Language': 'fr-FR,fr;q=0.9',
-    'Referer': 'https://www.sofascore.com/',
-    'Origin': 'https://www.sofascore.com',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 }
 
-def fetch_json_fast(url, retries=3, base_timeout=10):
-    """Fetch JSON from SofaScore API avec retry + rotation de profil."""
+def fetch_json_fast(url, retries=4, base_timeout=10):
+    """Fetch JSON from SofaScore API avec retry + rotation de profil et domaine."""
     last_error = None
     for attempt in range(retries):
-        profile = _IMPERSONATE_PROFILES[attempt % len(_IMPERSONATE_PROFILES)]
-        timeout = base_timeout + attempt * 5  # 10s, 15s, 20s
+        profile = _PROFILES[attempt % len(_PROFILES)]
+        timeout = base_timeout + attempt * 5
+
+        # Rotation du domaine pour tromper le WAF
+        target_url = url
+        headers = _SOFA_HEADERS.copy()
+        headers["User-Agent"] = profile["ua"]
+
+        if attempt % 2 == 1:
+            target_url = target_url.replace("api.sofascore.com", "api.sofascore.app")
+            headers["Origin"] = "https://www.sofascore.app"
+            headers["Referer"] = "https://www.sofascore.app/"
+        else:
+            headers["Origin"] = "https://www.sofascore.com"
+            headers["Referer"] = "https://www.sofascore.com/"
+
         try:
             r = cffi_requests.get(
-                url,
-                headers=_SOFA_HEADERS,
-                impersonate=profile,
+                target_url,
+                headers=headers,
+                impersonate=profile["impersonate"],
                 timeout=timeout
             )
             if r.status_code == 200:
                 return r.json()
             elif r.status_code == 429:
-                # Rate limited - attendre avant de réessayer
-                wait_time = 2 ** attempt  # 1s, 2s, 4s
+                wait_time = 2 ** attempt
                 print(f"[Rate Limited] Attente {wait_time}s avant retry...")
                 time.sleep(wait_time)
             elif r.status_code in [403, 451]:
-                print(f"[Bloqué] Status {r.status_code} pour {url}")
+                print(f"[Bloqué] Status {r.status_code} pour {target_url} (profil: {profile['impersonate']})")
                 time.sleep(1)
             else:
-                print(f"[HTTP {r.status_code}] {url}")
+                print(f"[HTTP {r.status_code}] {target_url}")
         except Exception as e:
             last_error = e
             wait_time = 2 ** attempt
             print(f"[Tentative {attempt+1}/{retries}] Erreur: {e} — retry dans {wait_time}s")
             time.sleep(wait_time)
+            
     if last_error:
         print(f"Error fetching JSON: {last_error}")
     return None
@@ -304,7 +320,7 @@ def get_fixtures():
                     all_events[ev['id']] = ev  # Deduplicate by event ID
 
         if not all_events:
-            return jsonify({"response": []})
+            raise Exception("No events fetched from live endpoint (blocked by Sofascore or no data)")
 
         formatted = []
         now_ts = int(time.time())
