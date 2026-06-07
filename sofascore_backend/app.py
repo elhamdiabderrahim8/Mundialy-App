@@ -377,8 +377,19 @@ def get_fixtures():
             json.dump(formatted, f, indent=4)
         return jsonify({"response": formatted})
     except Exception as e:
-        print(f"Error in /api/fixtures: {e}")
-        return jsonify({"response": []})
+        print(f"Error in /api/fixtures live fetch: {e}")
+
+    # Fallback to cache if live fetch fails or is blocked
+    if os.path.exists(filepath):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                print("[Fallback] Fixtures 2026 served from cache")
+                return jsonify({"response": json.load(f)})
+        except Exception as e:
+            print(f"[Fallback] Error reading fixtures cache: {e}")
+
+    # If all fails, return empty response instead of crashing
+    return jsonify({"response": []})
 
 @app.route('/api/standings', methods=['GET'])
 def get_standings():
@@ -888,6 +899,9 @@ def get_team_statistics(team_id):
     if os.path.exists(cache_path):
         with open(cache_path, 'r', encoding='utf-8') as f:
             return jsonify(json.load(f))
+    
+    # Ensure driver is always defined for the finally block below
+    driver = None
 
     try:
         url = f"{SOFA_BASE_URL}/team/{team_id}/statistics/unique-tournament/{UT_ID}/season/{s_id}/all"
