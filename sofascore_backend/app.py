@@ -21,7 +21,8 @@ try:
     firebase_admin.initialize_app(cred)
     print("Firebase Admin initialized successfully.")
 except Exception as e:
-    print(f"Error initializing Firebase Admin: {e}")
+    # On masque cette erreur car Firebase n'est utile que pour les Push Notifications, pas pour l'API
+    pass
 
 @app.route('/')
 def home():
@@ -495,8 +496,9 @@ def live_updater_loop():
 
             filtered = []
             for e in all_events:
-                if e.get('tournament', {}).get('name') != 'Int. Friendly Games':
-                    continue
+                # Retrait temporaire du filtre 'Int. Friendly Games' pour tester le Live avec N'IMPORTE QUEL match
+                # if e.get('tournament', {}).get('name') != 'Int. Friendly Games':
+                #     continue
 
                 status = e.get('status', {})
                 status_type = status.get('type', '')
