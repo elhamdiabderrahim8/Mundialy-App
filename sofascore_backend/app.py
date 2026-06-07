@@ -458,213 +458,76 @@ def get_standings():
 
     return jsonify({"response": []})
 
-# Cache pour la route Live
-LIVE_CACHE = {
-    "timestamp": 0,
-    "data": []
-}
+# =======================================================
+# FIREBASE NOTIFICATION GATEWAY (CROWDSOURCING)
+# =======================================================
 
-PREVIOUS_SCORES = {}
+# Un cache pour éviter d'envoyer plusieurs pushs pour le même événement
+# (puisque plusieurs téléphones vont le signaler en même temps)
+RECENT_NOTIFICATIONS = {}
 
-def live_updater_loop():
-    global LIVE_CACHE, PREVIOUS_SCORES
-    last_scheduled_fetch = 0
-    scheduled_data_cache = None
-
-    while True:
+@app.route('/api/trigger_goal', methods=['POST'])
+def trigger_goal():
+    """Reçoit le signal d'un but depuis l'application Flutter et déclenche Firebase FCM."""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data"}), 400
+            
+        match_id = str(data.get("match_id", ""))
+        title = data.get("title", "")
+        body = data.get("body", "")
+        
+        if not match_id or not title:
+            return jsonify({"error": "Missing info"}), 400
+            
+        # Création d'une clé unique pour l'événement (pour éviter le spam)
+        event_key = f"{match_id}_{title}_{body}"
+        
+        current_time = time.time()
+        
+        # Nettoyage du cache (garde les événements < 2 minutes)
+        keys_to_delete = [k for k, v in RECENT_NOTIFICATIONS.items() if current_time - v > 120]
+        for k in keys_to_delete:
+            del RECENT_NOTIFICATIONS[k]
+            
+        if event_key in RECENT_NOTIFICATIONS:
+            return jsonify({"status": "ignored", "message": "Already notified recently"}), 200
+            
+        # Marquer comme notifié
+        RECENT_NOTIFICATIONS[event_key] = current_time
+        
+        print(f"🌟 [CROWDSOURCED EVENT] {title} - {body}")
+        
+        # Envoi de la notification Push globale via Firebase
+        push_data = {
+            'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+            'type': 'goal' if data.get('is_goal') else 'event',
+            'homeTeamName': str(data.get('home_team', '')),
+            'awayTeamName': str(data.get('away_team', '')),
+            'homeScore': str(data.get('home_score', '0')),
+            'awayScore': str(data.get('away_score', '0')),
+            'scoringTeam': str(data.get('scoring_team', '')),
+            'scoringTeamCode': str(data.get('home_code', '')) if data.get('scoring_team') == 'home' else str(data.get('away_code', '')),
+            'minute': str(data.get('minute', '')),
+        }
+        
         try:
-            live_url = f"{SOFA_BASE_URL}/sport/football/events/live"
-            live_data = fetch_json(live_url)
+            msg = messaging.Message(
+                notification=messaging.Notification(title=title, body=body),
+                topic='live_matches',
+                data=push_data
+            )
+            messaging.send(msg)
+            print(f"✅ Push FCM envoyée globalement: {title}")
+        except Exception as ex:
+            print(f"❌ FCM Erreur: {ex}")
             
-            # Fetch scheduled matches only once every 60 secondes pour éviter le blocage
-            current_time = time.time()
-            if current_time - last_scheduled_fetch > 60 or scheduled_data_cache is None:
-                real_today = datetime.date.today().strftime("%Y-%m-%d")
-                scheduled_url = f"{SOFA_BASE_URL}/sport/football/scheduled-events/{real_today}"
-                scheduled_data_cache = fetch_json(scheduled_url)
-                last_scheduled_fetch = current_time
-
-            all_events = []
-            if live_data and 'events' in live_data:
-                all_events.extend(live_data['events'])
-
-            if scheduled_data_cache and 'events' in scheduled_data_cache:
-                live_ids = [ev.get('id') for ev in all_events]
-                for sev in scheduled_data_cache['events']:
-                    if sev.get('id') not in live_ids:
-                        all_events.append(sev)
-
-            filtered = []
-            for e in all_events:
-                # Retrait temporaire du filtre 'Int. Friendly Games' pour tester le Live avec N'IMPORTE QUEL match
-                # if e.get('tournament', {}).get('name') != 'Int. Friendly Games':
-                #     continue
-
-                status = e.get('status', {})
-                status_type = status.get('type', '')
-                is_live = status_type == 'inprogress'
-                
-                h_s = e.get('homeScore') or {}
-                a_s = e.get('awayScore') or {}
-
-                dt = datetime.datetime.fromtimestamp(e.get('startTimestamp', 0)).isoformat() if e.get('startTimestamp') else ""
-
-                if status_type == 'finished':
-                    short_status = 'FT'
-                elif status_type == 'canceled':
-                    short_status = 'CANC'
-                elif status_type == 'postponed':
-                    short_status = 'PST'
-                elif is_live:
-                    short_status = status.get('description', 'LIVE')
-                else:
-                    short_status = 'NS'
-
-                current_home = h_s.get('current') if h_s.get('current') is not None else h_s.get('display')
-                current_away = a_s.get('current') if a_s.get('current') is not None else a_s.get('display')
-                
-                m_id = str(e.get('id'))
-                c_h = current_home if isinstance(current_home, int) else 0
-                c_a = current_away if isinstance(current_away, int) else 0
-
-                if m_id in PREVIOUS_SCORES:
-                    prev = PREVIOUS_SCORES[m_id]
-                    ht_name = e.get('homeTeam', {}).get('name', 'Home')
-                    at_name = e.get('awayTeam', {}).get('name', 'Away')
-                    ht_code = e.get('homeTeam', {}).get('nameCode', '')
-                    at_code = e.get('awayTeam', {}).get('nameCode', '')
-                    
-                    title = None
-                    body = None
-                    push_data = {'click_action': 'FLUTTER_NOTIFICATION_CLICK', 'type': 'event'}
-                    
-                    # 1. Vérification des buts
-                    if c_h > prev['home'] or c_a > prev['away']:
-                        title = '⚽ BUT !!!'
-                        body = f"{ht_name} {c_h} - {c_a} {at_name}"
-                        push_data['type'] = 'goal'
-                        push_data['homeTeamName'] = ht_name
-                        push_data['awayTeamName'] = at_name
-                        push_data['homeScore'] = str(c_h)
-                        push_data['awayScore'] = str(c_a)
-                        
-                        # Fetch incidents to get goal details
-                        incident_data = fetch_json(f"{SOFA_BASE_URL}/event/{m_id}/incidents")
-                        scorer_name = "Buteur inconnu"
-                        minute = ""
-                        is_penalty = "false"
-                        scoring_team = ""
-                        scoring_code = ""
-                        
-                        if incident_data and 'incidents' in incident_data:
-                            for inc in incident_data['incidents']:
-                                if inc.get('incidentType') == 'goal':
-                                    scorer_name = inc.get('player', {}).get('name', 'Buteur')
-                                    minute = str(inc.get('time', ''))
-                                    is_penalty = "true" if inc.get('incidentClass') == 'penalty' else "false"
-                                    is_home = inc.get('isHome', False)
-                                    scoring_team = "home" if is_home else "away"
-                                    scoring_code = ht_code if is_home else at_code
-                                    break # On prend le plus récent (les incidents sont souvent triés du plus récent au plus ancien, ou l'inverse, mais on peut juste chercher celui qui a amené au score actuel)
-                                    # Pour plus de sécurité on peut chercher l'incident qui a les mêmes scores, mais SofaScore renvoie les plus récents en premier.
-                        
-                        push_data['scorerName'] = scorer_name
-                        push_data['minute'] = minute
-                        push_data['isPenalty'] = is_penalty
-                        push_data['scoringTeam'] = scoring_team
-                        push_data['scoringTeamCode'] = scoring_code
-
-                    elif c_h < prev['home'] or c_a < prev['away']:
-                        title = '❌ BUT ANNULÉ'
-                        body = f"Retour au score : {ht_name} {c_h} - {c_a} {at_name}"
-                        push_data['type'] = 'goal_cancelled'
-                        
-                    # 2. Vérification des changements d'état du match (si pas de but détecté en même temps)
-                    if not title:
-                        prev_type = prev.get('status_type', '')
-                        prev_short = prev.get('short_status', '')
-                        
-                        if prev_type == 'notstarted' and status_type == 'inprogress':
-                            title = '🟢 Le match commence !'
-                            body = f"{ht_name} vs {at_name}"
-                        elif prev_type != 'finished' and status_type == 'finished':
-                            title = '🏁 Match Terminé (FT)'
-                            body = f"Score final : {ht_name} {c_h} - {c_a} {at_name}"
-                        elif prev_short != 'Halftime' and short_status == 'Halftime':
-                            title = '⏱️ Mi-temps'
-                            body = f"{ht_name} {c_h} - {c_a} {at_name}"
-                        elif prev_short != short_status and ('Penalty' in short_status or 'Penalties' in short_status):
-                            title = '❗ Penalty !'
-                            body = f"Moment décisif pour {ht_name} vs {at_name}"
-
-                    if title and body:
-                        try:
-                            msg = messaging.Message(
-                                notification=messaging.Notification(title=title, body=body),
-                                topic='live_matches',
-                                data=push_data
-                            )
-                            messaging.send(msg)
-                            print(f"Push envoyée: {title} {body}")
-                        except Exception as ex:
-                            print(f"FCM Erreur: {ex}")
-                            
-                PREVIOUS_SCORES[m_id] = {
-                    'home': c_h, 
-                    'away': c_a, 
-                    'status_type': status_type, 
-                    'short_status': short_status
-                }
-
-                filtered.append({
-                    "fixture": {
-                        "id": e.get('id'),
-                        "date": dt,
-                        "status": {
-                            "short": short_status,
-                            "long": status.get('description', ''),
-                            "type": status_type,
-                            "code": status.get('code'),
-                            "elapsed": status.get('currentMinute')
-                        },
-                        "time": e.get('time', {}) if is_live else {}
-                    },
-                    "league": {
-                        "round": e.get('tournament', {}).get('name', 'Match'),
-                        "group": ""
-                    },
-                    "teams": {
-                        "home": {
-                            "id": e.get('homeTeam', {}).get('id'),
-                            "name": e.get('homeTeam', {}).get('name'),
-                            "logo": f"https://api.sofascore.app/api/v1/team/{e.get('homeTeam', {}).get('id')}/image"
-                        },
-                        "away": {
-                            "id": e.get('awayTeam', {}).get('id'),
-                            "name": e.get('awayTeam', {}).get('name'),
-                            "logo": f"https://api.sofascore.app/api/v1/team/{e.get('awayTeam', {}).get('id')}/image"
-                        }
-                    },
-                    "goals": {
-                        "home": current_home,
-                        "away": current_away
-                    },
-                    "is_live": is_live
-                })
-            
-            LIVE_CACHE["data"] = filtered
-            LIVE_CACHE["timestamp"] = time.time()
-        except Exception as loop_ex:
-            print(f"Error in background loop iteration: {loop_ex}")
-
-        time.sleep(15)
-
-bg_thread = threading.Thread(target=live_updater_loop, daemon=True)
-bg_thread.start()
-
-@app.route('/api/worldcup/live', methods=['GET'])
-def get_live_worldcup():
-    return jsonify({"response": LIVE_CACHE["data"]})
+        return jsonify({"status": "success", "message": "Push sent"}), 200
+        
+    except Exception as e:
+        print(f"Error triggering goal: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # ---- ROUTE DYNAMIQUE : DÉTAILS COMPLETS DU MATCH (STRATÉGIE BFF RADICALE) ----
 @app.route('/api/match/<int:match_id>', methods=['GET'])

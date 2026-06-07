@@ -17,6 +17,7 @@ import '../utils/global_config.dart';
 import '../main.dart';
 import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
+import 'sofa_direct_service.dart';
 
 class _CacheEntry {
   final dynamic data;
@@ -86,22 +87,13 @@ class ApiService {
 
   static Future<List<LiveMatch>> fetchLiveMatches() async {
     try {
-      final response = await http
-          .get(Uri.parse('${GlobalConfig.backendUrl}/api/worldcup/live'))
-          .timeout(const Duration(seconds: 12));
-      if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        final data = body['response'] as List? ?? [];
-        final matches = data.map((j) => _mapSofaToMatch(j)).toList();
-        _checkGoals(matches);
-        return matches;
-      }
+      // Appel DIRECT à SofaScore depuis le téléphone (jamais bloqué)
+      final data = await SofaDirectService.fetchLiveMatches();
+      final matches = data.map((j) => _mapSofaToMatch(j)).toList();
+      _checkGoals(matches);
+      return matches;
     } on TimeoutException {
       debugPrint('⚠️ fetchLiveMatches: timeout, returning empty list');
-    } on http.ClientException catch (e) {
-      debugPrint(
-        '⚠️ fetchLiveMatches: network issue ($e), returning empty list',
-      );
     } catch (e) {
       debugPrint('❌ fetchLiveMatches Error: $e');
     }
@@ -211,7 +203,7 @@ class ApiService {
       }
     }
 
-    // 2. System Push Notification
+    // 2. System Push Notification (Local)
     const android = AndroidNotificationDetails(
       'goal_channel',
       'Buts en Direct',
@@ -221,6 +213,35 @@ class ApiService {
     );
     const details = NotificationDetails(android: android);
     await _notifications.show(m.id.hashCode, title, body, details);
+
+    // 3. Crowdsourcing Firebase Push Notification
+    // L'application prévient le backend pour qu'il envoie un push global FCM aux app fermées
+    try {
+      final payload = {
+        "match_id": m.id,
+        "title": title,
+        "body": body,
+        "home_score": m.scoreHome,
+        "away_score": m.scoreAway,
+        "home_team": m.homeTeam,
+        "away_team": m.awayTeam,
+        "home_code": m.homeCode,
+        "away_code": m.awayCode,
+        "is_goal": isGoal,
+        "minute": m.matchMinute,
+        "scoring_team": homeScored != null ? (homeScored ? 'home' : 'away') : null
+      };
+
+      await http
+          .post(
+            Uri.parse('${GlobalConfig.backendUrl}/api/trigger_goal'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('⚠️ Erreur en signalant le but au serveur: $e');
+    }
   }
 
   static Future<List<LiveMatch>> fetchMatches({int? year}) async {
@@ -232,16 +253,24 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      final String path = (year == 2022)
-          ? '/api/wc2022/fixtures'
-          : '/api/fixtures';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}$path'),
-      );
-      if (response.statusCode == 200) {
-        final data = _parseMatchesResponse(response.body);
-        _setCache(cacheKey, data);
-        return data;
+      if (year == 2022) {
+        // 2022 : on garde le backend (cache statique, jamais bloqué)
+        final response = await http.get(
+          Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/fixtures'),
+        );
+        if (response.statusCode == 200) {
+          final data = _parseMatchesResponse(response.body);
+          _setCache(cacheKey, data);
+          return data;
+        }
+      } else {
+        // 2026 : appel DIRECT à SofaScore depuis le téléphone
+        final rawData = await SofaDirectService.fetchFixtures2026();
+        if (rawData.isNotEmpty) {
+          final data = rawData.map((j) => _mapSofaToMatch(j)).toList();
+          _setCache(cacheKey, data);
+          return data;
+        }
       }
     } catch (e) {
       debugPrint('❌ fetchMatches Error: $e');
@@ -258,16 +287,24 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      final String path = (year == 2022)
-          ? '/api/wc2022/standings'
-          : '/api/standings';
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}$path'),
-      );
-      if (response.statusCode == 200) {
-        final data = _parseStandingsResponse(response.body);
-        _setCache(cacheKey, data);
-        return data;
+      if (year == 2022) {
+        // 2022 : backend (cache statique)
+        final response = await http.get(
+          Uri.parse('${GlobalConfig.backendUrl}/api/wc2022/standings'),
+        );
+        if (response.statusCode == 200) {
+          final data = _parseStandingsResponse(response.body);
+          _setCache(cacheKey, data);
+          return data;
+        }
+      } else {
+        // 2026 : appel DIRECT à SofaScore
+        final rawData = await SofaDirectService.fetchStandings2026();
+        if (rawData != null) {
+          final data = _parseStandingsResponse(jsonEncode(rawData));
+          _setCache(cacheKey, data);
+          return data;
+        }
       }
     } catch (e) {
       debugPrint('❌ fetchStandings Error: $e');
@@ -288,31 +325,40 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      // Pour les détails, on utilise la route unique /api/match/id
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId'),
-      );
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        final dynamic payload = (decoded is Map<String, dynamic>)
+      Map<String, dynamic>? decoded;
+
+      if (year == 2022) {
+        // 2022 : backend (cache statique)
+        final response = await http.get(
+          Uri.parse('${GlobalConfig.backendUrl}/api/match/$fixtureId'),
+        );
+        if (response.statusCode == 200) {
+          decoded = jsonDecode(response.body);
+        }
+      } else {
+        // 2026 : appel DIRECT à SofaScore
+        decoded = await SofaDirectService.fetchMatchDetails(
+            int.tryParse(fixtureId) ?? 0);
+      }
+
+      if (decoded != null) {
+        final dynamic payload = decoded.containsKey('response')
             ? decoded['response']
             : decoded;
 
-        MatchDetails? details;
+        MatchDetails details;
         if (payload is List && payload.isNotEmpty && payload.first is Map) {
           details = MatchDetails.fromApi(
             Map<String, dynamic>.from(payload.first as Map),
           );
         } else if (payload is Map) {
           details = MatchDetails.fromApi(Map<String, dynamic>.from(payload));
-        } else if (decoded is Map<String, dynamic>) {
+        } else {
           details = MatchDetails.fromApi(decoded);
         }
 
-        if (details != null) {
-          _setCache(cacheKey, details);
-          return details;
-        }
+        _setCache(cacheKey, details);
+        return details;
       }
     } catch (e) {
       debugPrint('❌ fetchFullMatchDetails Error: $e');
@@ -334,41 +380,62 @@ class ApiService {
     int? year,
   }) async {
     try {
-      final seasonQuery = year != null ? '?season=$year' : '';
-      final results = await Future.wait([
-        http.get(
-          Uri.parse(
-            '${GlobalConfig.backendUrl}/api/team/$teamId/coach$seasonQuery',
-          ),
-        ),
-        http.get(
-          Uri.parse(
-            '${GlobalConfig.backendUrl}/api/team/$teamId/squad$seasonQuery',
-          ),
-        ),
-      ]);
-      final coachData = jsonDecode(results[0].body)['response'] as List? ?? [];
-      final playersData =
-          jsonDecode(results[1].body)['response'] as List? ?? [];
-      TeamCoach? coach;
-      if (coachData.isNotEmpty) coach = TeamCoach.fromApi(coachData[0]);
-      final List<TeamPlayer> squad = playersData
-          .map((p) => TeamPlayer.fromApi(p, teamName ?? ''))
-          .toList();
-      squad.sort(
-        (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
-      );
-      return TeamProfile(
-        id: teamId,
-        name: teamName ?? 'Équipe',
-        shortName: teamName ?? 'Équipe',
-        code: resolveCountryCode(teamName ?? ''),
-        logoUrl: "https://api.sofascore.com/api/v1/team/$teamId/image",
-        venue: "",
-        foundedLabel: "",
-        coach: coach,
-        players: squad,
-      );
+      if (year == 2022) {
+        // 2022 : backend
+        final seasonQuery = '?season=$year';
+        final results = await Future.wait([
+          http.get(Uri.parse(
+              '${GlobalConfig.backendUrl}/api/team/$teamId/coach$seasonQuery')),
+          http.get(Uri.parse(
+              '${GlobalConfig.backendUrl}/api/team/$teamId/squad$seasonQuery')),
+        ]);
+        final coachData =
+            jsonDecode(results[0].body)['response'] as List? ?? [];
+        final playersData =
+            jsonDecode(results[1].body)['response'] as List? ?? [];
+        TeamCoach? coach;
+        if (coachData.isNotEmpty) coach = TeamCoach.fromApi(coachData[0]);
+        final List<TeamPlayer> squad = playersData
+            .map((p) => TeamPlayer.fromApi(p, teamName ?? ''))
+            .toList();
+        squad.sort(
+          (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
+        );
+        return TeamProfile(
+          id: teamId,
+          name: teamName ?? 'Équipe',
+          shortName: teamName ?? 'Équipe',
+          code: resolveCountryCode(teamName ?? ''),
+          logoUrl: "https://api.sofascore.com/api/v1/team/$teamId/image",
+          venue: "",
+          foundedLabel: "",
+          coach: coach,
+          players: squad,
+        );
+      } else {
+        // 2026 : appel DIRECT à SofaScore
+        final coachData = await SofaDirectService.fetchTeamCoach(teamId);
+        final playersData = await SofaDirectService.fetchTeamSquad(teamId);
+        TeamCoach? coach;
+        if (coachData != null) coach = TeamCoach.fromApi(coachData);
+        final List<TeamPlayer> squad = playersData
+            .map((p) => TeamPlayer.fromApi(p, teamName ?? ''))
+            .toList();
+        squad.sort(
+          (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
+        );
+        return TeamProfile(
+          id: teamId,
+          name: teamName ?? 'Équipe',
+          shortName: teamName ?? 'Équipe',
+          code: resolveCountryCode(teamName ?? ''),
+          logoUrl: "https://api.sofascore.com/api/v1/team/$teamId/image",
+          venue: "",
+          foundedLabel: "",
+          coach: coach,
+          players: squad,
+        );
+      }
     } catch (e) {
       debugPrint('❌ fetchTeamProfile Error: $e');
     }
@@ -403,25 +470,32 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      final response = await http.get(
-        Uri.parse('${GlobalConfig.backendUrl}/api/topscorers?season=$season'),
-      );
-      if (response.statusCode == 200) {
+      List data;
+      if (season == 2022) {
+        // 2022 : backend (cache statique)
+        final response = await http.get(
+          Uri.parse('${GlobalConfig.backendUrl}/api/topscorers?season=$season'),
+        );
+        if (response.statusCode != 200) return [];
         final body = jsonDecode(response.body);
-        final List data = body['response'] as List? ?? [];
-        final scorers = data
-            .asMap()
-            .entries
-            .map<TopScorer>(
-              (entry) => TopScorer.fromApi(
-                entry.value as Map<String, dynamic>,
-                entry.key + 1,
-              ),
-            )
-            .toList();
-        _setCache(cacheKey, scorers);
-        return scorers;
+        data = body['response'] as List? ?? [];
+      } else {
+        // 2026 : appel DIRECT à SofaScore
+        data = await SofaDirectService.fetchTopScorers2026();
       }
+
+      final scorers = data
+          .asMap()
+          .entries
+          .map<TopScorer>(
+            (entry) => TopScorer.fromApi(
+              entry.value as Map<String, dynamic>,
+              entry.key + 1,
+            ),
+          )
+          .toList();
+      _setCache(cacheKey, scorers);
+      return scorers;
     } catch (e) {
       debugPrint('❌ fetchTopScorers Error: $e');
     }
@@ -568,12 +642,13 @@ class ApiService {
       );
       final code = status['code'] ?? status['short'] ?? json['status']?['code'];
       pBase = 0;
-      if (code == 7 || code == '2H')
+      if (code == 7 || code == '2H') {
         pBase = 45;
-      else if (code == 24 || code == 'ET1')
+      } else if (code == 24 || code == 'ET1') {
         pBase = 90;
-      else if (code == 25 || code == 'ET2')
+      } else if (code == 25 || code == 'ET2') {
         pBase = 105;
+      }
 
       if (minuteStr == null || minuteStr.isEmpty || minuteStr == '0') {
         if (code == 31 || code == 'HT' || shortStatus == 'HT') {
