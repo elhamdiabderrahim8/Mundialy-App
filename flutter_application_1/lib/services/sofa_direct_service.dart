@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:cronet_http/cronet_http.dart';
 
 /// Service de récupération directe depuis l'API SofaScore.
 /// Chaque téléphone a une IP résidentielle → jamais bloqué par Cloudflare.
@@ -15,28 +17,47 @@ class SofaDirectService {
   ];
 
   static final _random = Random();
+  static http.Client? _cronetClient;
+
+  /// Initialise Cronet (le moteur réseau de Chrome) pour contourner Cloudflare
+  static Future<http.Client> _getClient() async {
+    if (_cronetClient != null) return _cronetClient!;
+    if (Platform.isAndroid) {
+      try {
+        final engine = CronetEngine.build(
+          cacheMode: CacheMode.memory,
+          cacheMaxSize: 2 * 1024 * 1024,
+          userAgent: 'Mozilla/5.0 (Linux; Android 13; Infinix) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+        );
+        _cronetClient = CronetClient.fromCronetEngine(engine);
+        return _cronetClient!;
+      } catch (e) {
+        debugPrint('Cronet failed to load: $e');
+      }
+    }
+    _cronetClient = http.Client();
+    return _cronetClient!;
+  }
 
   /// En-têtes qui imitent un navigateur mobile normal
   static Map<String, String> _headers() {
     return {
       'Accept': 'application/json, text/plain, */*',
       'Accept-Language': 'fr-FR,fr;q=0.9',
-      'User-Agent':
-          'Mozilla/5.0 (Linux; Android 13; Infinix) AppleWebKit/537.36 '
-          '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
       'Referer': 'https://www.sofascore.com/',
       'Origin': 'https://www.sofascore.com',
     };
   }
 
-  /// Récupère du JSON depuis SofaScore avec retry et rotation de domaine
+  /// Récupère du JSON depuis SofaScore avec retry, rotation de domaine et Cronet
   static Future<Map<String, dynamic>?> _fetchJson(String path,
       {int retries = 2}) async {
+    final client = await _getClient();
     for (int attempt = 0; attempt <= retries; attempt++) {
       final domain = _domains[attempt % _domains.length];
       final url = '$domain$path';
       try {
-        final response = await http
+        final response = await client
             .get(Uri.parse(url), headers: _headers())
             .timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
