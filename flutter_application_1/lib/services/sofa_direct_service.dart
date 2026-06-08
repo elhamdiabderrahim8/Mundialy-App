@@ -647,4 +647,21 @@ class SofaDirectService {
         '/player/$playerId/unique-tournament/$_utId/season/$seasonId/statistics/overall');
     return data;
   }
+
+  /// Récupère les statistiques en équipe nationale d'un joueur
+  static Future<Map<String, dynamic>?> fetchPlayerNationalStats(int playerId) async {
+    return await _fetchJson('/player/$playerId/national-team-statistics');
+  }
+
+  /// Récupère les caractéristiques physiques d'un joueur
+  /// (taille, poids, pied préféré, âge, poste)
+  static Future<Map<String, dynamic>?> fetchPlayerCharacteristics(int playerId) async {
+    return await _fetchJson('/player/$playerId/characteristics');
+  }
+
+  /// Récupère les attributs de notation d'un joueur
+  /// (vitesse, tir, passe, dribble, défense, physique — style FIFA)
+  static Future<Map<String, dynamic>?> fetchPlayerAttributes(int playerId) async {
+    return await _fetchJson('/player/$playerId/attribute-overviews');
+  }
 }

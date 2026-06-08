@@ -282,13 +282,15 @@ class ApiService {
     }
   }
 
-  static Future<List<LiveMatch>> fetchMatches({int? year}) async {
+  static Future<List<LiveMatch>> fetchMatches({int? year, bool forceRefresh = false}) async {
     final cacheKey = 'matches_$year';
-    final cached = _getCache<List<LiveMatch>>(
-      cacheKey,
-      ttlMinutes: year == 2022 ? 1440 : 5,
-    );
-    if (cached != null) return cached;
+    if (!forceRefresh) {
+      final cached = _getCache<List<LiveMatch>>(
+        cacheKey,
+        ttlMinutes: year == 2022 ? 1440 : 5,
+      );
+      if (cached != null) return cached;
+    }
 
     try {
       if (year == 2022) {
@@ -355,19 +357,10 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      Map<String, dynamic>? decoded;
-
-      if (year == 2022) {
-        // 2022 : backend (cache statique)
-        final response = await _backendGet('/api/match/$fixtureId');
-        if (response != null) {
-          decoded = jsonDecode(response.body);
-        }
-      } else {
-        // 2026 : appel DIRECT à SofaScore
-        decoded = await SofaDirectService.fetchMatchDetails(
-            int.tryParse(fixtureId) ?? 0);
-      }
+      // Toujours appeler SofaScore directement (2022 ET 2026)
+      // Les IDs dans matches_2022.json ont été régénérés avec les vrais IDs SofaScore
+      final decoded = await SofaDirectService.fetchMatchDetails(
+          int.tryParse(fixtureId) ?? 0);
 
       if (decoded != null) {
         final dynamic payload = decoded.containsKey('response')
@@ -456,9 +449,17 @@ class ApiService {
     int? season,
   }) async {
     try {
-      final seasonQuery = season != null ? '?season=$season' : '';
-      final response = await _backendGet('/api/player/$playerId/stats$seasonQuery');
-      if (response != null) return jsonDecode(response.body);
+      // Appels parallèles à SofaScore pour récupérer toutes les données du joueur
+      final results = await Future.wait([
+        SofaDirectService.fetchPlayerNationalStats(playerId),
+        SofaDirectService.fetchPlayerCharacteristics(playerId),
+        SofaDirectService.fetchPlayerAttributes(playerId),
+      ]);
+      return {
+        'nationalStats': results[0],
+        'characteristics': results[1],
+        'attributes': results[2],
+      };
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
     }

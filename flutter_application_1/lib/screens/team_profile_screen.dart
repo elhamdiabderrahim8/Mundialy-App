@@ -193,8 +193,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   }
 
   Widget _buildOverviewCard(bool isDark) {
-    final primaryText = isDark ? Colors.white : const Color(0xFF16324A);
-    final secondaryText = isDark ? Colors.white60 : const Color(0xFF6D7F8C);
+
     final cardColor = isDark
         ? const Color(0xFF182531)
         : Colors.white.withValues(alpha: 0.94);

@@ -15,6 +15,7 @@ import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import 'team_profile_screen.dart';
+import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 
 /// --- CONSTANTES ÉLITE ---
@@ -63,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _refreshSubscription?.cancel();
     _pageController.dispose();
     _liveTimer?.cancel();
+    _silentRefreshTimer?.cancel();
     super.dispose();
   }
 
@@ -70,6 +72,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // State for news team filter
   String _selectedNewsTeam = '';
+
+  // Charge les news uniquement (pour le filtre pays)
+  Future<void> _loadNews() async {
+    if (!mounted) return;
+    try {
+      final articles = await ApiService.fetchNews(team: _selectedNewsTeam);
+      if (mounted) {
+        setState(() {
+          _newsArticles = (articles as List?)?.cast<dynamic>() ?? [];
+          _isNewsLoading = false;
+        });
+      }
+    } catch (e) {
+      // Ignorer l'erreur silencieusement
+    }
+  }
 
   // Updated fetch method to include optional team filter for news
   Future<void> _loadInitialData() async {
@@ -97,12 +115,42 @@ class _HomeScreenState extends State<HomeScreen> {
         _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
         if (_matches.isEmpty && _selectedYear == 2022)
           _matches = getMockMatches();
+
+        // Auto-refresh silencieux des scores (30s) si matchs en cours aujourd'hui
+        _startSilentScoreRefresh();
       }
     } catch (e) {
       debugPrint('💥 Error loading data: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  java_timer.Timer? _silentRefreshTimer;
+
+  void _startSilentScoreRefresh() {
+    _silentRefreshTimer?.cancel();
+    final now = DateTime.now();
+    final hasLiveOrTodayMatches = _matches.any((m) {
+      if (m.isLive) return true;
+      final dt = m.dateTime;
+      if (dt == null) return false;
+      return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    });
+    if (!hasLiveOrTodayMatches || _selectedYear == 2022) return;
+    // Refresh silencieux toutes les 30 secondes (sans spinner)
+    _silentRefreshTimer = java_timer.Timer.periodic(
+      const Duration(seconds: 30),
+      (_) async {
+        if (!mounted) return;
+        try {
+          final freshMatches = await ApiService.fetchMatches(year: _selectedYear, forceRefresh: true);
+          if (mounted && freshMatches.isNotEmpty) {
+            setState(() => _matches = freshMatches);
+          }
+        } catch (_) {}
+      },
+    );
   }
 
   bool _isFetchingLive = false;
@@ -290,10 +338,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: 'TOUT',
                   isSelected: _selectedNewsTeam.isEmpty,
                   onTap: () {
-                    setState(() {
-                      _selectedNewsTeam = '';
-                    });
-                    _loadInitialData();
+                    if (_selectedNewsTeam.isNotEmpty) {
+                      setState(() => _selectedNewsTeam = '');
+                      _loadNews(); // Refresh news UNIQUEMENT
+                    }
                   },
                 ),
                 ...[
@@ -317,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(() {
                         _selectedNewsTeam = isSelected ? '' : name;
                       });
-                      _loadInitialData();
+                      _loadNews(); // Refresh news UNIQUEMENT
                     },
                   );
                 }),
@@ -392,7 +440,21 @@ class _HomeScreenState extends State<HomeScreen> {
           delay: Duration(milliseconds: 80 * i),
           child: _NewsCard2026(
             item: _newsArticles[i],
-            onTap: () => _openUrl(_newsArticles[i]['url']),
+            onTap: () {
+              // Naviguer vers l'écran détail de l'article
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (_, animation, __) => FadeTransition(
+                    opacity: animation,
+                    child: NewsDetailScreen(
+                      article: Map<String, dynamic>.from(
+                          _newsArticles[i] as Map),
+                    ),
+                  ),
+                  transitionDuration: const Duration(milliseconds: 350),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -1008,13 +1070,6 @@ class _HomeScreenState extends State<HomeScreen> {
       keys.sort();
     return keys;
   }
-
-  Future<void> _openUrl(String? url) async {
-    if (url == null || url.isEmpty) return;
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri))
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
 }
 
 class _YearDropdownSelector extends StatelessWidget {
@@ -1196,10 +1251,6 @@ class _MatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Determine status colors
-    final Color statusColor = match.isLive
-        ? Colors.redAccent
-        : (match.isFinished ? Colors.grey : _kGold);
     final String centerText = match.scoreHome != null
         ? '${match.scoreHome} - ${match.scoreAway}'
         : 'VS';
@@ -2630,89 +2681,6 @@ class _SectionHeader extends StatelessWidget {
 }
 
 // Keep old _NewsCard for backward compat with _buildNewsHorizontalList
-class _NewsCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final VoidCallback onTap;
-  const _NewsCard({required this.item, required this.onTap});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (item['img'] != null)
-                Image.network(
-                  item['img'],
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: Colors.grey[900]),
-                ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _kGold,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        item['source'] ?? 'News',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      item['title'] ?? '',
-                      maxLines: 2,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        height: 1.2,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _GroupsAutoCarousel extends StatefulWidget {
   final List<GroupStanding> groups;

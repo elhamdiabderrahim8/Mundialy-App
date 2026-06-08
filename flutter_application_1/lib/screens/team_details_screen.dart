@@ -4,7 +4,7 @@ import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/team_player.dart';
 import '../models/team_profile.dart';
-import '../services/world_cup_repository.dart';
+
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 
