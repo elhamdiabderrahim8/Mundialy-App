@@ -1452,16 +1452,20 @@ class _TeamMiniCard extends StatelessWidget {
             imageUrlOverride: finalLogoUrl,
           ),
           const SizedBox(height: 16),
-          Text(
-            name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ),
         ],

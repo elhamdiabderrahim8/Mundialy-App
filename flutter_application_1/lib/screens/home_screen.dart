@@ -1396,15 +1396,18 @@ class _MatchCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Flexible(
-                          child: Text(
-                            match.homeTeam,
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              match.homeTeam,
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1456,14 +1459,17 @@ class _MatchCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Flexible(
-                          child: Text(
-                            match.awayTeam,
-                            style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              match.awayTeam,
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
