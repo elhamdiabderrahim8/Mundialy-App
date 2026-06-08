@@ -380,6 +380,7 @@ class SofaDirectService {
   // ============================================================
 
   /// Récupère les détails complets d'un match directement depuis SofaScore
+  /// Formate la réponse pour correspondre EXACTEMENT au format BFFv2 attendu par MatchDetails.fromApi
   static Future<Map<String, dynamic>?> fetchMatchDetails(int matchId) async {
     final results = await Future.wait([
       _fetchJson('/event/$matchId'),
@@ -391,172 +392,209 @@ class SofaDirectService {
     final eventData = results[0];
     if (eventData == null) return null;
 
-    final event = eventData['event'] ?? eventData;
-    final lineups = results[1];
-    final incidents = results[2];
-    final statistics = results[3];
+    final eventRaw = eventData['event'] ?? eventData;
+    final lineupsData = results[1] ?? {};
+    final incidentsData = results[2] ?? {};
+    final statisticsData = results[3] ?? {};
 
-    final ht = event['homeTeam'] ?? {};
-    final at = event['awayTeam'] ?? {};
-    final hs = event['homeScore'] ?? {};
-    final as_ = event['awayScore'] ?? {};
-    final status = event['status'] ?? {};
-    final statusType = status['type'] ?? '';
+    final homeTeamRaw = eventRaw['homeTeam'] ?? {};
+    final awayTeamRaw = eventRaw['awayTeam'] ?? {};
+    final hs = eventRaw['homeScore'] ?? {};
+    final as_ = eventRaw['awayScore'] ?? {};
+    
+    final scoreH = hs['display'] ?? hs['current'] ?? 0;
+    final scoreA = as_['display'] ?? as_['current'] ?? 0;
 
-    String shortStatus;
-    if (statusType == 'inprogress') {
-      shortStatus = 'LIVE';
-    } else if (statusType == 'finished') {
-      shortStatus = 'FT';
-    } else {
-      shortStatus = 'NS';
+    // 3. Extraction Kit Colors (depuis incidents)
+    String homeKitColor = '660000';
+    String awayKitColor = '003399';
+    if (incidentsData['home']?['playerColor']?['primary'] != null) {
+      homeKitColor = incidentsData['home']['playerColor']['primary'];
+    }
+    if (incidentsData['away']?['playerColor']?['primary'] != null) {
+      awayKitColor = incidentsData['away']['playerColor']['primary'];
     }
 
-    // Parser les incidents (buts, cartons, remplacements)
-    final incidentsList = <Map<String, dynamic>>[];
-    if (incidents != null && incidents['incidents'] != null) {
-      for (final inc in incidents['incidents'] as List) {
-        incidentsList.add({
-          'type': inc['incidentType'],
-          'time': inc['time'],
-          'addedTime': inc['addedTime'],
-          'isHome': inc['isHome'],
+    // 4. Normalisation des lineups
+    Map<String, dynamic> mapLineup(String side, Map<String, dynamic> teamData) {
+      final data = lineupsData[side] ?? {};
+      final players = data['players'] as List? ?? [];
+      final starters = <Map<String, dynamic>>[];
+      final subs = <Map<String, dynamic>>[];
+
+      for (final p in players) {
+        final pl = p['player'] ?? {};
+        final entry = {
           'player': {
-            'id': inc['player']?['id'],
-            'name': inc['player']?['name'],
-          },
-          'assist1': inc['assist1']?['name'],
-          'incidentClass': inc['incidentClass'],
-          'description': inc['description'],
-          'playerIn': inc['playerIn'] != null
-              ? {'id': inc['playerIn']['id'], 'name': inc['playerIn']['name']}
-              : null,
-          'playerOut': inc['playerOut'] != null
-              ? {
-                  'id': inc['playerOut']['id'],
-                  'name': inc['playerOut']['name']
-                }
-              : null,
-        });
-      }
-    }
-
-    // Parser les stats
-    final statsList = <Map<String, dynamic>>[];
-    if (statistics != null && statistics['statistics'] != null) {
-      for (final period in statistics['statistics'] as List) {
-        for (final group in (period['groups'] ?? []) as List) {
-          for (final item in (group['statisticsItems'] ?? []) as List) {
-            statsList.add({
-              'name': item['name'],
-              'home': item['home'],
-              'away': item['away'],
-              'period': period['period'],
-            });
+            'id': pl['id'] ?? 0,
+            'name': pl['shortName'] ?? pl['name'] ?? 'Joueur',
+            'number': p['shirtNumber'] ?? p['jerseyNumber'] ?? 0,
+            'pos': p['position'] ?? '',
           }
+        };
+        if (p['substitute'] == true) {
+          subs.add(entry);
+        } else {
+          starters.add(entry);
         }
       }
-    }
 
-    // Parser les compositions
-    Map<String, dynamic>? formattedLineups;
-    if (lineups != null) {
-      formattedLineups = {
-        'home': _parseLineup(lineups['home'] ?? {}, ht),
-        'away': _parseLineup(lineups['away'] ?? {}, at),
+      final mgr = teamData['manager'] ?? {};
+      return {
+        'team': {
+          'id': teamData['id'],
+          'name': teamData['name'] ?? '',
+          'nameCode': teamData['nameCode'] ?? '',
+        },
+        'formation': data['formation'] ?? 'N/A',
+        'coach': {'name': mgr['name'] ?? ''},
+        'startXI': starters,
+        'substitutes': subs,
       };
     }
 
+    final cleanLineups = {
+      'home': mapLineup('home', homeTeamRaw),
+      'away': mapLineup('away', awayTeamRaw),
+    };
+
+    // 5. Normalisation des incidents
+    final cleanIncidents = <Map<String, dynamic>>[];
+    final rawIncidents = incidentsData['incidents'] as List? ?? [];
+    
+    for (final inc in rawIncidents) {
+      final iType = inc['incidentType'];
+      if (!['goal', 'substitution', 'card', 'varDecision', 'injuryTime', 'penaltyShootout'].contains(iType)) {
+        continue;
+      }
+
+      final timeVal = inc['time'] ?? 0;
+      final added = inc['addedTime'];
+      String displayTime = iType == 'penaltyShootout' ? 'TAB' : "$timeVal'";
+      if (added != null && iType != 'penaltyShootout') {
+        displayTime = "$timeVal+$added'";
+      }
+
+      final item = {
+        'time': timeVal,
+        'addedTime': added,
+        'displayTime': displayTime,
+        'incidentType': iType,
+        'incidentClass': inc['incidentClass'] ?? '',
+        'homeScore': inc['homeScore'],
+        'awayScore': inc['awayScore'],
+        'isHome': inc['isHome'],
+        'length': inc['length'],
+        'sequence': inc['sequence'],
+      };
+
+      if (iType == 'substitution') {
+        final pIn = inc['playerIn'] ?? {};
+        final pOut = inc['playerOut'] ?? {};
+        item['playerIn'] = {
+          'id': pIn['id'] ?? 0,
+          'name': pIn['shortName'] ?? pIn['name'] ?? 'Entrant',
+        };
+        item['playerOut'] = {
+          'id': pOut['id'] ?? 0,
+          'name': pOut['shortName'] ?? pOut['name'] ?? 'Sortant',
+        };
+      } else if (iType == 'card' || iType == 'varDecision') {
+        final pl = inc['player'] ?? {};
+        item['player'] = {
+          'id': pl['id'] ?? 0,
+          'name': pl['shortName'] ?? pl['name'] ?? inc['playerName'] ?? 'Joueur',
+        };
+        if (iType == 'card') item['reason'] = inc['reason'] ?? '';
+      } else if (iType == 'goal' || iType == 'penaltyShootout') {
+        final pl = inc['player'] ?? {};
+        item['player'] = {
+          'id': pl['id'] ?? 0,
+          'name': pl['shortName'] ?? pl['name'] ?? 'Joueur',
+        };
+        item['from'] = inc['from'] ?? '';
+        final assistPl = inc['assist1'] ?? {};
+        if (assistPl.isNotEmpty) {
+          item['assist'] = {
+            'id': assistPl['id'] ?? 0,
+            'name': assistPl['shortName'] ?? assistPl['name'] ?? '',
+          };
+        }
+      }
+
+      cleanIncidents.add(item);
+    }
+    
+    // Trier par temps
+    cleanIncidents.sort((a, b) {
+      final t1 = a['time'] as int? ?? 0;
+      final t2 = b['time'] as int? ?? 0;
+      if (t1 != t2) return t1.compareTo(t2);
+      final a1 = a['addedTime'] as int? ?? 0;
+      final a2 = b['addedTime'] as int? ?? 0;
+      if (a1 != a2) return a1.compareTo(a2);
+      final s1 = a['sequence'] as int? ?? 0;
+      final s2 = b['sequence'] as int? ?? 0;
+      return s1.compareTo(s2);
+    });
+
+    // 6. Venue
+    final venueRaw = eventRaw['venue'] ?? {};
+    final venueName = venueRaw['name'] ?? venueRaw['stadium']?['name'] ?? 'Stadium';
+    final venueCity = venueRaw['city']?['name'] ?? '';
+    final venueCapacity = venueRaw['capacity'] ?? venueRaw['stadium']?['capacity'] ?? '';
+
+    // 7. Referee
+    final refRaw = eventRaw['referee'] ?? {};
+    final refName = refRaw['name'] ?? '';
+    final refCountry = refRaw['country']?['name'] ?? '';
+
+    // 8. Réponse BFF v2 finale
+    const imgBase = 'https://api.sofascore.app/api/v1/team';
+    
     return {
       'response': {
-        'fixture': {
-          'id': event['id'],
-          'date': event['startTimestamp'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(
-                      (event['startTimestamp'] as int) * 1000)
-                  .toIso8601String()
-              : '',
-          'status': {
-            'short': shortStatus,
-            'long': status['description'] ?? '',
-            'elapsed': status['currentMinute'],
+        'event': {
+          'id': matchId,
+          'homeTeam': {
+            'id': homeTeamRaw['id'],
+            'name': homeTeamRaw['name'] ?? 'Home',
+            'nameCode': homeTeamRaw['nameCode'] ?? '',
+            'logo': '$imgBase/${homeTeamRaw['id']}/image',
           },
-          'venue': event['venue'] != null
-              ? {
-                  'name': event['venue']['stadium']?['name'] ??
-                      event['venue']['city']?['name'] ??
-                      '',
-                  'city': event['venue']['city']?['name'] ?? '',
-                }
-              : null,
+          'awayTeam': {
+            'id': awayTeamRaw['id'],
+            'name': awayTeamRaw['name'] ?? 'Away',
+            'nameCode': awayTeamRaw['nameCode'] ?? '',
+            'logo': '$imgBase/${awayTeamRaw['id']}/image',
+          },
+          'homeScore': {'current': scoreH, 'penalties': hs['penalties']},
+          'awayScore': {'current': scoreA, 'penalties': as_['penalties']},
+          'winnerCode': eventRaw['winnerCode'],
+          'status': eventRaw['status'] ?? {'description': 'Terminé', 'type': 'finished'},
+          'startTimestamp': eventRaw['startTimestamp'] ?? 0,
         },
-        'teams': {
-          'home': {
-            'id': ht['id'],
-            'name': ht['name'],
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${ht['id']}/image',
-          },
-          'away': {
-            'id': at['id'],
-            'name': at['name'],
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${at['id']}/image',
-          },
+        'venue': {
+          'name': venueName,
+          'city': venueCity,
+          'capacity': venueCapacity.toString(),
         },
-        'goals': {
-          'home': hs['current'] ?? hs['display'],
-          'away': as_['current'] ?? as_['display'],
+        'referee': {
+          'name': refName,
+          'country': refCountry,
         },
-        'score': {
-          'halftime': {
-            'home': hs['period1'],
-            'away': as_['period1'],
-          },
-          'fulltime': {
-            'home': hs['current'] ?? hs['normaltime'],
-            'away': as_['current'] ?? as_['normaltime'],
-          },
-          'penalty': {
-            'home': hs['penalties'],
-            'away': as_['penalties'],
-          },
+        'managers': {
+          'home': {'name': homeTeamRaw['manager']?['name'] ?? ''},
+          'away': {'name': awayTeamRaw['manager']?['name'] ?? ''},
         },
-        'events': incidentsList,
-        'statistics': statsList,
-        'lineups': formattedLineups,
-      },
-    };
-  }
-
-  static Map<String, dynamic> _parseLineup(
-      Map<String, dynamic> lineupData, Map<String, dynamic> team) {
-    final players = <Map<String, dynamic>>[];
-    for (final p in (lineupData['players'] ?? []) as List) {
-      final player = p['player'] ?? {};
-      final stats = p['statistics'] ?? {};
-      players.add({
-        'player': {
-          'id': player['id'],
-          'name': player['name'],
-          'number': player['shirtNumber'] ?? p['shirtNumber'],
-          'pos': player['position'] ?? p['position'],
-          'grid': p['position'],
+        'lineups': cleanLineups,
+        'statistics': statisticsData['statistics'] ?? [],
+        'incidents': cleanIncidents,
+        'kitColors': {
+          'home': homeKitColor,
+          'away': awayKitColor,
         },
-        'statistics': stats,
-        'substitute': p['substitute'] ?? false,
-      });
-    }
-    return {
-      'team': {
-        'id': team['id'],
-        'name': team['name'],
-        'logo':
-            'https://api.sofascore.app/api/v1/team/${team['id']}/image',
-      },
-      'formation': lineupData['formation'],
-      'startXI': players.where((p) => p['substitute'] != true).toList(),
-      'substitutes': players.where((p) => p['substitute'] == true).toList(),
+      }
     };
   }
 
