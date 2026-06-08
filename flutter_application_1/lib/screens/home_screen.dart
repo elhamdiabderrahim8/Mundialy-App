@@ -81,7 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _newsArticles = (articles as List?)?.cast<dynamic>() ?? [];
-          _isNewsLoading = false;
         });
       }
     } catch (e) {
