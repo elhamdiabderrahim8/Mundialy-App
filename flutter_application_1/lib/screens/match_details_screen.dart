@@ -256,7 +256,11 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   widget.match.isLive
                       ? 'EN DIRECT • ${widget.match.statusDisplay}'
                       : widget.match.statusDisplay,
-                  style: const TextStyle(color: kGold, fontSize: 12),
+                  style: TextStyle(
+                    color: widget.match.isLive ? Colors.redAccent : kGold,
+                    fontSize: 12,
+                    fontWeight: widget.match.isLive ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
               ],
             ),
@@ -329,9 +333,11 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        '${overview.scoreHome} - ${overview.scoreAway}',
+                        (widget.match.statusShort == 'NS' || widget.match.statusShort == 'TBD')
+                            ? '-  :  -'
+                            : '${overview.scoreHome} - ${overview.scoreAway}',
                         style: TextStyle(
-                          color: textColor,
+                          color: widget.match.isLive ? Colors.redAccent : textColor,
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1,
@@ -1649,17 +1655,16 @@ class _EventTile extends StatelessWidget {
                             ),
                           );
                         },
-                  child: Text(
-                    event.description,
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      decoration: event.playerId != null
-                          ? TextDecoration.underline
-                          : null,
-                    ),
-                  ),
+                  child: (event.playerIn != null || event.playerOut != null)
+                      ? const SizedBox.shrink()
+                      : Text(
+                          event.description,
+                          style: TextStyle(
+                            color: event.playerId != null ? kGold : textColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
                 ),
                 if (event.assistant != null && event.assistant!.isNotEmpty)
                   Padding(
@@ -1689,11 +1694,8 @@ class _EventTile extends StatelessWidget {
                       child: Text(
                         'Passe décisive: ${event.assistant!}',
                         style: TextStyle(
-                          color: textColor.withValues(alpha: 0.54),
+                          color: event.assistantId != null ? kGold : textColor.withValues(alpha: 0.54),
                           fontSize: 12,
-                          decoration: event.assistantId != null
-                              ? TextDecoration.underline
-                              : null,
                         ),
                       ),
                     ),

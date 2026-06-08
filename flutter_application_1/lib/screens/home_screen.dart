@@ -825,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'FIFA WORLD CUP',
                         style: TextStyle(
-                          color: isDark ? _kGold : Colors.white,
+                          color: isDark ? _kGold : const Color(0xFF16324A),
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 3,
@@ -833,9 +833,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? null
                               : [
                                   const Shadow(
-                                    color: Colors.black54,
+                                    color: Colors.white,
                                     blurRadius: 4,
-                                    offset: Offset(0, 2),
+                                    offset: Offset(0, 1),
                                   ),
                                 ],
                         ),
@@ -1017,176 +1017,120 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _YearDropdownSelector extends StatefulWidget {
+class _YearDropdownSelector extends StatelessWidget {
   final int selectedYear;
   final void Function(int) onYearChanged;
   const _YearDropdownSelector({
     required this.selectedYear,
     required this.onYearChanged,
   });
-  @override
-  State<_YearDropdownSelector> createState() => _YearDropdownSelectorState();
-}
 
-class _YearDropdownSelectorState extends State<_YearDropdownSelector> {
-  bool _open = false;
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color panelColor = isDark ? const Color(0xFF1E2630) : Colors.white;
     final Color accentColor = _kGold;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: () => setState(() => _open = !_open),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 260),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: panelColor.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: accentColor.withValues(alpha: 0.8),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: accentColor.withValues(alpha: 0.2),
-                  blurRadius: 15,
-                  spreadRadius: 1,
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        popupMenuTheme: PopupMenuThemeData(
+          color: panelColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
+          ),
+          elevation: 8,
+        ),
+      ),
+      child: PopupMenuButton<int>(
+        initialValue: selectedYear,
+        onSelected: onYearChanged,
+        offset: const Offset(0, 50),
+        itemBuilder: (context) {
+          return [-1, 2022, 2026].map((y) {
+            final isSel = selectedYear == y;
+            final label = y == -1 ? 'LIVE EN DIRECT' : 'Coupe du Monde $y';
+            return PopupMenuItem<int>(
+              value: y,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isSel ? accentColor.withValues(alpha: 0.15) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  widget.selectedYear == -1
-                      ? Icons.bolt_rounded
-                      : Icons.emoji_events_rounded,
-                  color: widget.selectedYear == -1
-                      ? Colors.redAccent
-                      : accentColor,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    widget.selectedYear == -1
-                        ? 'LIVE ACTION'
-                        : 'ÉDITION ${widget.selectedYear}',
-                    style: TextStyle(
-                      color: widget.selectedYear == -1
-                          ? Colors.redAccent
-                          : (isDark ? Colors.white : Colors.black87),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                      letterSpacing: 1.2,
+                child: Row(
+                  children: [
+                    Icon(
+                      y == -1 ? Icons.bolt_rounded : Icons.check_circle_outline,
+                      color: isSel ? accentColor : (isDark ? Colors.white54 : Colors.black54),
+                      size: 20,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 12),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isSel ? accentColor : (isDark ? Colors.white : Colors.black87),
+                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                AnimatedRotation(
-                  turns: _open ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: accentColor,
-                    size: 20,
-                  ),
-                ),
-              ],
+              ),
+            );
+          }).toList();
+        },
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 260),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: panelColor.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.8),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withValues(alpha: 0.2),
+                blurRadius: 15,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selectedYear == -1 ? Icons.bolt_rounded : Icons.emoji_events_rounded,
+                color: selectedYear == -1 ? Colors.redAccent : accentColor,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  selectedYear == -1 ? 'LIVE ACTION' : 'ÉDITION $selectedYear',
+                  style: TextStyle(
+                    color: selectedYear == -1
+                        ? Colors.redAccent
+                        : (isDark ? Colors.white : Colors.black87),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: accentColor,
+                size: 20,
+              ),
+            ],
           ),
         ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.elasticOut,
-          child: _open
-              ? Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  width: 220,
-                  decoration: BoxDecoration(
-                    color: panelColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: accentColor.withValues(alpha: 0.4),
-                    ),
-                    boxShadow: [
-                      const BoxShadow(
-                        color: Colors.black45,
-                        blurRadius: 20,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [-1, 2022, 2026].map((y) {
-                      final isSel = widget.selectedYear == y;
-                      final label = y == -1
-                          ? 'LIVE EN DIRECT'
-                          : 'Coupe du Monde $y';
-                      return InkWell(
-                        onTap: () {
-                          setState(() => _open = false);
-                          widget.onYearChanged(y);
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 20,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSel
-                                ? accentColor.withValues(alpha: 0.15)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                y == -1
-                                    ? Icons.bolt_rounded
-                                    : (isSel
-                                          ? Icons.check_circle_rounded
-                                          : Icons.circle_outlined),
-                                color: y == -1
-                                    ? Colors.redAccent
-                                    : (isSel ? accentColor : Colors.grey),
-                                size: 16,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  label,
-                                  style: TextStyle(
-                                    color: y == -1
-                                        ? Colors.redAccent
-                                        : (isSel
-                                              ? accentColor
-                                              : (isDark
-                                                    ? Colors.white70
-                                                    : Colors.black87)),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+      ),
     );
   }
 }

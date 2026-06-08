@@ -408,61 +408,43 @@ class ApiService {
     int? year,
   }) async {
     try {
-      if (year == 2022) {
-        // 2022 : backend
-        final seasonQuery = '?season=$year';
-        final results = await Future.wait([
-          _backendGet('/api/team/$teamId/coach$seasonQuery'),
-          _backendGet('/api/team/$teamId/squad$seasonQuery'),
-        ]);
-        if (results[0] == null || results[1] == null) return null;
-        final coachData =
-            jsonDecode(results[0]!.body)['response'] as List? ?? [];
-        final playersData =
-            jsonDecode(results[1]!.body)['response'] as List? ?? [];
-        TeamCoach? coach;
-        if (coachData.isNotEmpty) coach = TeamCoach.fromApi(coachData[0]);
-        final List<TeamPlayer> squad = playersData
-            .map((p) => TeamPlayer.fromApi(p, teamName ?? ''))
-            .toList();
-        squad.sort(
-          (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
-        );
-        return TeamProfile(
-          id: teamId,
-          name: teamName ?? 'Équipe',
-          shortName: teamName ?? 'Équipe',
-          code: resolveCountryCode(teamName ?? ''),
-          logoUrl: "https://api.sofascore.com/api/v1/team/$teamId/image",
-          venue: "",
-          foundedLabel: "",
-          coach: coach,
-          players: squad,
-        );
-      } else {
-        // 2026 : appel DIRECT à SofaScore
-        final coachData = await SofaDirectService.fetchTeamCoach(teamId);
-        final playersData = await SofaDirectService.fetchTeamSquad(teamId);
-        TeamCoach? coach;
-        if (coachData != null) coach = TeamCoach.fromApi(coachData);
-        final List<TeamPlayer> squad = playersData
-            .map((p) => TeamPlayer.fromApi(p, teamName ?? ''))
-            .toList();
-        squad.sort(
-          (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
-        );
-        return TeamProfile(
-          id: teamId,
-          name: teamName ?? 'Équipe',
-          shortName: teamName ?? 'Équipe',
-          code: resolveCountryCode(teamName ?? ''),
-          logoUrl: "https://api.sofascore.com/api/v1/team/$teamId/image",
-          venue: "",
-          foundedLabel: "",
-          coach: coach,
-          players: squad,
-        );
+      final results = await Future.wait([
+        SofaDirectService.fetchTeamCoach(teamId),
+        SofaDirectService.fetchTeamSquad(teamId),
+      ]);
+
+      final coachData = results[0] as Map<String, dynamic>?;
+      final playersData = results[1] as List<Map<String, dynamic>>? ?? [];
+
+      TeamCoach? coach;
+      if (coachData != null) {
+        coach = TeamCoach.fromApi({
+          'id': coachData['id'],
+          'name': coachData['name'],
+          'photo': coachData['photo'],
+          'nationality': coachData['nationality'],
+        });
       }
+
+      final List<TeamPlayer> squad = playersData.map((p) {
+        return TeamPlayer.fromApi(p, teamName ?? '');
+      }).toList();
+
+      squad.sort(
+        (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
+      );
+
+      return TeamProfile(
+        id: teamId,
+        name: teamName ?? 'Équipe',
+        shortName: teamName ?? 'Équipe',
+        code: resolveCountryCode(teamName ?? ''),
+        logoUrl: "https://api.sofascore.app/api/v1/team/$teamId/image",
+        venue: "",
+        foundedLabel: "",
+        coach: coach,
+        players: squad,
+      );
     } catch (e) {
       debugPrint('❌ fetchTeamProfile Error: $e');
     }

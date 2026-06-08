@@ -50,12 +50,15 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
         teamName: widget.teamName,
         year: widget.year,
       ),
-      ApiService.fetchMatches(year: widget.year),
+      ApiService.fetchMatches(year: 2022),
+      ApiService.fetchMatches(year: 2026),
       ApiService.fetchStandings(year: widget.year),
     ]);
 
-    final List<LiveMatch> allMatches = results[1] as List<LiveMatch>;
-    final List<LiveMatch> teamMatches = allMatches
+    final List<LiveMatch> matches2022 = results[1] as List<LiveMatch>;
+    final List<LiveMatch> matches2026 = results[2] as List<LiveMatch>;
+    
+    final List<LiveMatch> teamMatches = [...matches2022, ...matches2026]
         .where(
           (m) => m.homeTeamId == widget.teamId || m.awayTeamId == widget.teamId,
         )
@@ -63,7 +66,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
     if (!mounted) return;
 
-    final standings = results[2] as List<GroupStanding>;
+    final standings = results[3] as List<GroupStanding>;
     GroupStanding? teamStanding;
     StandingTeam? standingRow;
 
@@ -411,20 +414,68 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     if (_matches.isEmpty) {
       return _buildEmptyCard(
         isDark: isDark,
-        message: 'Aucun match trouve pour cette equipe.',
+        message: 'Aucun match trouvé pour cette équipe.',
       );
     }
 
+    final matches2022 = _matches.where((m) => m.dateTime?.year == 2022).toList();
+    final matches2026 = _matches.where((m) => m.dateTime?.year != 2022).toList();
+
     return Column(
-      children: _matches
-          .map(
+      children: [
+        if (matches2026.isNotEmpty) ...[
+          _buildTournamentHeader('Coupe du Monde 2026', isDark),
+          const SizedBox(height: 12),
+          ...matches2026.map(
             (match) => _TeamMatchCard(
               match: match,
               teamId: widget.teamId,
               isDark: isDark,
             ),
-          )
-          .toList(),
+          ),
+        ],
+        if (matches2026.isNotEmpty && matches2022.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Divider(color: _gold.withValues(alpha: 0.3), thickness: 1),
+          const SizedBox(height: 20),
+        ],
+        if (matches2022.isNotEmpty) ...[
+          _buildTournamentHeader('Coupe du Monde 2022', isDark),
+          const SizedBox(height: 12),
+          ...matches2022.map(
+            (match) => _TeamMatchCard(
+              match: match,
+              teamId: widget.teamId,
+              isDark: isDark,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTournamentHeader(String title, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE8DECA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.emoji_events_rounded, color: _gold, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF16324A),
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
