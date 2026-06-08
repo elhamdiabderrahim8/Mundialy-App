@@ -246,7 +246,7 @@ def initialize_wc2022_data():
                         "goals": {"home": h_s.get('display', 0), "away": a_s.get('display', 0)},
                         "score": {
                             "fulltime": {"home": h_s.get('display', 0), "away": a_s.get('display', 0)},
-                            "penalty": {"home": h_s.get('penalties'), "away": h_s.get('penalties')}
+                            "penalty": {"home": h_s.get('penalties'), "away": a_s.get('penalties')}
                         }
                     }
 

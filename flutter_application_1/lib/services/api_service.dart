@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -291,13 +292,11 @@ class ApiService {
 
     try {
       if (year == 2022) {
-        // 2022 : on garde le backend (cache statique, jamais bloqué)
-        final response = await _backendGet('/api/wc2022/fixtures');
-        if (response != null) {
-          final data = _parseMatchesResponse(response.body);
-          _setCache(cacheKey, data);
-          return data;
-        }
+        // 2022 : chargement INSTANTANÉ depuis les assets embarqués (0 latence)
+        final raw = await rootBundle.loadString('assets/data/matches_2022.json');
+        final data = _parseMatchesResponse(raw);
+        _setCache(cacheKey, data);
+        return data;
       } else {
         // 2026 : appel DIRECT à SofaScore depuis le téléphone
         final rawData = await SofaDirectService.fetchFixtures2026();
@@ -323,13 +322,11 @@ class ApiService {
 
     try {
       if (year == 2022) {
-        // 2022 : backend (cache statique)
-        final response = await _backendGet('/api/wc2022/standings');
-        if (response != null) {
-          final data = _parseStandingsResponse(response.body);
-          _setCache(cacheKey, data);
-          return data;
-        }
+        // 2022 : chargement INSTANTANÉ depuis les assets embarqués
+        final raw = await rootBundle.loadString('assets/data/standings_2022.json');
+        final data = _parseStandingsResponse(raw);
+        _setCache(cacheKey, data);
+        return data;
       } else {
         // 2026 : appel DIRECT à SofaScore
         final rawData = await SofaDirectService.fetchStandings2026();
@@ -498,10 +495,9 @@ class ApiService {
     try {
       List data;
       if (season == 2022) {
-        // 2022 : backend (cache statique)
-        final response = await _backendGet('/api/topscorers?season=$season');
-        if (response == null) return [];
-        final body = jsonDecode(response.body);
+        // 2022 : chargement INSTANTANÉ depuis les assets embarqués
+        final raw = await rootBundle.loadString('assets/data/topscorers_2022.json');
+        final body = jsonDecode(raw);
         data = body['response'] as List? ?? [];
       } else {
         // 2026 : appel DIRECT à SofaScore

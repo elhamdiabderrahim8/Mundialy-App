@@ -164,21 +164,17 @@ class SofaDirectService {
   static Future<List<Map<String, dynamic>>> fetchFixtures2026() async {
     final allEvents = <int, Map<String, dynamic>>{};
 
-    // Récupérer les matchs par rounds (1 à 10 pour couvrir groupes + éliminations)
+    // Récupérer les matchs par rounds (1 à 10) et les listes next/last en parallèle
+    final futures = <Future<Map<String, dynamic>?>>[];
     for (int round = 1; round <= 10; round++) {
-      final data = await _fetchJson(
-          '/unique-tournament/$_utId/season/$_seasonId2026/events/round/$round');
-      if (data != null && data['events'] != null) {
-        for (final ev in data['events'] as List) {
-          allEvents[ev['id'] as int] = ev as Map<String, dynamic>;
-        }
-      }
+      futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/round/$round'));
     }
+    futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/last/0'));
+    futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/next/0'));
 
-    // Aussi tenter les endpoints last/next
-    for (final endpoint in ['events/last/0', 'events/next/0']) {
-      final data = await _fetchJson(
-          '/unique-tournament/$_utId/season/$_seasonId2026/$endpoint');
+    final results = await Future.wait(futures);
+
+    for (final data in results) {
       if (data != null && data['events'] != null) {
         for (final ev in data['events'] as List) {
           allEvents[ev['id'] as int] = ev as Map<String, dynamic>;
