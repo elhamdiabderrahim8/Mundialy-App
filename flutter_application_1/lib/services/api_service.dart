@@ -401,6 +401,7 @@ class ApiService {
     int? year,
   }) async {
     try {
+      debugPrint('🔍 fetchTeamProfile: teamId=$teamId, teamName=$teamName');
       final results = await Future.wait([
         SofaDirectService.fetchTeamCoach(teamId),
         SofaDirectService.fetchTeamSquad(teamId),
@@ -408,6 +409,7 @@ class ApiService {
 
       final coachData = results[0] as Map<String, dynamic>?;
       final playersData = results[1] as List<Map<String, dynamic>>? ?? [];
+      debugPrint('🔍 fetchTeamProfile: coach=${coachData != null}, players=${playersData.length}');
 
       TeamCoach? coach;
       if (coachData != null) {
@@ -422,6 +424,8 @@ class ApiService {
       final List<TeamPlayer> squad = playersData.map((p) {
         return TeamPlayer.fromApi(p, teamName ?? '');
       }).toList();
+
+      debugPrint('🔍 fetchTeamProfile: parsed ${squad.length} players, positions: ${squad.map((p) => p.position).toSet()}');
 
       squad.sort(
         (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
@@ -438,8 +442,9 @@ class ApiService {
         coach: coach,
         players: squad,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ fetchTeamProfile Error: $e');
+      debugPrint('❌ Stack: $stackTrace');
     }
     return null;
   }

@@ -88,17 +88,15 @@ class NationFlagBadge extends StatelessWidget {
       return 'https://flagcdn.com/w160/${normalizedCode.toLowerCase()}.png';
     }
 
-    // 2. Try to extract a country code from a SofaScore image URL
-    //    e.g. https://api.sofascore.app/api/v1/team/12345/image
-    //    We try to resolve the team name from the override if it looks like a country name
+    // 2. Try to get a flag by team name (useful when countryCode is actually the full country name)
+    final byName = _resolveByTeamName(countryCode);
+    if (byName != null) {
+      return 'https://flagcdn.com/w160/${byName.toLowerCase()}.png';
+    }
+
+    // 3. Only use override if it's provided and NOT a sofascore URL
     final override = imageUrlOverride;
     if (override != null && override.isNotEmpty) {
-      // Don't use SofaScore logo URLs — try to get a flag by team name
-      final byName = _resolveByTeamName(countryCode);
-      if (byName != null) {
-        return 'https://flagcdn.com/w160/${byName.toLowerCase()}.png';
-      }
-      // Only use override if it's NOT a sofascore URL
       if (!override.contains('sofascore') && override.startsWith('http')) {
         return override;
       }

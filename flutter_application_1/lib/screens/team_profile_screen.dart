@@ -492,13 +492,13 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
       'Defenseurs': [],
       'Milieux': [],
       'Attaquants': [],
+      'Autres': [],
     };
 
     for (final player in players) {
       final key = _positionGroup(player.position);
-      if (grouped.containsKey(key)) {
-        grouped[key]!.add(player);
-      }
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(player);
     }
 
     return Container(

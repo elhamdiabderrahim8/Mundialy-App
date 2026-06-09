@@ -34,26 +34,61 @@ class TeamPlayer {
     final player = json['player'] ?? json;
     final nationality = player['nationality'] ?? teamNationality;
 
-    // API-SPORTS renvoie souvent la position dans 'statistics[0].games.position'
-    String pos = "";
+    // --- Position ---
+    // SofaScore sends single letters (G, D, M, F)
+    // API-SPORTS sends full words via statistics[0].games.position
+    String pos = '';
     int? num;
     if (json['statistics'] != null && (json['statistics'] as List).isNotEmpty) {
       final stats = json['statistics'][0];
-      pos = stats['games']?['position'] ?? "";
+      pos = stats['games']?['position'] ?? '';
       num = stats['games']?['number'];
+    }
+    if (pos.isEmpty) {
+      pos = player['position'] ?? json['position'] ?? '';
+    }
+
+    // --- Shirt number ---
+    // SofaScore uses 'shirtNumber', API-SPORTS uses 'number'
+    num ??= player['shirtNumber'] ?? json['shirtNumber'] ?? json['number'];
+
+    // --- Age ---
+    // SofaScore provides dateOfBirthTimestamp (unix seconds)
+    String ageLabel = '';
+    if (player['age'] != null) {
+      ageLabel = player['age'].toString();
+    } else {
+      final dob = player['dateOfBirthTimestamp'] ?? json['dateOfBirthTimestamp'];
+      if (dob != null && dob is int) {
+        final birthDate = DateTime.fromMillisecondsSinceEpoch(dob * 1000);
+        final now = DateTime.now();
+        int age = now.year - birthDate.year;
+        if (now.month < birthDate.month ||
+            (now.month == birthDate.month && now.day < birthDate.day)) {
+          age--;
+        }
+        ageLabel = '$age ans';
+      }
+    }
+
+    // --- Height ---
+    final rawHeight = player['height'] ?? json['height'];
+    String? height;
+    if (rawHeight != null) {
+      height = rawHeight is int ? '$rawHeight cm' : rawHeight.toString();
     }
 
     return TeamPlayer(
       id: player['id'] ?? 0,
       name: player['name'] ?? '',
-      position: pos.isNotEmpty ? pos : (json['position'] ?? ''),
-      shirtNumber: num ?? json['number'],
+      position: pos,
+      shirtNumber: num,
       photoUrl: player['photo'],
       nationality: nationality,
       nationalityCode: resolveCountryCode(nationality),
-      ageLabel: player['age']?.toString() ?? '',
-      height: player['height'],
-      weight: player['weight'],
+      ageLabel: ageLabel,
+      height: height,
+      weight: player['weight']?.toString(),
       injured: player['injured'] ?? false,
     );
   }
