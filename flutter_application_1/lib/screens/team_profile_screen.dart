@@ -588,12 +588,10 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
   String _positionGroup(String position) {
     final value = position.toLowerCase();
-    if (value.contains('goal')) return 'Gardiens';
-    if (value.contains('def')) return 'Defenseurs';
-    if (value.contains('mid')) return 'Milieux';
-    if (value.contains('for') ||
-        value.contains('att') ||
-        value.contains('str')) {
+    if (value == 'g' || value.contains('goal')) return 'Gardiens';
+    if (value == 'd' || value.contains('def')) return 'Defenseurs';
+    if (value == 'm' || value.contains('mid')) return 'Milieux';
+    if (value == 'f' || value.contains('for') || value.contains('att') || value.contains('str')) {
       return 'Attaquants';
     }
     return 'Autres';

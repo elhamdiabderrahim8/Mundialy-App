@@ -321,7 +321,6 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 child: _TeamMiniCard(
                   name: overview.homeTeam,
                   code: overview.homeCode,
-                  logoUrl: overview.homeLogoUrl,
                   teamId: widget.match.homeTeamId,
                   year: widget.match.dateTime?.year ?? 2022,
                 ),
@@ -377,7 +376,6 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 child: _TeamMiniCard(
                   name: overview.awayTeam,
                   code: overview.awayCode,
-                  logoUrl: overview.awayLogoUrl,
                   teamId: widget.match.awayTeamId,
                   year: widget.match.dateTime?.year ?? 2022,
                 ),
@@ -1418,22 +1416,17 @@ class _TeamMiniCard extends StatelessWidget {
   const _TeamMiniCard({
     required this.name,
     required this.code,
-    this.logoUrl,
     this.teamId,
     this.year = 2022,
   });
 
   final String name;
   final String code;
-  final String? logoUrl;
   final int? teamId;
   final int year;
 
   @override
   Widget build(BuildContext context) {
-    // Use the country code (via NationFlagBadge) to display the real flag
-    // No more SofaScore logo URLs — flagcdn.com is used instead
-    final String? finalLogoUrl = logoUrl;
 
     return InkWell(
       onTap: teamId == null
@@ -1455,7 +1448,6 @@ class _TeamMiniCard extends StatelessWidget {
           _DiamondFlag(
             countryCode: code,
             size: 74,
-            imageUrlOverride: finalLogoUrl,
           ),
           const SizedBox(height: 16),
           Padding(
@@ -1484,19 +1476,16 @@ class _DiamondFlag extends StatelessWidget {
   const _DiamondFlag({
     required this.countryCode,
     required this.size,
-    this.imageUrlOverride,
   });
 
   final String countryCode;
   final double size;
-  final String? imageUrlOverride;
 
   @override
   Widget build(BuildContext context) {
     return NationFlagBadge(
       countryCode: countryCode,
       size: size,
-      imageUrlOverride: imageUrlOverride,
     );
   }
 }
