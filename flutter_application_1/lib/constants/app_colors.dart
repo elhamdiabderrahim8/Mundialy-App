@@ -10,6 +10,10 @@ class AppColors {
   static const Color error = Color(0xFFB3261E);
   static const Color accent = Color(0xFF2C4E6D);
   static const Color ink = Color(0xFF0E1A24);
+  static const Color textPrimary = Color(0xFF16324A);
+  static const Color textSecondary = Color(0xFF516574);
+  static const Color lightBorder = Color(0xFFD9E0E6);
+  static const Color lightGoldTint = Color(0xFFFFF7E1);
 
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);

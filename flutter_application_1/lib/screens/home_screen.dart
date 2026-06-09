@@ -967,8 +967,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBottomNav() {
     return BottomNavigationBar(
       backgroundColor: isDark ? const Color(0xFF1A242D) : Colors.white,
-      selectedItemColor: _kGold,
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: isDark ? _kGold : const Color(0xFF16324A),
+      unselectedItemColor: isDark ? Colors.white54 : const Color(0xFF516574),
       currentIndex: _selectedTab,
       onTap: _onTabTap,
       type: BottomNavigationBarType.fixed,
@@ -1822,7 +1822,7 @@ class _GroupTable extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Divider(color: Colors.white10, height: 20),
+                Divider(color: textColor.withValues(alpha: 0.10), height: 20),
                 ...group.teams.map((t) {
                   final isQualif = t.rank <= 2;
                   return InkWell(
@@ -2789,7 +2789,11 @@ class _GroupCard extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-          const Divider(color: Colors.white10, height: 20),
+          Divider(
+            color: (isDark ? Colors.white : Colors.black87)
+                .withValues(alpha: 0.10),
+            height: 20,
+          ),
           ...group.teams
               .take(4)
               .map(

@@ -16,6 +16,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 import '../utils/country_flags.dart';
 import '../utils/global_config.dart';
+import '../utils/team_identity.dart';
 import '../main.dart';
 import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
@@ -401,10 +402,17 @@ class ApiService {
     int? year,
   }) async {
     try {
-      debugPrint('🔍 fetchTeamProfile: teamId=$teamId, teamName=$teamName');
+      final resolvedTeamId = await resolveSofaTeamId(
+        teamId: teamId,
+        teamName: teamName,
+        year: year,
+      );
+      debugPrint(
+        '🔍 fetchTeamProfile: teamId=$teamId → sofa=$resolvedTeamId, teamName=$teamName',
+      );
       final results = await Future.wait([
-        SofaDirectService.fetchTeamCoach(teamId),
-        SofaDirectService.fetchTeamSquad(teamId),
+        SofaDirectService.fetchTeamCoach(resolvedTeamId),
+        SofaDirectService.fetchTeamSquad(resolvedTeamId),
       ]);
 
       final coachData = results[0] as Map<String, dynamic>?;
@@ -432,11 +440,11 @@ class ApiService {
       );
 
       return TeamProfile(
-        id: teamId,
+        id: resolvedTeamId,
         name: teamName ?? 'Équipe',
         shortName: teamName ?? 'Équipe',
         code: resolveCountryCode(teamName ?? ''),
-        logoUrl: "https://api.sofascore.app/api/v1/team/$teamId/image",
+        logoUrl: "https://api.sofascore.app/api/v1/team/$resolvedTeamId/image",
         venue: "",
         foundedLabel: "",
         coach: coach,
@@ -454,21 +462,56 @@ class ApiService {
     int? season,
   }) async {
     try {
-      // Appels parallèles à SofaScore pour récupérer toutes les données du joueur
+      // Appels parallèles à SofaScore pour récupérer toutes les données du joueur.
+      final seasonId = _sofaWorldCupSeasonId(season);
       final results = await Future.wait([
         SofaDirectService.fetchPlayerNationalStats(playerId),
         SofaDirectService.fetchPlayerCharacteristics(playerId),
         SofaDirectService.fetchPlayerAttributes(playerId),
+        if (seasonId != null)
+          SofaDirectService.fetchPlayerStats(playerId, seasonId),
       ]);
       return {
         'nationalStats': results[0],
         'characteristics': results[1],
         'attributes': results[2],
+        'tournamentStats': seasonId != null && results.length > 3 ? results[3] : null,
       };
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
     }
     return null;
+  }
+
+  static int? _sofaWorldCupSeasonId(int? season) {
+    switch (season) {
+      case 2022:
+        return 41087;
+      case 2026:
+        return 58210;
+      default:
+        return null;
+    }
+  }
+
+  static Future<int> resolveSofaTeamId({
+    required int teamId,
+    String? teamName,
+    int? year,
+  }) async {
+    final matches = <LiveMatch>[];
+    for (final candidateYear in <int?>[year, 2022, 2026]) {
+      if (candidateYear == null) continue;
+      try {
+        matches.addAll(await fetchMatches(year: candidateYear));
+      } catch (_) {}
+    }
+    return TeamIdentity.findSofaTeamId(
+          matches,
+          teamId: teamId,
+          teamName: teamName,
+        ) ??
+        teamId;
   }
 
   static Future<List<TopScorer>> fetchTopScorers({int? year}) async {

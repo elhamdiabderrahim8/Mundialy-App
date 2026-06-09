@@ -4,6 +4,7 @@ import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/team_player.dart';
 import '../models/team_profile.dart';
+import '../services/api_service.dart';
 
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
@@ -49,8 +50,11 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       setState(() => _isLoading = false);
       return;
     }
-    // Fixed: used to call WorldCupRepository.fetchTeamProfile
-    final profile = null;
+    final profile = await ApiService.fetchTeamProfile(
+      teamId: widget.teamId!,
+      teamName: widget.teamName,
+      year: widget.edition,
+    );
     if (!mounted) return;
     setState(() {
       _profile = profile;
