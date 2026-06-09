@@ -156,15 +156,49 @@ class MyApp extends StatelessWidget {
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface.withValues(alpha: 0.95),
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: const Color(0xFF5B6B79),
+        backgroundColor: AppColors.surface.withValues(alpha: 0.98),
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
       ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.lightGoldTint,
+        selectedColor: AppColors.secondary.withValues(alpha: 0.24),
+        labelStyle: const TextStyle(color: AppColors.textPrimary),
+        secondaryLabelStyle: const TextStyle(color: AppColors.textPrimary),
+        side: const BorderSide(color: AppColors.lightBorder),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        hintStyle: const TextStyle(color: AppColors.textSecondary),
+        labelStyle: const TextStyle(color: AppColors.textPrimary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.secondary, width: 1.6),
+        ),
+      ),
       textTheme: ThemeData.light().textTheme.apply(
-        bodyColor: AppColors.primary,
-        displayColor: AppColors.primary,
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      ).copyWith(
+        bodySmall: ThemeData.light().textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+        labelMedium: ThemeData.light().textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }

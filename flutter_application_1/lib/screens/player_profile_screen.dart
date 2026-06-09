@@ -75,6 +75,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final characteristics = (_statsData?['characteristics'] ?? {}) as Map<String, dynamic>;
     final attributes = (_statsData?['attributes'] ?? {}) as Map<String, dynamic>;
     final nationalStats = (_statsData?['nationalStats'] ?? {}) as Map<String, dynamic>;
+    final tournamentStats = (_statsData?['tournamentStats'] ?? {}) as Map<String, dynamic>;
 
     // Characteristics
     final charData = characteristics['playerCharacteristics'] ?? characteristics;
@@ -88,8 +89,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final List<dynamic> attrCategories = attributes['averageAttributeOverviews'] ?? [];
 
     // National team stats
-    final List<dynamic> natStatsList = (nationalStats['statistics'] as List?) ?? 
-        (nationalStats['response'] as List?) ?? [];
+    final List<dynamic> natStatsList = _mergeTournamentAndNationalStats(
+      tournamentStats,
+      nationalStats,
+    );
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -259,6 +262,27 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         ],
       ),
     );
+  }
+
+  List<dynamic> _mergeTournamentAndNationalStats(
+    Map<String, dynamic> tournamentStats,
+    Map<String, dynamic> nationalStats,
+  ) {
+    final list = <dynamic>[];
+    final stats = tournamentStats['statistics'] ?? tournamentStats;
+    if (stats is Map<String, dynamic> && stats.isNotEmpty) {
+      list.add({
+        'team': {'name': 'Coupe du Monde ${widget.season}'},
+        'season': {'name': 'FIFA World Cup ${widget.season}'},
+        'statistics': stats,
+      });
+    }
+    list.addAll(
+      (nationalStats['statistics'] as List?) ??
+          (nationalStats['response'] as List?) ??
+          const [],
+    );
+    return list;
   }
 
   // ─────────────────────────────────────────────

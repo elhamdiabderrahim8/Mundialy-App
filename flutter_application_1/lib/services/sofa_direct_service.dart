@@ -627,6 +627,7 @@ class SofaDirectService {
         'position': player['position'],
         'shirtNumber': player['shirtNumber'] ?? p['shirtNumber'],
         'height': player['height'],
+        'weight': player['weight'],
         'dateOfBirthTimestamp': player['dateOfBirthTimestamp'],
         'nationality': player['country']?['name'],
         'photo':

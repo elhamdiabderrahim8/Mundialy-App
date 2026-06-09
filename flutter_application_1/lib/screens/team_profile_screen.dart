@@ -6,6 +6,7 @@ import '../models/team_player.dart';
 import '../models/team_profile.dart';
 import '../services/api_service.dart';
 import '../utils/country_flags.dart';
+import '../utils/team_identity.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import 'player_profile_screen.dart';
@@ -30,6 +31,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   static const Color _gold = Color(0xFFE7C16A);
 
   TeamProfile? _profile;
+  int? _resolvedTeamId;
   List<LiveMatch> _matches = [];
   GroupStanding? _teamStanding;
   StandingTeam? _standingRow;
@@ -45,34 +47,58 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     setState(() => _isLoading = true);
 
     final results = await Future.wait([
-      ApiService.fetchTeamProfile(
-        teamId: widget.teamId,
-        teamName: widget.teamName,
-        year: widget.year,
-      ),
       ApiService.fetchMatches(year: 2022),
       ApiService.fetchMatches(year: 2026),
       ApiService.fetchStandings(year: widget.year),
     ]);
 
-    final List<LiveMatch> matches2022 = results[1] as List<LiveMatch>;
-    final List<LiveMatch> matches2026 = results[2] as List<LiveMatch>;
-    
-    final List<LiveMatch> teamMatches = [...matches2022, ...matches2026]
+    final List<LiveMatch> matches2022 = results[0] as List<LiveMatch>;
+    final List<LiveMatch> matches2026 = results[1] as List<LiveMatch>;
+    final allMatches = [...matches2022, ...matches2026];
+    final resolvedTeamId = TeamIdentity.findSofaTeamId(
+          allMatches,
+          teamId: widget.teamId,
+          teamName: widget.teamName,
+        ) ??
+        widget.teamId;
+
+    final profile = await ApiService.fetchTeamProfile(
+      teamId: resolvedTeamId,
+      teamName: widget.teamName,
+      year: widget.year,
+    );
+
+    final List<LiveMatch> teamMatches = allMatches
         .where(
-          (m) => m.homeTeamId == widget.teamId || m.awayTeamId == widget.teamId,
+          (m) => TeamIdentity.sameTeam(
+            idA: resolvedTeamId,
+            nameA: widget.teamName,
+            idB: m.homeTeamId,
+            nameB: m.homeTeam,
+          ) ||
+          TeamIdentity.sameTeam(
+            idA: resolvedTeamId,
+            nameA: widget.teamName,
+            idB: m.awayTeamId,
+            nameB: m.awayTeam,
+          ),
         )
         .toList();
 
     if (!mounted) return;
 
-    final standings = results[3] as List<GroupStanding>;
+    final standings = results[2] as List<GroupStanding>;
     GroupStanding? teamStanding;
     StandingTeam? standingRow;
 
     for (final group in standings) {
       for (final team in group.teams) {
-        if (team.teamId == widget.teamId) {
+        if (TeamIdentity.sameTeam(
+          idA: resolvedTeamId,
+          nameA: widget.teamName,
+          idB: team.teamId,
+          nameB: team.teamName,
+        )) {
           teamStanding = group;
           standingRow = team;
           break;
@@ -82,7 +108,8 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     }
 
     setState(() {
-      _profile = results[0] as TeamProfile?;
+      _profile = profile;
+      _resolvedTeamId = resolvedTeamId;
       _matches = teamMatches;
       _teamStanding = teamStanding;
       _standingRow = standingRow;
@@ -428,7 +455,8 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
           ...matches2026.map(
             (match) => _TeamMatchCard(
               match: match,
-              teamId: widget.teamId,
+              teamId: _resolvedTeamId ?? widget.teamId,
+              teamName: widget.teamName,
               isDark: isDark,
             ),
           ),
@@ -444,7 +472,8 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
           ...matches2022.map(
             (match) => _TeamMatchCard(
               match: match,
-              teamId: widget.teamId,
+              teamId: _resolvedTeamId ?? widget.teamId,
+              teamName: widget.teamName,
               isDark: isDark,
             ),
           ),
@@ -703,18 +732,25 @@ class _TeamMatchCard extends StatelessWidget {
   const _TeamMatchCard({
     required this.match,
     required this.teamId,
+    required this.teamName,
     required this.isDark,
   });
 
   final LiveMatch match;
   final int teamId;
+  final String teamName;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : const Color(0xFF16324A);
     final secondaryText = isDark ? Colors.white60 : const Color(0xFF6D7F8C);
-    final isHomeTeam = match.homeTeamId == teamId;
+    final isHomeTeam = TeamIdentity.sameTeam(
+      idA: teamId,
+      nameA: teamName,
+      idB: match.homeTeamId,
+      nameB: match.homeTeam,
+    );
     final teamName = isHomeTeam ? match.homeTeam : match.awayTeam;
     final teamCode = isHomeTeam ? match.homeCode : match.awayCode;
     final teamScore = isHomeTeam ? match.scoreHome : match.scoreAway;
