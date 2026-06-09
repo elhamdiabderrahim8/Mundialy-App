@@ -1,18 +1,20 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class NationFlagBadge extends StatelessWidget {
   const NationFlagBadge({
     super.key,
     required this.countryCode,
     required this.size,
+    this.imageUrlOverride,
   });
 
   final String countryCode;
   final double size;
+  final String? imageUrlOverride;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = resolveFlagUrl(countryCode);
+    final imageUrl = _resolveImageUrl();
     final outerSize = size;
     final innerSize = size * 0.66;
 
@@ -76,7 +78,16 @@ class NationFlagBadge extends StatelessWidget {
     );
   }
 
-  /// Drapeaux uniquement via flagcdn.com — jamais de logos SofaScore / fédérations.
+  String? _resolveImageUrl() {
+    final override = imageUrlOverride;
+    if (override != null && override.isNotEmpty && override.startsWith('http')) {
+      return override;
+    }
+
+    return resolveFlagUrl(countryCode);
+  }
+
+  /// Drapeaux uniquement via flagcdn.com â€” jamais de logos SofaScore / fÃ©dÃ©rations.
   static String? resolveFlagUrl(String countryCode) {
     final normalizedCode = _normalizeCountryCode(countryCode);
     if (normalizedCode != null) {
@@ -240,7 +251,7 @@ class NationFlagBadge extends StatelessWidget {
       'zambia': 'zm',
       'zimbabwe': 'zw',
       'ivory coast': 'ci',
-      'côte d\'ivoire': 'ci',
+      'cÃ´te d\'ivoire': 'ci',
       'cape verde': 'cv',
       'el salvador': 'sv',
       'equatorial guinea': 'gq',
@@ -420,3 +431,4 @@ class _DiamondClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
+
