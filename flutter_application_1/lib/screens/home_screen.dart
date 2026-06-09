@@ -11,10 +11,12 @@ import '../models/top_scorer.dart';
 import '../services/api_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/country_flags.dart';
+import '../utils/standing_status.dart';
 import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import '../utils/team_navigation.dart';
+import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/pin_match_button.dart';
 import 'news_detail_screen.dart';
@@ -96,30 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
     _liveTimer?.cancel();
     setState(() => _isLoading = true);
     try {
-      if (_selectedYear == -1) {
-        await _fetchLiveMode();
-        _liveTimer = java_timer.Timer.periodic(
-          const Duration(seconds: 5),
-          (_) => _fetchLiveMode(),
-        );
-      } else {
-        // Fetch unified data including news with optional team filter
-        final results = await Future.wait([
-          ApiService.fetchMatches(year: _selectedYear),
-          ApiService.fetchStandings(year: _selectedYear),
-          ApiService.fetchTopScorers(year: _selectedYear),
-          ApiService.fetchNews(team: _selectedNewsTeam),
-        ]);
-        _matches = (results[0] as List?)?.cast<LiveMatch>() ?? [];
-        _standings = (results[1] as List?)?.cast<GroupStanding>() ?? [];
-        _topScorers = (results[2] as List?)?.cast<TopScorer>() ?? [];
-        _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
-        if (_matches.isEmpty && _selectedYear == 2022)
-          _matches = getMockMatches();
-
-        // Auto-refresh silencieux des scores (30s) si matchs en cours aujourd'hui
-        _startSilentScoreRefresh();
+      final results = await Future.wait([
+        ApiService.fetchMatches(year: _selectedYear),
+        ApiService.fetchStandings(year: _selectedYear),
+        ApiService.fetchTopScorers(year: _selectedYear),
+        ApiService.fetchNews(team: _selectedNewsTeam),
+      ]);
+      _matches = (results[0] as List?)?.cast<LiveMatch>() ?? [];
+      _standings = (results[1] as List?)?.cast<GroupStanding>() ?? [];
+      _topScorers = (results[2] as List?)?.cast<TopScorer>() ?? [];
+      _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
+      if (_matches.isEmpty && _selectedYear == 2022) {
+        _matches = getMockMatches();
       }
+      _startSilentScoreRefresh();
     } catch (e) {
       debugPrint('💥 Error loading data: $e');
     } finally {
@@ -295,31 +287,6 @@ class _HomeScreenState extends State<HomeScreen> {
           const _TournamentHero2026(),
           const SizedBox(height: 20),
 
-          // ── LIVE / IN-PROGRESS MATCHES ──
-          if (_matches.any((m) => m.isLive)) ...[
-            _SectionHeader(
-              icon: Icons.bolt_rounded,
-              title: 'EN DIRECT',
-              subtitle: 'Matchs en cours maintenant',
-              textColor: textColor,
-            ),
-            const SizedBox(height: 12),
-            ..._matches
-                .where((m) => m.isLive)
-                .map(
-                  (m) => _AnimatedEntrance(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: _LiveMatchCard2026(match: m, textColor: textColor),
-                    ),
-                  ),
-                ),
-            const SizedBox(height: 24),
-          ],
-
           // ── NEWS SECTION ──
           _SectionHeader(
             icon: Icons.newspaper_rounded,
@@ -382,11 +349,15 @@ class _HomeScreenState extends State<HomeScreen> {
             _SectionHeader(
               icon: Icons.leaderboard_rounded,
               title: 'CLASSEMENTS',
-              subtitle: 'Phase de groupes – Données en direct',
+              subtitle: 'Phase de groupes – Classement officiel',
               textColor: textColor,
             ),
             const SizedBox(height: 12),
-            _GroupsAutoCarousel(groups: _standings, textColor: textColor),
+            _GroupsAutoCarousel(
+              groups: _standings,
+              textColor: textColor,
+              year: _selectedYear,
+            ),
             const SizedBox(height: 28),
           ],
 
@@ -578,11 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final key = keys[index];
         final matches = grouped[key] ?? [];
-        // Separate into live, upcoming, finished
-        final liveMatches = matches.where((m) => m.isLive).toList();
-        final upcomingMatches = matches
-            .where((m) => !m.isLive && !m.isFinished)
-            .toList();
+        final upcomingMatches = matches.where((m) => !m.isFinished).toList();
         final finishedMatches = matches.where((m) => m.isFinished).toList();
 
         final List<Widget> items = [];
@@ -641,21 +608,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
 
-        // Live matches section
-        if (liveMatches.isNotEmpty) {
-          items.add(
-            _StatusSectionHeader(
-              icon: Icons.bolt_rounded,
-              label: 'EN DIRECT',
-              color: Colors.redAccent,
-            ),
-          );
-          for (final m in liveMatches) {
-            items.add(
-              _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-            );
-          }
-        }
         // Upcoming matches section
         if (upcomingMatches.isNotEmpty) {
           items.add(
@@ -715,22 +667,44 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: _topScorers.length,
-      itemBuilder: (context, i) => ListTile(
-        leading: CircleAvatar(
-          backgroundImage: _topScorers[i].playerPhoto.isNotEmpty
-              ? NetworkImage(_topScorers[i].playerPhoto)
+      itemBuilder: (context, i) {
+        final scorer = _topScorers[i];
+        return ListTile(
+          onTap: scorer.playerId > 0
+              ? () => openPlayerProfile(
+                    context,
+                    playerId: scorer.playerId,
+                    playerName: scorer.playerName,
+                    teamName: scorer.teamName,
+                    season: _selectedYear,
+                    photoUrl: scorer.playerPhoto.isNotEmpty
+                        ? scorer.playerPhoto
+                        : null,
+                  )
               : null,
-        ),
-        title: Text(
-          _topScorers[i].playerName,
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text(
-          '${_topScorers[i].goals} G',
-          style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold),
-        ),
-      ),
+          leading: CircleAvatar(
+            backgroundImage: scorer.playerPhoto.isNotEmpty
+                ? NetworkImage(scorer.playerPhoto)
+                : null,
+          ),
+          title: Text(
+            scorer.playerName,
+            style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            scorer.teamName,
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
+          trailing: Text(
+            '${scorer.goals} G',
+            style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
     );
   }
 
@@ -842,10 +816,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCollapsingHeader() {
+    final lightHeaderBg = const Color(0xFFFFFFFF);
+    final lightAccent = const Color(0xFF16324A);
+
     return SliverAppBar(
       pinned: true,
-      backgroundColor: isDark ? _kCardDark : const Color(0xFFF2E5CA),
-      expandedHeight: 250,
+      backgroundColor: isDark ? _kCardDark : lightHeaderBg,
+      foregroundColor: isDark ? Colors.white : lightAccent,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: isDark ? Colors.black26 : lightAccent.withValues(alpha: 0.12),
+      elevation: isDark ? 0 : 1,
+      expandedHeight: 200,
       centerTitle: true,
       title: Row(
         mainAxisSize: MainAxisSize.min,
@@ -853,10 +834,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const MundialyLogo(size: 26),
           const SizedBox(width: 8),
           Text(
-            _selectedYear == -1 ? 'Live' : 'Mondial $_selectedYear',
+            'Mundialy $_selectedYear',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF16324A),
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: isDark ? Colors.white : lightAccent,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -865,14 +848,28 @@ class _HomeScreenState extends State<HomeScreen> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=800&q=60',
-              fit: BoxFit.cover,
-            ),
+            if (isDark)
+              Image.network(
+                'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=800&q=60',
+                fit: BoxFit.cover,
+              ),
             Container(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.25),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          Colors.black.withValues(alpha: 0.55),
+                          Colors.black.withValues(alpha: 0.35),
+                        ]
+                      : [
+                          const Color(0xFFFFFDF8),
+                          const Color(0xFFF3E8C8),
+                          const Color(0xFFE7C16A).withValues(alpha: 0.18),
+                        ],
+                ),
+              ),
             ),
             Center(
               child: Padding(
@@ -888,7 +885,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (_selectedYear != y) {
                             setState(() {
                               _selectedYear = y;
-                              if (y == -1) _selectedTab = 1;
                             });
                             _loadInitialData();
                           }
@@ -926,17 +922,28 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.4)
-                : Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(20),
+                ? Colors.black.withValues(alpha: 0.45)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _kGold.withValues(alpha: isDark ? 0.5 : 0.8),
+              color: isDark
+                  ? _kGold.withValues(alpha: 0.45)
+                  : const Color(0xFF16324A).withValues(alpha: 0.12),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : const Color(0xFF16324A))
+                    .withValues(alpha: isDark ? 0.3 : 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
+                tooltip: isDark ? 'Thème clair' : 'Thème sombre',
                 onPressed: () {
                   final themeProv = Provider.of<ThemeProvider>(
                     context,
@@ -947,8 +954,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 icon: Icon(
-                  isDark ? Icons.light_mode : Icons.dark_mode,
-                  color: isDark ? _kGold : Colors.black87,
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  color: isDark ? _kGold : const Color(0xFF16324A),
                   size: 20,
                 ),
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -956,14 +963,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Container(
                 width: 1,
-                height: 20,
-                color: _kGold.withValues(alpha: isDark ? 0.3 : 0.8),
+                height: 18,
+                color: isDark
+                    ? _kGold.withValues(alpha: 0.25)
+                    : const Color(0xFF16324A).withValues(alpha: 0.1),
               ),
               IconButton(
+                tooltip: 'Actualiser',
                 onPressed: _loadInitialData,
                 icon: Icon(
                   Icons.refresh_rounded,
-                  color: isDark ? _kGold : Colors.black87,
+                  color: isDark ? _kGold : const Color(0xFF16324A),
                   size: 20,
                 ),
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -980,7 +990,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return BottomNavigationBar(
       backgroundColor: isDark ? const Color(0xFF1A242D) : Colors.white,
       selectedItemColor: _kGold,
-      unselectedItemColor: Colors.grey,
+      unselectedItemColor:
+          isDark ? Colors.white38 : const Color(0xFF5B6B79),
+      elevation: isDark ? 0 : 8,
+      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
+      unselectedLabelStyle: const TextStyle(fontSize: 10),
       currentIndex: _selectedTab,
       onTap: _onTabTap,
       type: BottomNavigationBarType.fixed,
@@ -1094,8 +1108,13 @@ class _YearDropdownSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color panelColor = isDark ? const Color(0xFF1E2630) : Colors.white;
+    final Color panelColor =
+        isDark ? const Color(0xFF1E2630) : Colors.white;
     final Color accentColor = _kGold;
+    final Color labelColor =
+        isDark ? Colors.white : const Color(0xFF16324A);
+    final Color mutedColor =
+        isDark ? Colors.white54 : const Color(0xFF5B6B79);
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -1113,9 +1132,9 @@ class _YearDropdownSelector extends StatelessWidget {
         onSelected: onYearChanged,
         offset: const Offset(0, 50),
         itemBuilder: (context) {
-          return [-1, 2022, 2026].map((y) {
+          return [2022, 2026].map((y) {
             final isSel = selectedYear == y;
-            final label = y == -1 ? 'LIVE EN DIRECT' : 'Coupe du Monde $y';
+            final label = 'Coupe du Monde $y';
             return PopupMenuItem<int>(
               value: y,
               child: Container(
@@ -1127,15 +1146,15 @@ class _YearDropdownSelector extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      y == -1 ? Icons.bolt_rounded : Icons.check_circle_outline,
-                      color: isSel ? accentColor : (isDark ? Colors.white54 : Colors.black54),
+                      Icons.emoji_events_rounded,
+                      color: isSel ? accentColor : mutedColor,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
                     Text(
                       label,
                       style: TextStyle(
-                        color: isSel ? accentColor : (isDark ? Colors.white : Colors.black87),
+                        color: isSel ? accentColor : labelColor,
                         fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
                         fontSize: 15,
                       ),
@@ -1150,17 +1169,20 @@ class _YearDropdownSelector extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 260),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: panelColor.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(16),
+            color: panelColor,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: accentColor.withValues(alpha: 0.8),
+              color: isDark
+                  ? accentColor.withValues(alpha: 0.65)
+                  : const Color(0xFF16324A).withValues(alpha: 0.14),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withValues(alpha: 0.2),
-                blurRadius: 15,
-                spreadRadius: 1,
+                color: (isDark ? accentColor : const Color(0xFF16324A))
+                    .withValues(alpha: isDark ? 0.18 : 0.07),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
@@ -1168,18 +1190,16 @@ class _YearDropdownSelector extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                selectedYear == -1 ? Icons.bolt_rounded : Icons.emoji_events_rounded,
-                color: selectedYear == -1 ? Colors.redAccent : accentColor,
+                Icons.emoji_events_rounded,
+                color: accentColor,
                 size: 18,
               ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  selectedYear == -1 ? 'LIVE ACTION' : 'ÉDITION $selectedYear',
+                  'ÉDITION $selectedYear',
                   style: TextStyle(
-                    color: selectedYear == -1
-                        ? Colors.redAccent
-                        : (isDark ? Colors.white : Colors.black87),
+                    color: labelColor,
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
                     letterSpacing: 1.2,
@@ -1407,7 +1427,6 @@ class _MatchCard extends StatelessWidget {
                         NationFlagBadge(
                           countryCode: match.homeCode,
                           size: 24,
-                          imageUrlOverride: match.homeLogoUrl,
                         ),
                       ],
                     ),
@@ -1448,7 +1467,6 @@ class _MatchCard extends StatelessWidget {
                         NationFlagBadge(
                           countryCode: match.awayCode,
                           size: 24,
-                          imageUrlOverride: match.awayLogoUrl,
                         ),
                         const SizedBox(width: 8),
                         Flexible(
@@ -1710,7 +1728,7 @@ class _BracketTeamRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
           children: [
-            NationFlagBadge(countryCode: code, size: 28, imageUrlOverride: logo),
+            NationFlagBadge(countryCode: code, size: 28),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1857,7 +1875,9 @@ class _GroupTable extends StatelessWidget {
                   height: 20,
                 ),
                 ...group.teams.map((t) {
-                  final isQualif = t.rank <= 2;
+                  final status =
+                      standingQualification(t.rank, year: year);
+                  final statusColor = standingStatusColor(status);
                   return InkWell(
                     onTap: () => openTeamProfile(
                       context,
@@ -1870,9 +1890,7 @@ class _GroupTable extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border(
                           left: BorderSide(
-                            color: isQualif
-                                ? Colors.greenAccent.withValues(alpha: 0.5)
-                                : Colors.redAccent.withValues(alpha: 0.5),
+                            color: statusColor.withValues(alpha: 0.55),
                             width: 3,
                           ),
                         ),
@@ -1886,9 +1904,7 @@ class _GroupTable extends StatelessWidget {
                               child: Text(
                                 '${t.rank}',
                                 style: TextStyle(
-                                  color: isQualif
-                                      ? Colors.greenAccent
-                                      : Colors.redAccent,
+                                  color: statusColor,
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
@@ -1901,18 +1917,31 @@ class _GroupTable extends StatelessWidget {
                                 NationFlagBadge(
                                   countryCode: resolveCountryCode(t.teamName),
                                   size: 24,
-                                  imageUrlOverride: t.teamLogo,
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Text(
-                                    t.teamName,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        t.teamName,
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        standingStatusLabel(status),
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -2714,7 +2743,12 @@ class _SectionHeader extends StatelessWidget {
 class _GroupsAutoCarousel extends StatefulWidget {
   final List<GroupStanding> groups;
   final Color textColor;
-  const _GroupsAutoCarousel({required this.groups, required this.textColor});
+  final int year;
+  const _GroupsAutoCarousel({
+    required this.groups,
+    required this.textColor,
+    required this.year,
+  });
   @override
   State<_GroupsAutoCarousel> createState() => _GroupsAutoCarouselState();
 }
@@ -2761,7 +2795,9 @@ class _GroupsAutoCarouselState extends State<_GroupsAutoCarousel> {
               controller: _controller,
               itemCount: widget.groups.length,
               onPageChanged: (i) => setState(() => _currentIndex = i),
-              itemBuilder: (context, i) => _GroupCard(group: widget.groups[i]),
+              itemBuilder: (context, i) => _GroupCard(
+                group: widget.groups[i],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -2793,33 +2829,52 @@ class _GroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF16324A);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B2A39) : Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [const Color(0xFF3D3020), const Color(0xFF1B2A39)]
+              : [const Color(0xFFFFF8E7), const Color(0xFFE8C96A)],
+        ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kGold.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: const Color(0xFFE7C16A),
+          width: 1.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: _kGold.withValues(alpha: isDark ? 0.2 : 0.35),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: [
-          Text(
-            group.groupName.toUpperCase(),
-            style: const TextStyle(
-              color: _kGold,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
-              fontSize: 13,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE7C16A), Color(0xFFC8973A)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              group.groupName.toUpperCase(),
+              style: const TextStyle(
+                color: Color(0xFF1A1208),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                fontSize: 12,
+              ),
             ),
           ),
-          const Divider(color: Colors.white10, height: 20),
+          Divider(color: textColor.withValues(alpha: 0.12), height: 20),
           ...group.teams
               .take(4)
               .map(

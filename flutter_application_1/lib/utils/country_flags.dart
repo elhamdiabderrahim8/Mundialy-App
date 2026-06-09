@@ -1,3 +1,13 @@
+/// Code pays ISO 3166-1 alpha-3 (ex. ALG, FRA, ARG).
+String resolveAlpha3Code(String? rawName, {String fallback = 'UNK'}) {
+  final alpha2 = resolveCountryCode(rawName, fallback: '');
+  if (alpha2.isEmpty || alpha2 == 'UN') {
+    return fallback;
+  }
+  final base = alpha2.contains('-') ? alpha2.split('-').first : alpha2;
+  return _alpha2ToAlpha3[base] ?? fallback;
+}
+
 String resolveCountryCode(String? rawName, {String fallback = 'UN'}) {
   if (rawName == null) return fallback;
   // If it's already a raw code like GB-ENG, pass it through directly
@@ -143,4 +153,35 @@ const Map<String, String> _countryCodeByName = {
   'yemen': 'YE',
   // Z
   'zambia': 'ZM', 'zimbabwe': 'ZW',
+};
+
+const Map<String, String> _alpha2ToAlpha3 = {
+  'AF': 'AFG', 'AL': 'ALB', 'DZ': 'ALG', 'AD': 'AND', 'AO': 'ANG',
+  'AR': 'ARG', 'AM': 'ARM', 'AU': 'AUS', 'AT': 'AUT', 'AZ': 'AZE',
+  'BS': 'BAH', 'BH': 'BHR', 'BD': 'BAN', 'BB': 'BRB', 'BY': 'BLR',
+  'BE': 'BEL', 'BZ': 'BLZ', 'BJ': 'BEN', 'BO': 'BOL', 'BA': 'BIH',
+  'BW': 'BOT', 'BR': 'BRA', 'BG': 'BUL', 'BF': 'BFA', 'BI': 'BDI',
+  'CV': 'CPV', 'KH': 'CAM', 'CM': 'CMR', 'CA': 'CAN', 'CL': 'CHI',
+  'CN': 'CHN', 'CO': 'COL', 'CG': 'CGO', 'CD': 'COD', 'CR': 'CRC',
+  'CI': 'CIV', 'HR': 'CRO', 'CU': 'CUB', 'CY': 'CYP', 'CZ': 'CZE',
+  'DK': 'DEN', 'EC': 'ECU', 'EG': 'EGY', 'SV': 'SLV', 'GQ': 'EQG',
+  'EE': 'EST', 'ET': 'ETH', 'FI': 'FIN', 'FR': 'FRA', 'GA': 'GAB',
+  'GM': 'GAM', 'DE': 'GER', 'GH': 'GHA', 'GR': 'GRE', 'GT': 'GUA',
+  'GN': 'GUI', 'HT': 'HAI', 'HN': 'HON', 'HU': 'HUN', 'IS': 'ISL',
+  'IN': 'IND', 'ID': 'IDN', 'IR': 'IRN', 'IQ': 'IRQ', 'IE': 'IRL',
+  'IL': 'ISR', 'IT': 'ITA', 'JM': 'JAM', 'JP': 'JPN', 'JO': 'JOR',
+  'KZ': 'KAZ', 'KE': 'KEN', 'KP': 'PRK', 'KR': 'KOR', 'KW': 'KUW',
+  'LV': 'LVA', 'LB': 'LBN', 'LY': 'LBY', 'LT': 'LTU', 'LU': 'LUX',
+  'MG': 'MAD', 'MW': 'MAW', 'MY': 'MAS', 'ML': 'MLI', 'MT': 'MLT',
+  'MR': 'MTN', 'MX': 'MEX', 'MD': 'MDA', 'ME': 'MNE', 'MA': 'MAR',
+  'MZ': 'MOZ', 'NL': 'NED', 'NZ': 'NZL', 'NI': 'NCA', 'NG': 'NGA',
+  'MK': 'MKD', 'NO': 'NOR', 'OM': 'OMA', 'PA': 'PAN', 'PY': 'PAR',
+  'PE': 'PER', 'PH': 'PHI', 'PL': 'POL', 'PT': 'POR', 'QA': 'QAT',
+  'RO': 'ROU', 'RU': 'RUS', 'SA': 'KSA', 'SN': 'SEN', 'RS': 'SRB',
+  'SL': 'SLE', 'SG': 'SIN', 'SK': 'SVK', 'SI': 'SVN', 'ZA': 'RSA',
+  'ES': 'ESP', 'SE': 'SWE', 'CH': 'SUI', 'SY': 'SYR', 'TZ': 'TAN',
+  'TH': 'THA', 'TG': 'TOG', 'TT': 'TRI', 'TN': 'TUN', 'TR': 'TUR',
+  'UG': 'UGA', 'UA': 'UKR', 'AE': 'UAE', 'US': 'USA', 'UY': 'URU',
+  'UZ': 'UZB', 'VE': 'VEN', 'VN': 'VIE', 'YE': 'YEM', 'ZM': 'ZAM',
+  'ZW': 'ZIM', 'GB': 'ENG', 'NC': 'NCL', 'TW': 'TPE', 'PS': 'PLE',
 };

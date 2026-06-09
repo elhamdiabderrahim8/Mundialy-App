@@ -40,6 +40,7 @@ flutter:
     - assets/logo.png
     - assets/mundialy_logo.png
     - assets/trophy_watermark.png
+    - assets/trophy_pitch.png
 
 flutter_launcher_icons:
   android: "launcher_icon"

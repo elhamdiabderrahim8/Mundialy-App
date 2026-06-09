@@ -5,16 +5,14 @@ class NationFlagBadge extends StatelessWidget {
     super.key,
     required this.countryCode,
     required this.size,
-    this.imageUrlOverride,
   });
 
   final String countryCode;
   final double size;
-  final String? imageUrlOverride;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = resolveFlagUrl(countryCode, imageUrlOverride);
+    final imageUrl = resolveFlagUrl(countryCode);
     final outerSize = size;
     final innerSize = size * 0.66;
 
@@ -78,28 +76,16 @@ class NationFlagBadge extends StatelessWidget {
     );
   }
 
-  static String? resolveFlagUrl(
-    String countryCode, [
-    String? imageUrlOverride,
-  ]) {
-    // 1. Try to resolve country code to ISO-2 → flagcdn
+  /// Drapeaux uniquement via flagcdn.com — jamais de logos SofaScore / fédérations.
+  static String? resolveFlagUrl(String countryCode) {
     final normalizedCode = _normalizeCountryCode(countryCode);
     if (normalizedCode != null) {
       return 'https://flagcdn.com/w160/${normalizedCode.toLowerCase()}.png';
     }
 
-    // 2. Try to get a flag by team name (useful when countryCode is actually the full country name)
     final byName = _resolveByTeamName(countryCode);
     if (byName != null) {
       return 'https://flagcdn.com/w160/${byName.toLowerCase()}.png';
-    }
-
-    // 3. Only use override if it's provided and NOT a sofascore URL
-    final override = imageUrlOverride;
-    if (override != null && override.isNotEmpty) {
-      if (!override.contains('sofascore') && override.startsWith('http')) {
-        return override;
-      }
     }
 
     return null;

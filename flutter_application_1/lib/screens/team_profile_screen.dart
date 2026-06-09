@@ -6,10 +6,11 @@ import '../models/team_player.dart';
 import '../models/team_profile.dart';
 import '../services/api_service.dart';
 import '../utils/country_flags.dart';
+import '../utils/standing_status.dart';
 import '../utils/team_resolver.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
-import 'player_profile_screen.dart';
+import '../utils/player_navigation.dart';
 
 class TeamProfileScreen extends StatefulWidget {
   const TeamProfileScreen({
@@ -178,7 +179,6 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                   countryCode:
                       _profile?.code ?? resolveCountryCode(widget.teamName),
                   size: 100,
-                  imageUrlOverride: _profile?.logoUrl,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -220,7 +220,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
             children: [
               Expanded(
                 child: _InfoTile(
-                  label: 'Surnom',
+                  label: 'Pays',
                   value: widget.teamName,
                   isDark: isDark,
                 ),
@@ -228,8 +228,8 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _InfoTile(
-                  label: 'Confederation',
-                  value: 'FIFA',
+                  label: 'Code alpha-3',
+                  value: resolveAlpha3Code(widget.teamName),
                   isDark: isDark,
                 ),
               ),
@@ -240,18 +240,16 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
             children: [
               Expanded(
                 child: _InfoTile(
-                  label: 'Code',
-                  value: (_profile?.code.isNotEmpty == true)
-                      ? _profile!.code
-                      : resolveCountryCode(widget.teamName),
+                  label: 'Édition',
+                  value: 'Coupe du Monde ${widget.year}',
                   isDark: isDark,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _InfoTile(
-                  label: 'Edition',
-                  value: '${widget.year}',
+                  label: 'Matchs',
+                  value: '${_matches.length}',
                   isDark: isDark,
                 ),
               ),
@@ -315,7 +313,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${coach.nationality} • ${coach.age ?? "?"} ans',
+                      coach.age != null && coach.age!.isNotEmpty
+                          ? '${coach.nationality} • ${coach.age} ans'
+                          : coach.nationality,
                       style: TextStyle(
                         color: textColor.withValues(alpha: 0.6),
                         fontSize: 13,
@@ -372,10 +372,15 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'Rang ${row.rank}',
-                  style: const TextStyle(
-                    color: _gold,
+                  standingStatusLabel(
+                    standingQualification(row.rank, year: widget.year),
+                  ),
+                  style: TextStyle(
+                    color: standingStatusColor(
+                      standingQualification(row.rank, year: widget.year),
+                    ),
                     fontWeight: FontWeight.w800,
+                    fontSize: 11,
                   ),
                 ),
               ),
@@ -536,16 +541,17 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 const SizedBox(height: 12),
                 ...entry.value.map(
                   (player) => GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => PlayerProfileScreen(
-                            entity: player,
-                            season: widget.year,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => openPlayerProfile(
+                      context,
+                      playerId: player.id,
+                      playerName: player.name,
+                      teamName: widget.teamName,
+                      teamCode: _profile?.code,
+                      season: widget.year,
+                      shirtNumber: player.shirtNumber,
+                      photoUrl: player.photoUrl,
+                      position: player.position,
+                    ),
                     child: _PlayerRow(player: player, isDark: isDark),
                   ),
                 ),
@@ -758,10 +764,26 @@ class _TeamMatchCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    match.city,
-                    style: TextStyle(color: secondaryText),
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        match.phaseLabel,
+                        style: TextStyle(
+                          color: secondaryText,
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        match.city,
+                        style: TextStyle(
+                          color: secondaryText.withValues(alpha: 0.85),
+                          fontSize: 11,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
                 if (match.isLive)

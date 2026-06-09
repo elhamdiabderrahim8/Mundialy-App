@@ -454,7 +454,7 @@ class ApiService {
         name: teamName ?? 'Équipe',
         shortName: teamName ?? 'Équipe',
         code: resolveCountryCode(teamName ?? ''),
-        logoUrl: "https://api.sofascore.app/api/v1/team/$resolvedId/image",
+        logoUrl: null,
         venue: "",
         foundedLabel: "",
         coach: coach,
@@ -471,8 +471,13 @@ class ApiService {
     required int playerId,
     int? season,
   }) async {
+    final resolvedSeason = season ?? 2026;
+    final cacheKey = 'player_stats_${playerId}_$resolvedSeason';
+    final cached = _getCache<Map<String, dynamic>>(cacheKey, ttlMinutes: 30);
+    if (cached != null) return cached;
+
     try {
-      final seasonId = (season ?? 2026) == 2022
+      final seasonId = resolvedSeason == 2022
           ? GlobalConfig.season2022Id
           : GlobalConfig.season2026Id;
 
@@ -482,12 +487,14 @@ class ApiService {
         SofaDirectService.fetchPlayerAttributes(playerId),
         SofaDirectService.fetchPlayerStats(playerId, seasonId),
       ]);
-      return {
+      final data = {
         'nationalStats': results[0],
         'characteristics': results[1],
         'attributes': results[2],
         'tournamentStats': results[3],
       };
+      _setCache(cacheKey, data);
+      return data;
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
     }
@@ -746,16 +753,16 @@ class ApiService {
       localTime:
           '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
       dateTime: date,
-      city: fixture['venue']?['city'] ?? 'Stadium',
+      city: _resolveVenueLabel(fixture['venue']),
       homeTeam: homeName,
       homeCode: resolveCountryCode(homeName),
       homeTeamId: homeId,
-      homeLogoUrl: teams['home']?['logo'],
+      homeLogoUrl: null,
       scoreHome: _cleanScore(goals['home']),
       awayTeam: awayName,
       awayCode: resolveCountryCode(awayName),
       awayTeamId: awayId,
-      awayLogoUrl: teams['away']?['logo'],
+      awayLogoUrl: null,
       scoreAway: _cleanScore(goals['away']),
       penaltyHome: _cleanScore(score['penalty']?['home']),
       penaltyAway: _cleanScore(score['penalty']?['away']),
@@ -775,14 +782,11 @@ class ApiService {
     return groups.map((group) {
       final teams = group.teams.map((team) {
         final resolved = TeamResolver.resolve(team.teamName, hintId: team.teamId);
-        final sofaLogo = resolved > 0
-            ? 'https://api.sofascore.app/api/v1/team/$resolved/image'
-            : team.teamLogo;
         return StandingTeam(
           teamId: resolved > 0 ? resolved : team.teamId,
           rank: team.rank,
           teamName: team.teamName,
-          teamLogo: sofaLogo,
+          teamLogo: '',
           points: team.points,
           played: team.played,
           goalsDiff: team.goalsDiff,
@@ -843,6 +847,16 @@ class ApiService {
     }
 
     return [];
+  }
+
+  static String _resolveVenueLabel(dynamic venue) {
+    if (venue is! Map) return 'Stade à confirmer';
+    final city = venue['city']?.toString().trim() ?? '';
+    final name = venue['name']?.toString().trim() ?? '';
+    if (name.isNotEmpty && city.isNotEmpty) return '$name · $city';
+    if (city.isNotEmpty) return city;
+    if (name.isNotEmpty) return name;
+    return 'Stade à confirmer';
   }
 
   static String _formatDayName(DateTime d) =>

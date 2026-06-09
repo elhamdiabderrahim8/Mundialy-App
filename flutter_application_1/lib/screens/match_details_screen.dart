@@ -5,12 +5,14 @@ import '../models/live_match.dart';
 import '../models/match_details.dart';
 import '../models/team_player.dart';
 import '../services/api_service.dart';
+import '../utils/country_flags.dart';
 import '../utils/mock_match_details_data.dart';
 import '../widgets/nation_flag_badge.dart';
-import 'player_profile_screen.dart';
+import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
 
 const Color kGold = Color(0xFFE7C16A);
+const Color _kPasserColor = Color(0xFF38BDF8);
 
 const Map<String, List<Offset>> _formationCoordinates = {
   '4-3-3': [
@@ -951,22 +953,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                           Positioned.fill(
                             child: CustomPaint(painter: _PitchPainter()),
                           ),
-                          Center(
-                            child: Opacity(
-                              opacity: 0.12,
-                              child: Image.asset(
-                                'assets/trophy_watermark.png',
-                                width: 200,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Icon(
-                                      Icons.emoji_events_rounded,
-                                      size: 160,
-                                      color: kGold.withValues(alpha: 0.35),
-                                    ),
-                              ),
-                            ),
-                          ),
+                          Center(child: _PitchTrophyWatermark(isDark: isDark)),
                           ...List.generate(lineup.players.length, (index) {
                             final player = lineup.players[index];
                             final coords =
@@ -988,27 +975,17 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                               top: posY,
                               width: widgetWidth,
                               child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => PlayerProfileScreen(
-                                        entity: TeamPlayer(
-                                          id: player.id,
-                                          name: player.name,
-                                          position: player.role,
-                                          shirtNumber: player.number,
-                                          photoUrl:
-                                              "https://api.sofascore.app/api/v1/player/${player.id}/image",
-                                          nationality: lineup.teamName,
-                                          nationalityCode: lineup.teamCode,
-                                          ageLabel: '',
-                                        ),
-                                        season:
-                                            widget.match.dateTime?.year ?? 2022,
-                                      ),
-                                    ),
-                                  );
-                                },
+                                onTap: () => openPlayerProfile(
+                                  context,
+                                  playerId: player.id,
+                                  playerName: player.name,
+                                  teamName: lineup.teamName,
+                                  teamCode: lineup.teamCode,
+                                  season:
+                                      widget.match.dateTime?.year ?? 2022,
+                                  shirtNumber: player.number,
+                                  position: player.role,
+                                ),
                                 child: _PlayerJersey(
                                   player: player,
                                   kitColor: Color(lineup.kitColor),
@@ -1596,88 +1573,83 @@ class _EventTile extends StatelessWidget {
                           teamId: event.teamId,
                           year: year,
                         ),
-                        child: SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: Image.network(
-                            'https://api.sofascore.app/api/v1/team/${event.teamId}/image',
-                            width: 28,
-                            height: 28,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => _DiamondFlag(
-                              countryCode: event.teamCode,
-                              size: 26,
-                            ),
-                          ),
+                        child: NationFlagBadge(
+                          countryCode: event.teamCode.isNotEmpty
+                              ? event.teamCode
+                              : resolveCountryCode(event.teamName),
+                          size: 28,
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: event.playerId == null
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PlayerProfileScreen(
-                                entity: TeamPlayer(
-                                  id: event.playerId!,
-                                  name: event.description,
-                                  position: '',
-                                  shirtNumber: 0,
-                                  photoUrl: null,
-                                  nationality: event.teamName,
-                                  nationalityCode: event.teamCode,
-                                  ageLabel: '',
-                                ),
-                                season: year,
-                              ),
+                if (event.playerIn == null && event.playerOut == null)
+                  GestureDetector(
+                    onTap: event.playerId == null
+                        ? null
+                        : () => openPlayerProfile(
+                              context,
+                              playerId: event.playerId!,
+                              playerName: event.scorerName,
+                              teamName: event.teamName,
+                              teamCode: event.teamCode,
+                              season: year,
                             ),
-                          );
-                        },
-                  child: (event.playerIn != null || event.playerOut != null)
-                      ? const SizedBox.shrink()
-                      : Text(
-                          event.description,
-                          style: TextStyle(
-                            color: event.playerId != null ? kGold : textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                ),
+                    child: Text(
+                      event.scorerName,
+                      style: TextStyle(
+                        color: event.playerId != null
+                            ? textColor
+                            : textColor.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
                 if (event.assistant != null && event.assistant!.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: GestureDetector(
                       onTap: event.assistantId == null
                           ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => PlayerProfileScreen(
-                                    entity: TeamPlayer(
-                                      id: event.assistantId!,
-                                      name: event.assistant!,
-                                      position: '',
-                                      shirtNumber: 0,
-                                      photoUrl: null,
-                                      nationality: event.teamName,
-                                      nationalityCode: event.teamCode,
-                                      ageLabel: '',
-                                    ),
-                                    season: year,
-                                  ),
-                                ),
-                              );
-                            },
-                      child: Text(
-                        'Passe décisive: ${event.assistant!}',
-                        style: TextStyle(
-                          color: event.assistantId != null ? kGold : textColor.withValues(alpha: 0.54),
-                          fontSize: 12,
-                        ),
+                          : () => openPlayerProfile(
+                                context,
+                                playerId: event.assistantId!,
+                                playerName: event.assistant!,
+                                teamName: event.teamName,
+                                teamCode: event.teamCode,
+                                season: year,
+                              ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.swap_calls_rounded,
+                            size: 14,
+                            color: _kPasserColor.withValues(alpha: 0.9),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Passe :',
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.45),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              event.assistant!,
+                              style: TextStyle(
+                                color: event.assistantId != null
+                                    ? _kPasserColor
+                                    : textColor.withValues(alpha: 0.54),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1690,25 +1662,14 @@ class _EventTile extends StatelessWidget {
                           GestureDetector(
                             onTap: event.playerInId == null
                                 ? null
-                                : () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => PlayerProfileScreen(
-                                          entity: TeamPlayer(
-                                            id: event.playerInId!,
-                                            name: event.playerIn!,
-                                            position: '',
-                                            shirtNumber: 0,
-                                            photoUrl: null,
-                                            nationality: event.teamName,
-                                            nationalityCode: event.teamCode,
-                                            ageLabel: '',
-                                          ),
-                                          season: year,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                : () => openPlayerProfile(
+                                      context,
+                                      playerId: event.playerInId!,
+                                      playerName: event.playerIn!,
+                                      teamName: event.teamName,
+                                      teamCode: event.teamCode,
+                                      season: year,
+                                    ),
                             child: _EventPill(
                               label: 'ENTRE: ${event.playerIn!}',
                               color: const Color(0xFF1E6C47),
@@ -1720,25 +1681,14 @@ class _EventTile extends StatelessWidget {
                           GestureDetector(
                             onTap: event.playerOutId == null
                                 ? null
-                                : () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => PlayerProfileScreen(
-                                          entity: TeamPlayer(
-                                            id: event.playerOutId!,
-                                            name: event.playerOut!,
-                                            position: '',
-                                            shirtNumber: 0,
-                                            photoUrl: null,
-                                            nationality: event.teamName,
-                                            nationalityCode: event.teamCode,
-                                            ageLabel: '',
-                                          ),
-                                          season: year,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                : () => openPlayerProfile(
+                                      context,
+                                      playerId: event.playerOutId!,
+                                      playerName: event.playerOut!,
+                                      teamName: event.teamName,
+                                      teamCode: event.teamCode,
+                                      season: year,
+                                    ),
                             child: _EventPill(
                               label: 'SORT: ${event.playerOut!}',
                               color: const Color(0xFF7A3A2A),
@@ -2159,16 +2109,7 @@ class _ShootoutTeamLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (teamId != null) {
-      return Image.network(
-        'https://api.sofascore.app/api/v1/team/$teamId/image',
-        width: 48,
-        height: 48,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _DiamondFlag(countryCode: code, size: 48),
-      );
-    }
-    return _DiamondFlag(countryCode: code, size: 48);
+    return NationFlagBadge(countryCode: code, size: 48);
   }
 }
 
@@ -2228,6 +2169,48 @@ class _ShootoutRow extends StatelessWidget {
         children: isHome
             ? [circle, const SizedBox(width: 8), Expanded(child: playerName)]
             : [Expanded(child: playerName), const SizedBox(width: 8), circle],
+      ),
+    );
+  }
+}
+
+/// Filigrane trophée doré — inversion des lignes noires puis dégradé or.
+class _PitchTrophyWatermark extends StatelessWidget {
+  const _PitchTrophyWatermark({required this.isDark});
+
+  final bool isDark;
+
+  static const _invertMatrix = ColorFilter.matrix([
+    -1, 0, 0, 0, 255,
+    0, -1, 0, 0, 255,
+    0, 0, -1, 0, 255,
+    0, 0, 0, 1, 0,
+  ]);
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: isDark ? 0.16 : 0.12,
+      child: ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) => const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF5E6B8), Color(0xFFC8973A)],
+        ).createShader(bounds),
+        child: ColorFiltered(
+          colorFilter: _invertMatrix,
+          child: Image.asset(
+            'assets/trophy_pitch.png',
+            width: 100,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => Icon(
+              Icons.emoji_events_rounded,
+              size: 90,
+              color: kGold.withValues(alpha: 0.25),
+            ),
+          ),
+        ),
       ),
     );
   }

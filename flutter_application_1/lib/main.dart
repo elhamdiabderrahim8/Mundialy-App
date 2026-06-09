@@ -6,7 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'constants/app_colors.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/theme_provider.dart';
 import 'widgets/animated_goal_overlay.dart';
 import 'widgets/in_app_notification.dart';
@@ -156,11 +156,16 @@ class MyApp extends StatelessWidget {
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface.withValues(alpha: 0.95),
+        backgroundColor: Colors.white,
         selectedItemColor: AppColors.secondary,
         unselectedItemColor: const Color(0xFF5B6B79),
-        elevation: 0,
+        elevation: 8,
         type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+        ),
+        unselectedLabelStyle: const TextStyle(fontSize: 10),
       ),
       textTheme: ThemeData.light().textTheme.apply(
         bodyColor: AppColors.primary,
@@ -217,7 +222,7 @@ class MyApp extends StatelessWidget {
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }

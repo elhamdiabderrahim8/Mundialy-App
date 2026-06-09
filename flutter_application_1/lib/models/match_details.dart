@@ -1,3 +1,5 @@
+import '../utils/player_resolver.dart';
+
 class MatchDetails {
   const MatchDetails({
     required this.matchId,
@@ -194,9 +196,6 @@ class MatchDetails {
               title = "BUT !";
             }
             description = playerName;
-            if (assistName != null && assistName.isNotEmpty) {
-              description += ' (pass. $assistName)';
-            }
           } else if (type == 'penaltyshootout') {
             final isScored = incidentClass == 'scored';
             icon = isScored
@@ -251,6 +250,7 @@ class MatchDetails {
             return null;
           }
 
+          final scorer = json['player']?['name']?.toString();
           return MatchEvent(
             minute: json['displayTime']?.toString() ?? "${json['time'] ?? 0}'",
             title: title,
@@ -261,6 +261,7 @@ class MatchDetails {
             teamName: tName,
             teamCode: tCode,
             playerId: _toIntOrNull(json['player']?['id']),
+            playerName: scorer,
             playerIn: json['playerIn']?['name'],
             playerInId: _toIntOrNull(json['playerIn']?['id']),
             playerOut: json['playerOut']?['name'],
@@ -528,7 +529,7 @@ class MatchDetails {
       }
       if (name != null && name.isNotEmpty) {
         for (final p in players) {
-          if (p.name.contains(name) || name.contains(p.name)) return p;
+          if (PlayerResolver.namesMatch(p.name, name)) return p;
         }
       }
       return null;
@@ -562,7 +563,7 @@ class MatchDetails {
         final target = findTarget(
           allPlayers,
           event.playerId,
-          event.description,
+          event.playerName ?? event.scorerName,
         );
         if (target != null) {
           if (event.icon == MatchEventIcon.goal) target.goals++;
@@ -639,6 +640,7 @@ class MatchEvent {
     this.teamCode = '',
     this.teamId,
     this.playerId,
+    this.playerName,
     this.detail = '',
     this.playerIn,
     this.playerInId,
@@ -656,6 +658,7 @@ class MatchEvent {
   final String teamCode;
   final int? teamId;
   final int? playerId;
+  final String? playerName;
   final String detail;
   final String? playerIn;
   final int? playerInId;
@@ -663,6 +666,18 @@ class MatchEvent {
   final int? playerOutId;
   final String? assistant;
   final int? assistantId;
+
+  /// Nom du buteur / joueur principal (sans texte entre parenthèses).
+  String get scorerName {
+    if (playerName != null && playerName!.isNotEmpty) return playerName!;
+    return _stripParentheticals(description);
+  }
+
+  static String _stripParentheticals(String raw) {
+    final idx = raw.indexOf('(');
+    if (idx > 0) return raw.substring(0, idx).trim();
+    return raw.trim();
+  }
 
   factory MatchEvent.fromApi(Map<String, dynamic> json) {
     final type =
@@ -711,8 +726,14 @@ class MatchEvent {
       detail: incidentClass,
       teamId: _toInt(json['team']?['id']),
       teamName: json['team']?['name']?.toString() ?? '',
+      playerId: _toInt(json['player']?['id']),
+      playerName: json['player']?['name']?.toString(),
       playerIn: json['playerIn']?['name']?.toString(),
+      playerInId: _toInt(json['playerIn']?['id']),
       playerOut: json['playerOut']?['name']?.toString(),
+      playerOutId: _toInt(json['playerOut']?['id']),
+      assistant: json['assist']?['name']?.toString(),
+      assistantId: _toInt(json['assist']?['id']),
     );
   }
 

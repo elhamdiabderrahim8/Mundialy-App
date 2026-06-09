@@ -136,14 +136,10 @@ class SofaDirectService {
           'home': {
             'id': e['homeTeam']?['id'],
             'name': e['homeTeam']?['name'],
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${e['homeTeam']?['id']}/image',
           },
           'away': {
             'id': e['awayTeam']?['id'],
             'name': e['awayTeam']?['name'],
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${e['awayTeam']?['id']}/image',
           },
         },
         'goals': {
@@ -229,11 +225,26 @@ class SofaDirectService {
               (e['startTimestamp'] as int) * 1000)
           : DateTime.now();
 
+      final venue = e['venue'];
+      String venueLabel = '';
+      if (venue is Map) {
+        final stadium = venue['stadium']?['name'] ?? venue['name'];
+        final city = venue['city']?['name'] ?? venue['city'];
+        if (stadium != null && city != null) {
+          venueLabel = '$stadium · $city';
+        } else {
+          venueLabel = (stadium ?? city ?? '').toString();
+        }
+      }
+
       formatted.add({
         'fixture': {
           'id': e['id'],
           'timestamp': e['startTimestamp'],
           'date': dt.toIso8601String(),
+          'venue': {
+            'city': venueLabel.isNotEmpty ? venueLabel : 'Stade à confirmer',
+          },
           'status': {
             'short': short,
             'long': status['description'] ?? '',
@@ -247,14 +258,10 @@ class SofaDirectService {
           'home': {
             'id': (e['homeTeam'] ?? {})['id'],
             'name': (e['homeTeam'] ?? {})['name'] ?? 'TBD',
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${(e['homeTeam'] ?? {})['id']}/image',
           },
           'away': {
             'id': (e['awayTeam'] ?? {})['id'],
             'name': (e['awayTeam'] ?? {})['name'] ?? 'TBD',
-            'logo':
-                'https://api.sofascore.app/api/v1/team/${(e['awayTeam'] ?? {})['id']}/image',
           },
         },
         'goals': {
@@ -296,6 +303,11 @@ class SofaDirectService {
       final tid = g['tournamentId'];
       if (tid == null) continue;
 
+      final groupName = g['groupName']?.toString().trim() ?? '';
+      if (!RegExp(r'^Group\s+[A-Z]$', caseSensitive: false).hasMatch(groupName)) {
+        continue;
+      }
+
       final data = await _fetchJson(
           '/tournament/$tid/season/$_seasonId2026/standings/total');
       if (data != null && (data['standings'] as List?)?.isNotEmpty == true) {
@@ -304,12 +316,10 @@ class SofaDirectService {
           final t = r['team'] ?? {};
           teams.add({
             'rank': r['position'],
-            'group': g['groupName'],
+            'group': groupName,
             'team': {
               'id': t['id'],
               'name': t['name'],
-              'logo':
-                  'https://api.sofascore.app/api/v1/team/${t['id']}/image',
             },
             'points': r['points'] ?? 0,
             'goalsDiff':
@@ -322,7 +332,9 @@ class SofaDirectService {
             },
           });
         }
-        allStandings.add(teams);
+        if (teams.isNotEmpty && teams.length <= 6) {
+          allStandings.add(teams);
+        }
       }
     }
 
@@ -545,9 +557,6 @@ class SofaDirectService {
     final refName = refRaw['name'] ?? '';
     final refCountry = refRaw['country']?['name'] ?? '';
 
-    // 8. Réponse BFF v2 finale
-    const imgBase = 'https://api.sofascore.app/api/v1/team';
-    
     return {
       'response': {
         'event': {
@@ -556,13 +565,11 @@ class SofaDirectService {
             'id': homeTeamRaw['id'],
             'name': homeTeamRaw['name'] ?? 'Home',
             'nameCode': homeTeamRaw['nameCode'] ?? '',
-            'logo': '$imgBase/${homeTeamRaw['id']}/image',
           },
           'awayTeam': {
             'id': awayTeamRaw['id'],
             'name': awayTeamRaw['name'] ?? 'Away',
             'nameCode': awayTeamRaw['nameCode'] ?? '',
-            'logo': '$imgBase/${awayTeamRaw['id']}/image',
           },
           'homeScore': {'current': scoreH, 'penalties': hs['penalties']},
           'awayScore': {'current': scoreA, 'penalties': as_['penalties']},
@@ -604,12 +611,31 @@ class SofaDirectService {
     if (data == null) return null;
     final manager = data['team']?['manager'] ?? data['manager'];
     if (manager == null) return null;
+
+    int? age;
+    final managerId = manager['id'];
+    if (managerId != null) {
+      final details = await _fetchJson('/manager/$managerId');
+      final mgr = details?['manager'] ?? details;
+      final dob = mgr?['dateOfBirthTimestamp'] ?? manager['dateOfBirthTimestamp'];
+      if (dob is int) {
+        final birth = DateTime.fromMillisecondsSinceEpoch(dob * 1000);
+        final now = DateTime.now();
+        age = now.year - birth.year;
+        if (now.month < birth.month ||
+            (now.month == birth.month && now.day < birth.day)) {
+          age--;
+        }
+      }
+    }
+
     return {
       'id': manager['id'],
       'name': manager['name'],
       'photo':
           'https://api.sofascore.app/api/v1/manager/${manager['id']}/image',
       'nationality': manager['country']?['name'],
+      'age': age,
     };
   }
 

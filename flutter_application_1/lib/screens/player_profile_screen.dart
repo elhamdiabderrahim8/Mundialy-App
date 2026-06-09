@@ -13,7 +13,7 @@ class PlayerProfileScreen extends StatefulWidget {
   const PlayerProfileScreen({
     super.key,
     required this.entity,
-    this.season = 2022,
+    this.season = 2026,
   });
 
   @override
@@ -23,13 +23,13 @@ class PlayerProfileScreen extends StatefulWidget {
 class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _statsData;
-  bool _isLoading = true;
+  bool _statsLoading = true;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadStats();
   }
 
@@ -49,11 +49,11 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
       if (mounted) {
         setState(() {
           _statsData = data;
-          _isLoading = false;
+          _statsLoading = false;
         });
       }
     } else {
-      setState(() => _isLoading = false);
+      setState(() => _statsLoading = false);
     }
   }
 
@@ -99,7 +99,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         slivers: [
           // --- HERO APP BAR ---
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 220,
             pinned: true,
             backgroundColor: isDark ? const Color(0xFF0E1A24) : Colors.white,
             leading: IconButton(
@@ -228,9 +228,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                     fontSize: 13,
                   ),
                   tabs: const [
-                    Tab(text: 'PROFIL'),
-                    Tab(text: 'ATTRIBUTS'),
-                    Tab(text: 'STATS'),
+                    Tab(text: 'VUE D\'ENSEMBLE'),
+                    Tab(text: 'STATISTIQUES'),
                   ],
                 ),
               ),
@@ -239,21 +238,30 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
 
           // --- CONTENT ---
           SliverFillRemaining(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: _kGold))
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Tab 1 — PROFIL
-                      _buildProfileTab(
-                          isDark, textColor, cardColor,
-                          height, weight, preferredFoot, shirtNumber, nationality),
-                      // Tab 2 — ATTRIBUTS FIFA
-                      _buildAttributesTab(
-                          isDark, textColor, cardColor, attrCategories),
-                      // Tab 3 — STATS tournoi + équipe nationale
-                      _buildNationalStatsTab(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _statsLoading && attrCategories.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _kGold),
+                      )
+                    : _buildOverviewTab(
+                        isDark,
+                        textColor,
+                        cardColor,
+                        height,
+                        weight,
+                        preferredFoot,
+                        shirtNumber,
+                        nationality,
+                        position,
+                        attrCategories,
+                      ),
+                _statsLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: _kGold),
+                      )
+                    : _buildNationalStatsTab(
                         isDark,
                         textColor,
                         cardColor,
@@ -261,38 +269,82 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                         tournamentStats,
                         widget.season,
                       ),
-                    ],
-                  ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────
-  Widget _buildProfileTab(bool isDark, Color textColor, Color cardColor,
-      int height, int weight, String preferredFoot, int shirtNumber, String nationality) {
+  Widget _buildOverviewTab(
+    bool isDark,
+    Color textColor,
+    Color cardColor,
+    int height,
+    int weight,
+    String preferredFoot,
+    int shirtNumber,
+    String nationality,
+    String position,
+    List<dynamic> attrCategories,
+  ) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           _buildInfoCard(isDark, cardColor, textColor, [
             if (shirtNumber > 0)
-              _InfoRow(icon: Icons.tag, label: 'Numéro', value: '#$shirtNumber', color: _kGold),
-            if (nationality.isNotEmpty)
-              _InfoRow(icon: Icons.flag_rounded, label: 'Nationalité', value: nationality.toUpperCase(), color: Colors.blue),
-            if (height > 0)
-              _InfoRow(icon: Icons.height, label: 'Taille', value: '${height} cm', color: Colors.teal),
-            if (weight > 0)
-              _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Poids', value: '${weight} kg', color: Colors.orange),
-            if (preferredFoot.isNotEmpty)
+              _InfoRow(
+                icon: Icons.tag,
+                label: 'Numéro',
+                value: '#$shirtNumber',
+                color: _kGold,
+              ),
+            if (position.isNotEmpty)
               _InfoRow(
                 icon: Icons.sports_soccer_rounded,
+                label: 'Poste',
+                value: position,
+                color: Colors.teal,
+              ),
+            if (nationality.isNotEmpty)
+              _InfoRow(
+                icon: Icons.flag_rounded,
+                label: 'Nationalité',
+                value: nationality.toUpperCase(),
+                color: const Color(0xFF4DA3FF),
+              ),
+            if (height > 0)
+              _InfoRow(
+                icon: Icons.height,
+                label: 'Taille',
+                value: '$height cm',
+                color: Colors.teal,
+              ),
+            if (weight > 0)
+              _InfoRow(
+                icon: Icons.monitor_weight_outlined,
+                label: 'Poids',
+                value: '$weight kg',
+                color: Colors.orange,
+              ),
+            if (preferredFoot.isNotEmpty)
+              _InfoRow(
+                icon: Icons.directions_walk_rounded,
                 label: 'Pied préféré',
-                value: preferredFoot == 'left' ? '🦶 Gauche' : preferredFoot == 'right' ? '🦶 Droit' : preferredFoot,
+                value: preferredFoot == 'left'
+                    ? 'Gauche'
+                    : preferredFoot == 'right'
+                        ? 'Droit'
+                        : preferredFoot,
                 color: Colors.purple,
               ),
           ]),
+          if (attrCategories.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildAttributesTab(isDark, textColor, cardColor, attrCategories),
+          ],
         ],
       ),
     );
@@ -600,17 +652,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         children: [
           Row(
             children: [
-              if ((team['id'] as int?) != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    'https://api.sofascore.app/api/v1/team/${team['id']}/image',
-                    width: 28,
-                    height: 28,
-                    errorBuilder: (_, __, ___) =>
-                        const Icon(Icons.flag, size: 28, color: _kGold),
+                  NationFlagBadge(
+                    countryCode: resolveCountryCode(
+                      team['name']?.toString() ?? '',
+                    ),
+                    size: 28,
                   ),
-                ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
