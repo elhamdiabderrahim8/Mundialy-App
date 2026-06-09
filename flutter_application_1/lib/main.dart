@@ -198,6 +198,11 @@ class MyApp extends StatelessWidget {
         unselectedItemColor: Colors.white54,
         type: BottomNavigationBarType.fixed,
       ),
+      dividerColor: Colors.white12,
+      textTheme: ThemeData.dark().textTheme.apply(
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
+      ),
     );
   }
 
@@ -273,11 +278,15 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFF162634),
-          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A2F3F), Color(0xFF0E1A24)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.redAccent.withValues(alpha: 0.4),
-            width: 1.5,
+            color: const Color(0xFFE7C16A).withValues(alpha: 0.45),
+            width: 1.2,
           ),
           boxShadow: [
             BoxShadow(

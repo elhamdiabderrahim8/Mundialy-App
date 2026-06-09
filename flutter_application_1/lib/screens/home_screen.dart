@@ -14,7 +14,9 @@ import '../utils/country_flags.dart';
 import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
-import 'team_profile_screen.dart';
+import '../utils/team_navigation.dart';
+import '../widgets/mundialy_logo.dart';
+import '../widgets/pin_match_button.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 
@@ -845,9 +847,19 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: isDark ? _kCardDark : const Color(0xFFF2E5CA),
       expandedHeight: 250,
       centerTitle: true,
-      title: Text(
-        _selectedYear == -1 ? 'Live Action' : 'Mondial $_selectedYear',
-        style: const TextStyle(fontWeight: FontWeight.bold),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const MundialyLogo(size: 26),
+          const SizedBox(width: 8),
+          Text(
+            _selectedYear == -1 ? 'Live' : 'Mondial $_selectedYear',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF16324A),
+            ),
+          ),
+        ],
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
@@ -1334,37 +1346,9 @@ class _MatchCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   if (match.isLive)
-                    GestureDetector(
+                    PinMatchButton(
+                      compact: true,
                       onTap: () => _pinMatch(context, match),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.push_pin_rounded,
-                              color: Colors.redAccent,
-                              size: 12,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'ÉPINGLER',
-                              style: TextStyle(
-                                color: Colors.redAccent,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 9,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     )
                   else
                     Flexible(
@@ -1390,16 +1374,31 @@ class _MatchCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              match.homeTeam,
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 14,
+                          child: GestureDetector(
+                            onTap: match.homeTeamId == null
+                                ? null
+                                : () => openTeamProfile(
+                                      context,
+                                      teamName: match.homeTeam,
+                                      teamId: match.homeTeamId,
+                                      year: match.dateTime?.year ?? 2026,
+                                    ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                match.homeTeam,
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  decoration: match.homeTeamId != null
+                                      ? TextDecoration.underline
+                                      : null,
+                                  decorationColor:
+                                      textColor.withValues(alpha: 0.25),
+                                ),
                               ),
                             ),
                           ),
@@ -1453,15 +1452,30 @@ class _MatchCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              match.awayTeam,
-                              style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 14,
+                          child: GestureDetector(
+                            onTap: match.awayTeamId == null
+                                ? null
+                                : () => openTeamProfile(
+                                      context,
+                                      teamName: match.awayTeam,
+                                      teamId: match.awayTeamId,
+                                      year: match.dateTime?.year ?? 2026,
+                                    ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                match.awayTeam,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  decoration: match.awayTeamId != null
+                                      ? TextDecoration.underline
+                                      : null,
+                                  decorationColor:
+                                      textColor.withValues(alpha: 0.25),
+                                ),
                               ),
                             ),
                           ),
@@ -1488,6 +1502,8 @@ class _MatchCard extends StatelessWidget {
     if (await FlutterOverlayWindow.isActive()) {
       FlutterOverlayWindow.closeOverlay();
     }
+
+    ApiService.pinnedMatchId = match.id;
 
     await FlutterOverlayWindow.showOverlay(
       enableDrag: true,
@@ -1680,21 +1696,33 @@ class _BracketTeamRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isWinner ? _kGold : textColor;
-    return Row(
-      children: [
-        NationFlagBadge(countryCode: code, size: 28, imageUrlOverride: logo),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            name,
-            style: TextStyle(
-              color: color,
-              fontWeight: isWinner ? FontWeight.w900 : FontWeight.w500,
-              fontSize: 13,
+    return InkWell(
+      onTap: teamId == null
+          ? null
+          : () => openTeamProfile(
+                context,
+                teamName: name,
+                teamId: teamId,
+                year: year,
+              ),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            NationFlagBadge(countryCode: code, size: 28, imageUrlOverride: logo),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                name,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: isWinner ? FontWeight.w900 : FontWeight.w500,
+                  fontSize: 13,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
         if (penalty != null)
           Text(
             '($penalty)',
@@ -1707,15 +1735,17 @@ class _BracketTeamRow extends StatelessWidget {
             ),
           ),
         const SizedBox(width: 6),
-        Text(
-          score?.toString() ?? '-',
-          style: TextStyle(
-            color: color,
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
+            Text(
+              score?.toString() ?? '-',
+              style: TextStyle(
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -1822,18 +1852,18 @@ class _GroupTable extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Divider(color: Colors.white10, height: 20),
+                Divider(
+                  color: textColor.withValues(alpha: 0.12),
+                  height: 20,
+                ),
                 ...group.teams.map((t) {
                   final isQualif = t.rank <= 2;
                   return InkWell(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TeamProfileScreen(
-                          teamId: t.teamId,
-                          teamName: t.teamName,
-                          year: year,
-                        ),
-                      ),
+                    onTap: () => openTeamProfile(
+                      context,
+                      teamName: t.teamName,
+                      teamId: t.teamId,
+                      year: year,
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),

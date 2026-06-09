@@ -38,6 +38,8 @@ flutter:
     - assets/data/standings_2022.json
     - assets/data/topscorers_2022.json
     - assets/logo.png
+    - assets/mundialy_logo.png
+    - assets/trophy_watermark.png
 
 flutter_launcher_icons:
   android: "launcher_icon"

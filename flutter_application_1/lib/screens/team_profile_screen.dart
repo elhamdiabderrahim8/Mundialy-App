@@ -6,6 +6,7 @@ import '../models/team_player.dart';
 import '../models/team_profile.dart';
 import '../services/api_service.dart';
 import '../utils/country_flags.dart';
+import '../utils/team_resolver.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import 'player_profile_screen.dart';
@@ -60,7 +61,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     
     final List<LiveMatch> teamMatches = [...matches2022, ...matches2026]
         .where(
-          (m) => m.homeTeamId == widget.teamId || m.awayTeamId == widget.teamId,
+          (m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
         )
         .toList();
 
@@ -72,7 +73,12 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
     for (final group in standings) {
       for (final team in group.teams) {
-        if (team.teamId == widget.teamId) {
+        if (TeamResolver.isSameTeam(
+          team.teamName,
+          team.teamId,
+          widget.teamName,
+          widget.teamId,
+        )) {
           teamStanding = group;
           standingRow = team;
           break;

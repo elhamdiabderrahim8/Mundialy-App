@@ -75,6 +75,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final characteristics = (_statsData?['characteristics'] ?? {}) as Map<String, dynamic>;
     final attributes = (_statsData?['attributes'] ?? {}) as Map<String, dynamic>;
     final nationalStats = (_statsData?['nationalStats'] ?? {}) as Map<String, dynamic>;
+    final tournamentStats =
+        (_statsData?['tournamentStats'] ?? {}) as Map<String, dynamic>;
 
     // Characteristics
     final charData = characteristics['playerCharacteristics'] ?? characteristics;
@@ -250,9 +252,15 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                       // Tab 2 — ATTRIBUTS FIFA
                       _buildAttributesTab(
                           isDark, textColor, cardColor, attrCategories),
-                      // Tab 3 — STATS Équipe Nationale
+                      // Tab 3 — STATS tournoi + équipe nationale
                       _buildNationalStatsTab(
-                          isDark, textColor, cardColor, natStatsList),
+                        isDark,
+                        textColor,
+                        cardColor,
+                        natStatsList,
+                        tournamentStats,
+                        widget.season,
+                      ),
                     ],
                   ),
           ),
@@ -448,92 +456,190 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
   }
 
   // ─────────────────────────────────────────────
-  Widget _buildNationalStatsTab(bool isDark, Color textColor, Color cardColor,
-      List<dynamic> statsList) {
-    if (statsList.isEmpty) {
+  Widget _buildNationalStatsTab(
+    bool isDark,
+    Color textColor,
+    Color cardColor,
+    List<dynamic> statsList,
+    Map<String, dynamic> tournamentStats,
+    int season,
+  ) {
+    final wcStats = tournamentStats['statistics'] as Map<String, dynamic>? ??
+        tournamentStats['stats'] as Map<String, dynamic>?;
+
+    if (statsList.isEmpty && (wcStats == null || wcStats.isEmpty)) {
       return Center(
         child: Text(
-          'Statistiques nationales non disponibles',
+          'Statistiques non disponibles',
           style: TextStyle(color: textColor.withValues(alpha: 0.5)),
           textAlign: TextAlign.center,
         ),
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: statsList.length,
-      itemBuilder: (context, i) {
-        final stat = statsList[i] as Map<String, dynamic>;
-        final team = stat['team'] as Map<String, dynamic>? ?? {};
-        final stats = stat['statistics'] as Map<String, dynamic>? ?? {};
-        final season = stat['tournament']?['season']?['name'] ?? 
-                       stat['season']?['name'] ?? 
-                       stat['uniqueTournament']?['name'] ?? 'Tournoi';
-        
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+      children: [
+        if (wcStats != null && wcStats.isNotEmpty) ...[
+          _buildTournamentStatsCard(
+            isDark,
+            textColor,
+            cardColor,
+            wcStats,
+            season,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: team + tournament
-              Row(
+          const SizedBox(height: 12),
+        ],
+        ...List.generate(statsList.length, (i) {
+          return _buildNationalStatItem(
+            isDark,
+            textColor,
+            cardColor,
+            statsList[i] as Map<String, dynamic>,
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTournamentStatsCard(
+    bool isDark,
+    Color textColor,
+    Color cardColor,
+    Map<String, dynamic> stats,
+    int season,
+  ) {
+    final entries = <String, dynamic>{
+      'Matchs': stats['appearances'] ?? stats['matches'],
+      'Buts': stats['goals'],
+      'Passes': stats['assists'],
+      'Minutes': stats['minutesPlayed'] ?? stats['minutes'],
+      'Cartons jaunes': stats['yellowCards'],
+      'Cartons rouges': stats['redCards'],
+    }..removeWhere((_, v) => v == null);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _kGold.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Coupe du Monde $season',
+            style: const TextStyle(
+              color: _kGold,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...entries.entries.map(
+            (e) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
                 children: [
-                  if ((team['id'] as int?) != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        'https://api.sofascore.app/api/v1/team/${team['id']}/image',
-                        width: 28,
-                        height: 28,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.flag, size: 28, color: _kGold),
+                  Expanded(
+                    child: Text(
+                      e.key,
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.75),
+                        fontSize: 13,
                       ),
                     ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          team['name']?.toString() ?? 'Équipe Nationale',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          season,
-                          style: TextStyle(
-                            color: _kGold,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                  ),
+                  Text(
+                    '${e.value}',
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Stats grid
-              _buildNatStatsGrid(stats, textColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNationalStatItem(
+    bool isDark,
+    Color textColor,
+    Color cardColor,
+    Map<String, dynamic> stat,
+  ) {
+    final team = stat['team'] as Map<String, dynamic>? ?? {};
+    final stats = stat['statistics'] as Map<String, dynamic>? ?? {};
+    final season = stat['tournament']?['season']?['name'] ??
+        stat['season']?['name'] ??
+        stat['uniqueTournament']?['name'] ??
+        'Tournoi';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if ((team['id'] as int?) != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.network(
+                    'https://api.sofascore.app/api/v1/team/${team['id']}/image',
+                    width: 28,
+                    height: 28,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.flag, size: 28, color: _kGold),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      team['name']?.toString() ?? 'Équipe Nationale',
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      season,
+                      style: const TextStyle(
+                        color: _kGold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 12),
+          _buildNatStatsGrid(stats, textColor),
+        ],
+      ),
     );
   }
 

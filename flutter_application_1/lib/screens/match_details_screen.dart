@@ -8,7 +8,7 @@ import '../services/api_service.dart';
 import '../utils/mock_match_details_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'player_profile_screen.dart';
-import 'team_profile_screen.dart';
+import '../utils/team_navigation.dart';
 
 const Color kGold = Color(0xFFE7C16A);
 
@@ -953,16 +953,16 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                           ),
                           Center(
                             child: Opacity(
-                              opacity: 0.08,
-                              child: Image.network(
-                                'https://upload.wikimedia.org/wikipedia/fr/thumb/b/b4/FIFA_World_Cup_2022_Logo.svg/1200px-FIFA_World_Cup_2022_Logo.svg.png',
-                                width: 250,
+                              opacity: 0.12,
+                              child: Image.asset(
+                                'assets/trophy_watermark.png',
+                                width: 200,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
-                                      Icons.emoji_events,
-                                      size: 180,
-                                      color: kGold,
+                                    Icon(
+                                      Icons.emoji_events_rounded,
+                                      size: 160,
+                                      color: kGold.withValues(alpha: 0.35),
                                     ),
                               ),
                             ),
@@ -1427,21 +1427,18 @@ class _TeamMiniCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final nameColor = isDark ? Colors.white : const Color(0xFF16324A);
 
     return InkWell(
       onTap: teamId == null
           ? null
-          : () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => TeamProfileScreen(
-                    teamId: teamId!,
-                    teamName: name,
-                    year: year,
-                  ),
-                ),
-              );
-            },
+          : () => openTeamProfile(
+                context,
+                teamName: name,
+                teamId: teamId,
+                year: year,
+              ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1457,8 +1454,8 @@ class _TeamMiniCard extends StatelessWidget {
               child: Text(
                 name,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: nameColor,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -1593,17 +1590,12 @@ class _EventTile extends StatelessWidget {
                     ),
                     if (event.teamId != null)
                       GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => TeamProfileScreen(
-                                teamId: event.teamId!,
-                                teamName: event.teamName,
-                                year: year,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: () => openTeamProfile(
+                          context,
+                          teamName: event.teamName,
+                          teamId: event.teamId,
+                          year: year,
+                        ),
                         child: SizedBox(
                           width: 28,
                           height: 28,

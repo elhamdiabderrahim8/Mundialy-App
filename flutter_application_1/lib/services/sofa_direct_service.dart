@@ -616,15 +616,39 @@ class SofaDirectService {
   /// Récupère les joueurs d'une équipe
   static Future<List<Map<String, dynamic>>> fetchTeamSquad(int teamId) async {
     final data = await _fetchJson('/team/$teamId/players');
+    return _parseSquadPlayers(data);
+  }
+
+  /// Effectif d'une équipe pour un tournoi précis (CDM 2022 / 2026)
+  static Future<List<Map<String, dynamic>>> fetchTournamentSquad(
+    int teamId,
+    int seasonId,
+  ) async {
+    final data = await _fetchJson(
+      '/team/$teamId/unique-tournament/$_utId/season/$seasonId/players',
+    );
+    final squad = _parseSquadPlayers(data);
+    if (squad.isNotEmpty) return squad;
+
+    final alt = await _fetchJson(
+      '/team/$teamId/unique-tournament/$_utId/season/$seasonId/squad',
+    );
+    return _parseSquadPlayers(alt);
+  }
+
+  static List<Map<String, dynamic>> _parseSquadPlayers(
+    Map<String, dynamic>? data,
+  ) {
     if (data == null || data['players'] == null) return [];
 
     final players = <Map<String, dynamic>>[];
     for (final p in data['players'] as List) {
-      final player = p['player'] ?? {};
+      final player = p['player'] ?? p;
+      if (player is! Map) continue;
       players.add({
         'id': player['id'],
         'name': player['name'],
-        'position': player['position'],
+        'position': player['position'] ?? p['position'],
         'shirtNumber': player['shirtNumber'] ?? p['shirtNumber'],
         'height': player['height'],
         'dateOfBirthTimestamp': player['dateOfBirthTimestamp'],

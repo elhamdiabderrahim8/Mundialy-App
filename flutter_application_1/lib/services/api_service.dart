@@ -16,6 +16,7 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 import '../utils/country_flags.dart';
 import '../utils/global_config.dart';
+import '../utils/team_resolver.dart';
 import '../main.dart';
 import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
@@ -82,7 +83,7 @@ class ApiService {
   }
 
   static Future<void> initNotifications() async {
-    const android = AndroidInitializationSettings('@mipmap/launcher_icon');
+    const android = AndroidInitializationSettings('@drawable/ic_notification');
     const settings = InitializationSettings(android: android);
 
     await _notifications
@@ -114,6 +115,7 @@ class ApiService {
       // Appel DIRECT à SofaScore depuis le téléphone (jamais bloqué)
       final data = await SofaDirectService.fetchLiveMatches();
       final matches = data.map((j) => _mapSofaToMatch(j)).toList();
+      TeamResolver.indexMatches(matches);
       _checkGoals(matches);
       return matches;
     } on TimeoutException {
@@ -241,7 +243,7 @@ class ApiService {
       'Buts en Direct',
       importance: Importance.max,
       priority: Priority.high,
-      icon: '@mipmap/launcher_icon',
+      icon: '@drawable/ic_notification',
       color: const Color(0xFFD4AF37),
       styleInformation: BigTextStyleInformation(
         body,
@@ -297,6 +299,7 @@ class ApiService {
         // 2022 : chargement INSTANTANÉ depuis les assets embarqués (0 latence)
         final raw = await rootBundle.loadString('assets/data/matches_2022.json');
         final data = _parseMatchesResponse(raw);
+        TeamResolver.indexMatches(data);
         _setCache(cacheKey, data);
         return data;
       } else {
@@ -304,6 +307,7 @@ class ApiService {
         final rawData = await SofaDirectService.fetchFixtures2026();
         if (rawData.isNotEmpty) {
           final data = rawData.map((j) => _mapSofaToMatch(j)).toList();
+          TeamResolver.indexMatches(data);
           _setCache(cacheKey, data);
           return data;
         }
@@ -324,9 +328,11 @@ class ApiService {
 
     try {
       if (year == 2022) {
-        // 2022 : chargement INSTANTANÉ depuis les assets embarqués
+        final matchesRaw =
+            await rootBundle.loadString('assets/data/matches_2022.json');
+        TeamResolver.indexMatches(_parseMatchesResponse(matchesRaw));
         final raw = await rootBundle.loadString('assets/data/standings_2022.json');
-        final data = _parseStandingsResponse(raw);
+        final data = _remapStandingsIds(_parseStandingsResponse(raw));
         _setCache(cacheKey, data);
         return data;
       } else {
@@ -401,14 +407,26 @@ class ApiService {
     int? year,
   }) async {
     try {
-      debugPrint('🔍 fetchTeamProfile: teamId=$teamId, teamName=$teamName');
+      final resolvedId = TeamResolver.resolve(teamName ?? '', hintId: teamId);
+      final seasonYear = year ?? 2026;
+      final seasonId = seasonYear == 2022
+          ? GlobalConfig.season2022Id
+          : GlobalConfig.season2026Id;
+
+      debugPrint(
+        '🔍 fetchTeamProfile: resolvedId=$resolvedId, teamName=$teamName, season=$seasonYear',
+      );
+
       final results = await Future.wait([
-        SofaDirectService.fetchTeamCoach(teamId),
-        SofaDirectService.fetchTeamSquad(teamId),
+        SofaDirectService.fetchTeamCoach(resolvedId),
+        SofaDirectService.fetchTournamentSquad(resolvedId, seasonId),
       ]);
 
       final coachData = results[0] as Map<String, dynamic>?;
-      final playersData = results[1] as List<Map<String, dynamic>>? ?? [];
+      var playersData = results[1] as List<Map<String, dynamic>>? ?? [];
+      if (playersData.isEmpty) {
+        playersData = await SofaDirectService.fetchTeamSquad(resolvedId);
+      }
       debugPrint('🔍 fetchTeamProfile: coach=${coachData != null}, players=${playersData.length}');
 
       TeamCoach? coach;
@@ -432,11 +450,11 @@ class ApiService {
       );
 
       return TeamProfile(
-        id: teamId,
+        id: resolvedId,
         name: teamName ?? 'Équipe',
         shortName: teamName ?? 'Équipe',
         code: resolveCountryCode(teamName ?? ''),
-        logoUrl: "https://api.sofascore.app/api/v1/team/$teamId/image",
+        logoUrl: "https://api.sofascore.app/api/v1/team/$resolvedId/image",
         venue: "",
         foundedLabel: "",
         coach: coach,
@@ -454,16 +472,21 @@ class ApiService {
     int? season,
   }) async {
     try {
-      // Appels parallèles à SofaScore pour récupérer toutes les données du joueur
+      final seasonId = (season ?? 2026) == 2022
+          ? GlobalConfig.season2022Id
+          : GlobalConfig.season2026Id;
+
       final results = await Future.wait([
         SofaDirectService.fetchPlayerNationalStats(playerId),
         SofaDirectService.fetchPlayerCharacteristics(playerId),
         SofaDirectService.fetchPlayerAttributes(playerId),
+        SofaDirectService.fetchPlayerStats(playerId, seasonId),
       ]);
       return {
         'nationalStats': results[0],
         'characteristics': results[1],
         'attributes': results[2],
+        'tournamentStats': results[3],
       };
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
@@ -746,6 +769,27 @@ class ApiService {
       source: MatchDataSource.wc2026api,
       streamUrl: json['stream_url'],
     );
+  }
+
+  static List<GroupStanding> _remapStandingsIds(List<GroupStanding> groups) {
+    return groups.map((group) {
+      final teams = group.teams.map((team) {
+        final resolved = TeamResolver.resolve(team.teamName, hintId: team.teamId);
+        final sofaLogo = resolved > 0
+            ? 'https://api.sofascore.app/api/v1/team/$resolved/image'
+            : team.teamLogo;
+        return StandingTeam(
+          teamId: resolved > 0 ? resolved : team.teamId,
+          rank: team.rank,
+          teamName: team.teamName,
+          teamLogo: sofaLogo,
+          points: team.points,
+          played: team.played,
+          goalsDiff: team.goalsDiff,
+        );
+      }).toList();
+      return GroupStanding(groupName: group.groupName, teams: teams);
+    }).toList();
   }
 
   static List<GroupStanding> _parseStandingsResponse(String rawJson) {

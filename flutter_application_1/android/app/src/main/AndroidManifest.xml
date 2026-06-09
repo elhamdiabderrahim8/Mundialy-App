@@ -39,6 +39,14 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Icône notifications : silhouette blanche TV + trophée (sans fond jaune) -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:value="#E7C16A" />
+
         <!-- Désactiver Impeller pour éviter les erreurs GPU Mali sur Infinix -->
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
