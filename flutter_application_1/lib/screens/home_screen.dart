@@ -284,6 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.zero,
         children: [
           // ── HERO BANNER ──
+          const _HeroBannerDivider(),
           const _TournamentHero2026(),
           const SizedBox(height: 20),
 
@@ -676,6 +677,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     playerId: scorer.playerId,
                     playerName: scorer.playerName,
                     teamName: scorer.teamName,
+                    teamCode: resolveCountryCode(scorer.teamName),
                     season: _selectedYear,
                     photoUrl: scorer.playerPhoto.isNotEmpty
                         ? scorer.playerPhoto
@@ -1166,8 +1168,8 @@ class _YearDropdownSelector extends StatelessWidget {
           }).toList();
         },
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 260),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          constraints: const BoxConstraints(maxWidth: 280),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           decoration: BoxDecoration(
             color: panelColor,
             borderRadius: BorderRadius.circular(14),
@@ -1192,26 +1194,26 @@ class _YearDropdownSelector extends StatelessWidget {
               Icon(
                 Icons.emoji_events_rounded,
                 color: accentColor,
-                size: 18,
+                size: 20,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
               Flexible(
                 child: Text(
-                  'ÉDITION $selectedYear',
+                  'COUPE DU MONDE $selectedYear',
                   style: TextStyle(
                     color: labelColor,
                     fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    letterSpacing: 1.2,
+                    fontSize: 13,
+                    letterSpacing: 0.8,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: accentColor,
-                size: 20,
+                size: 22,
               ),
             ],
           ),
@@ -1426,6 +1428,7 @@ class _MatchCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         NationFlagBadge(
                           countryCode: match.homeCode,
+                          teamName: match.homeTeam,
                           size: 24,
                         ),
                       ],
@@ -1466,6 +1469,7 @@ class _MatchCard extends StatelessWidget {
                       children: [
                         NationFlagBadge(
                           countryCode: match.awayCode,
+                          teamName: match.awayTeam,
                           size: 24,
                         ),
                         const SizedBox(width: 8),
@@ -2066,6 +2070,72 @@ class _AnimatedEntranceState extends State<_AnimatedEntrance>
 }
 
 /// Premium hero banner for 2026 with dynamic countdown
+class _HeroBannerDivider extends StatelessWidget {
+  const _HeroBannerDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? _kDarkBg : const Color(0xFFF7F2E8);
+
+    return Container(
+      color: bgColor,
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1.5,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    _kGold.withValues(alpha: 0.15),
+                    _kGold.withValues(alpha: 0.65),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kGold.withValues(alpha: isDark ? 0.12 : 0.18),
+                border: Border.all(
+                  color: _kGold.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Icon(
+                Icons.sports_soccer_rounded,
+                color: _kGold.withValues(alpha: 0.9),
+                size: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 1.5,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    _kGold.withValues(alpha: 0.65),
+                    _kGold.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Premium hero banner for 2026 with dynamic countdown
 class _TournamentHero2026 extends StatelessWidget {
   const _TournamentHero2026();
 
@@ -2621,6 +2691,7 @@ class _LiveMatchCard2026State extends State<_LiveMatchCard2026>
                             const SizedBox(width: 8),
                             NationFlagBadge(
                               countryCode: m.homeCode,
+                              teamName: m.homeTeam,
                               size: 28,
                               imageUrlOverride: m.homeLogoUrl,
                             ),
@@ -2645,6 +2716,7 @@ class _LiveMatchCard2026State extends State<_LiveMatchCard2026>
                           children: [
                             NationFlagBadge(
                               countryCode: m.awayCode,
+                              teamName: m.awayTeam,
                               size: 28,
                               imageUrlOverride: m.awayLogoUrl,
                             ),

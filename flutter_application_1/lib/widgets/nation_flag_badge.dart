@@ -1,16 +1,20 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../utils/country_flags.dart';
+
 class NationFlagBadge extends StatelessWidget {
   const NationFlagBadge({
     super.key,
     required this.countryCode,
     required this.size,
     this.imageUrlOverride,
+    this.teamName,
   });
 
   final String countryCode;
   final double size;
   final String? imageUrlOverride;
+  final String? teamName;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +88,18 @@ class NationFlagBadge extends StatelessWidget {
       return override;
     }
 
-    return resolveFlagUrl(countryCode);
+    final fromCode = resolveFlagUrl(countryCode);
+    if (fromCode != null) return fromCode;
+
+    final name = teamName;
+    if (name != null && name.isNotEmpty) {
+      final iso2 = resolveCountryCode(name);
+      if (iso2.length == 2 || iso2.contains('-')) {
+        return 'https://flagcdn.com/w160/${iso2.toLowerCase()}.png';
+      }
+    }
+
+    return null;
   }
 
   /// Drapeaux uniquement via flagcdn.com â€” jamais de logos SofaScore / fÃ©dÃ©rations.
@@ -303,7 +318,7 @@ class NationFlagBadge extends StatelessWidget {
   static String? _map3To2(String code3) {
     const map = {
       // A
-      'AFG': 'AF', 'ALB': 'AL', 'ALG': 'DZ', 'AND': 'AD', 'ANG': 'AO',
+      'AFG': 'AF', 'ALB': 'AL', 'ALG': 'DZ', 'DZA': 'DZ', 'AND': 'AD', 'ANG': 'AO',
       'ANT': 'AG', 'ARG': 'AR', 'ARM': 'AM', 'ARU': 'AW', 'ASA': 'AS',
       'AUS': 'AU', 'AUT': 'AT', 'AZE': 'AZ',
       // B

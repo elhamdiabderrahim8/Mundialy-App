@@ -157,6 +157,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       ? null
       : (_selectedTeamIndex == 0 ? _details!.homeLineup : _details!.awayLineup);
 
+  List<TeamLineup> get _matchLineups => _details == null
+      ? const []
+      : [_details!.homeLineup, _details!.awayLineup];
+
+  int get _tournamentSeason => resolveWorldCupSeason(widget.match.dateTime);
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -323,8 +329,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 child: _TeamMiniCard(
                   name: overview.homeTeam,
                   code: overview.homeCode,
+                  logoUrl: overview.homeLogoUrl,
                   teamId: widget.match.homeTeamId,
-                  year: widget.match.dateTime?.year ?? 2022,
+                  year: _tournamentSeason,
                 ),
               ),
               Expanded(
@@ -378,8 +385,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 child: _TeamMiniCard(
                   name: overview.awayTeam,
                   code: overview.awayCode,
+                  logoUrl: overview.awayLogoUrl,
                   teamId: widget.match.awayTeamId,
-                  year: widget.match.dateTime?.year ?? 2022,
+                  year: _tournamentSeason,
                 ),
               ),
             ],
@@ -673,7 +681,8 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           padding: const EdgeInsets.only(bottom: 12),
           child: _EventTile(
             event: e,
-            year: widget.match.dateTime?.year ?? 2022,
+            year: _tournamentSeason,
+            lineups: _matchLineups,
             cardColor: cardColor,
             textColor: textColor,
           ),
@@ -981,10 +990,10 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                                   playerName: player.name,
                                   teamName: lineup.teamName,
                                   teamCode: lineup.teamCode,
-                                  season:
-                                      widget.match.dateTime?.year ?? 2022,
+                                  season: _tournamentSeason,
                                   shirtNumber: player.number,
                                   position: player.role,
+                                  lineups: _matchLineups,
                                 ),
                                 child: _PlayerJersey(
                                   player: player,
@@ -1022,7 +1031,21 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           spacing: 12,
           runSpacing: 12,
           children: lineup.bench.map((player) {
-            return Container(
+            return GestureDetector(
+              onTap: player.id > 0
+                  ? () => openPlayerProfile(
+                        context,
+                        playerId: player.id,
+                        playerName: player.name,
+                        teamName: lineup.teamName,
+                        teamCode: lineup.teamCode,
+                        season: _tournamentSeason,
+                        shirtNumber: player.number,
+                        position: player.role,
+                        lineups: _matchLineups,
+                      )
+                  : null,
+              child: Container(
               width: 100,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -1122,6 +1145,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     ),
                 ],
               ),
+            ),
             );
           }).toList(),
         ),
@@ -1393,12 +1417,14 @@ class _TeamMiniCard extends StatelessWidget {
   const _TeamMiniCard({
     required this.name,
     required this.code,
+    this.logoUrl,
     this.teamId,
     this.year = 2022,
   });
 
   final String name;
   final String code;
+  final String? logoUrl;
   final int? teamId;
   final int year;
 
@@ -1421,6 +1447,8 @@ class _TeamMiniCard extends StatelessWidget {
         children: [
           _DiamondFlag(
             countryCode: code,
+            teamName: name,
+            logoUrl: logoUrl,
             size: 74,
           ),
           const SizedBox(height: 16),
@@ -1450,15 +1478,21 @@ class _DiamondFlag extends StatelessWidget {
   const _DiamondFlag({
     required this.countryCode,
     required this.size,
+    this.teamName,
+    this.logoUrl,
   });
 
   final String countryCode;
   final double size;
+  final String? teamName;
+  final String? logoUrl;
 
   @override
   Widget build(BuildContext context) {
     return NationFlagBadge(
       countryCode: countryCode,
+      teamName: teamName,
+      imageUrlOverride: logoUrl,
       size: size,
     );
   }
@@ -1509,14 +1543,21 @@ class _EventTile extends StatelessWidget {
   const _EventTile({
     required this.event,
     required this.year,
+    required this.lineups,
     required this.cardColor,
     required this.textColor,
   });
 
   final MatchEvent event;
   final int year;
+  final List<TeamLineup> lineups;
   final Color cardColor;
   final Color textColor;
+
+  bool _canOpenPlayer(String name, int? id) {
+    if (id != null && id > 0) return true;
+    return resolvePlayerIdByName(name, lineups) != null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1577,6 +1618,7 @@ class _EventTile extends StatelessWidget {
                           countryCode: event.teamCode.isNotEmpty
                               ? event.teamCode
                               : resolveCountryCode(event.teamName),
+                          teamName: event.teamName,
                           size: 28,
                         ),
                       ),
@@ -1585,20 +1627,21 @@ class _EventTile extends StatelessWidget {
                 const SizedBox(height: 8),
                 if (event.playerIn == null && event.playerOut == null)
                   GestureDetector(
-                    onTap: event.playerId == null
-                        ? null
-                        : () => openPlayerProfile(
+                    onTap: _canOpenPlayer(event.scorerName, event.playerId)
+                        ? () => openPlayerProfile(
                               context,
-                              playerId: event.playerId!,
+                              playerId: event.playerId ?? 0,
                               playerName: event.scorerName,
                               teamName: event.teamName,
                               teamCode: event.teamCode,
                               season: year,
-                            ),
+                              lineups: lineups,
+                            )
+                        : null,
                     child: Text(
                       event.scorerName,
                       style: TextStyle(
-                        color: event.playerId != null
+                        color: _canOpenPlayer(event.scorerName, event.playerId)
                             ? textColor
                             : textColor.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w800,
@@ -1610,16 +1653,17 @@ class _EventTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: GestureDetector(
-                      onTap: event.assistantId == null
-                          ? null
-                          : () => openPlayerProfile(
+                      onTap: _canOpenPlayer(event.assistant!, event.assistantId)
+                          ? () => openPlayerProfile(
                                 context,
-                                playerId: event.assistantId!,
+                                playerId: event.assistantId ?? 0,
                                 playerName: event.assistant!,
                                 teamName: event.teamName,
                                 teamCode: event.teamCode,
                                 season: year,
-                              ),
+                                lineups: lineups,
+                              )
+                          : null,
                       child: Row(
                         children: [
                           Icon(
@@ -1641,7 +1685,10 @@ class _EventTile extends StatelessWidget {
                             child: Text(
                               event.assistant!,
                               style: TextStyle(
-                                color: event.assistantId != null
+                                color: _canOpenPlayer(
+                                      event.assistant!,
+                                      event.assistantId,
+                                    )
                                     ? _kPasserColor
                                     : textColor.withValues(alpha: 0.54),
                                 fontSize: 13,
@@ -1660,16 +1707,17 @@ class _EventTile extends StatelessWidget {
                       children: [
                         if (event.playerIn != null)
                           GestureDetector(
-                            onTap: event.playerInId == null
-                                ? null
-                                : () => openPlayerProfile(
+                            onTap: _canOpenPlayer(event.playerIn!, event.playerInId)
+                                ? () => openPlayerProfile(
                                       context,
-                                      playerId: event.playerInId!,
+                                      playerId: event.playerInId ?? 0,
                                       playerName: event.playerIn!,
                                       teamName: event.teamName,
                                       teamCode: event.teamCode,
                                       season: year,
-                                    ),
+                                      lineups: lineups,
+                                    )
+                                : null,
                             child: _EventPill(
                               label: 'ENTRE: ${event.playerIn!}',
                               color: const Color(0xFF1E6C47),
@@ -1679,16 +1727,20 @@ class _EventTile extends StatelessWidget {
                         if (event.playerOut != null) const SizedBox(height: 4),
                         if (event.playerOut != null)
                           GestureDetector(
-                            onTap: event.playerOutId == null
-                                ? null
-                                : () => openPlayerProfile(
+                            onTap: _canOpenPlayer(
+                                  event.playerOut!,
+                                  event.playerOutId,
+                                )
+                                ? () => openPlayerProfile(
                                       context,
-                                      playerId: event.playerOutId!,
+                                      playerId: event.playerOutId ?? 0,
                                       playerName: event.playerOut!,
                                       teamName: event.teamName,
                                       teamCode: event.teamCode,
                                       season: year,
-                                    ),
+                                      lineups: lineups,
+                                    )
+                                : null,
                             child: _EventPill(
                               label: 'SORT: ${event.playerOut!}',
                               color: const Color(0xFF7A3A2A),

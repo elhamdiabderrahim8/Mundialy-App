@@ -20,10 +20,10 @@ class MundialyLogo extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(size * 0.22),
           child: Image.asset(
-            'assets/mundialy_logo.png',
+            'assets/logo.png',
             width: size,
             height: size,
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => Icon(
               Icons.live_tv_rounded,
               size: size,
