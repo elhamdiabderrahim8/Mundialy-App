@@ -8,6 +8,7 @@ import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../services/api_service.dart';
+import '../services/ad_mob_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/country_flags.dart';
 import '../utils/standing_status.dart';
@@ -192,6 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedTab = index;
     });
+    java_timer.unawaited(AdMobService.maybeShowInterstitialAfterNavigation());
     if (_pageController.hasClients) _pageController.jumpToPage(0);
   }
 
@@ -694,15 +696,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   teamName: scorer.teamName,
                   teamCode: resolveCountryCode(scorer.teamName),
                   season: _selectedYear,
-                  photoUrl: scorer.playerPhoto.isNotEmpty
-                      ? scorer.playerPhoto
-                      : null,
                 )
               : null,
           leading: CircleAvatar(
-            backgroundImage: scorer.playerPhoto.isNotEmpty
-                ? NetworkImage(scorer.playerPhoto)
-                : null,
+            backgroundColor: _kGold.withValues(alpha: 0.16),
+            child: Text(
+              '${scorer.rank}',
+              style: const TextStyle(
+                color: _kGold,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
           title: Text(
             scorer.playerName,
