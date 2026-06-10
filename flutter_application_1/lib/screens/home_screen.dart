@@ -1136,8 +1136,10 @@ class _YearDropdownSelector extends StatelessWidget {
         itemBuilder: (context) {
           return [2022, 2026].map((y) {
             final isSel = selectedYear == y;
-            final label = 'Coupe du Monde $y';
+            final label = 'FIFA $y';
             return PopupMenuItem<int>(
+
+          
               value: y,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -1199,7 +1201,7 @@ class _YearDropdownSelector extends StatelessWidget {
               const SizedBox(width: 14),
               Flexible(
                 child: Text(
-                  'COUPE DU MONDE $selectedYear',
+                  'FIFA $selectedYear',
                   style: TextStyle(
                     color: labelColor,
                     fontWeight: FontWeight.w900,
