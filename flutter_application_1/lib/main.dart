@@ -10,14 +10,10 @@ import 'screens/home_screen.dart';
 import 'services/api_service.dart';
 import 'services/ad_mob_service.dart';
 import 'services/theme_provider.dart';
+import 'utils/app_globals.dart';
 import 'widgets/animated_goal_overlay.dart';
 import 'widgets/in_app_notification.dart';
 import 'widgets/nation_flag_badge.dart';
-
-final GlobalKey<NavigatorState> globalNavigatorKey =
-    GlobalKey<NavigatorState>();
-final StreamController<void> refreshStreamController =
-    StreamController<void>.broadcast();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
-import '../main.dart';
 import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
@@ -16,6 +15,7 @@ import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 import '../utils/team_navigation.dart';
+import '../utils/app_globals.dart';
 import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/pin_match_button.dart';

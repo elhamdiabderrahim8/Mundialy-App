@@ -17,9 +17,9 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import '../utils/country_flags.dart';
 import '../utils/global_config.dart';
 import '../utils/team_resolver.dart';
-import '../main.dart';
 import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
+import '../utils/app_globals.dart';
 import 'sofa_direct_service.dart';
 
 class _CacheEntry {
