@@ -46,10 +46,7 @@ class _InlineAdaptiveBannerState extends State<InlineAdaptiveBanner> {
     await _bannerAd?.dispose();
     _bannerAd = null;
 
-    final size = AdSize.getInlineAdaptiveBannerAdSize(
-      width,
-      widget.maxHeight,
-    );
+    final size = AdSize.getInlineAdaptiveBannerAdSize(width, widget.maxHeight);
 
     final banner = BannerAd(
       adUnitId: adUnitId,

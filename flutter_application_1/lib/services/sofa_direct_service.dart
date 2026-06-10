@@ -27,7 +27,8 @@ class SofaDirectService {
         final engine = CronetEngine.build(
           cacheMode: CacheMode.memory,
           cacheMaxSize: 2 * 1024 * 1024,
-          userAgent: 'Mozilla/5.0 (Linux; Android 13; Infinix) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          userAgent:
+              'Mozilla/5.0 (Linux; Android 13; Infinix) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
         );
         _cronetClient = CronetClient.fromCronetEngine(engine);
         return _cronetClient!;
@@ -50,8 +51,10 @@ class SofaDirectService {
   }
 
   /// Récupère du JSON depuis SofaScore avec retry, rotation de domaine et Cronet
-  static Future<Map<String, dynamic>?> _fetchJson(String path,
-      {int retries = 2}) async {
+  static Future<Map<String, dynamic>?> _fetchJson(
+    String path, {
+    int retries = 2,
+  }) async {
     final client = await _getClient();
     for (int attempt = 0; attempt <= retries; attempt++) {
       final domain = _domains[attempt % _domains.length];
@@ -68,7 +71,9 @@ class SofaDirectService {
         debugPrint('[SofaDirect] Erreur tentative ${attempt + 1}: $e');
       }
       if (attempt < retries) {
-        await Future.delayed(Duration(milliseconds: 500 + _random.nextInt(500)));
+        await Future.delayed(
+          Duration(milliseconds: 500 + _random.nextInt(500)),
+        );
       }
     }
     return null;
@@ -95,7 +100,8 @@ class SofaDirectService {
       final awayScore = e['awayScore'] ?? {};
       final dt = e['startTimestamp'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              (e['startTimestamp'] as int) * 1000)
+              (e['startTimestamp'] as int) * 1000,
+            )
           : DateTime.now();
 
       String shortStatus;
@@ -128,19 +134,10 @@ class SofaDirectService {
           },
           'time': isLive ? (e['time'] ?? {}) : {},
         },
-        'league': {
-          'round': e['tournament']?['name'] ?? 'Match',
-          'group': '',
-        },
+        'league': {'round': e['tournament']?['name'] ?? 'Match', 'group': ''},
         'teams': {
-          'home': {
-            'id': e['homeTeam']?['id'],
-            'name': e['homeTeam']?['name'],
-          },
-          'away': {
-            'id': e['awayTeam']?['id'],
-            'name': e['awayTeam']?['name'],
-          },
+          'home': {'id': e['homeTeam']?['id'], 'name': e['homeTeam']?['name']},
+          'away': {'id': e['awayTeam']?['id'], 'name': e['awayTeam']?['name']},
         },
         'goals': {
           'home': currentHome is int ? currentHome : null,
@@ -163,10 +160,22 @@ class SofaDirectService {
     // Récupérer les matchs par rounds (1 à 10) et les listes next/last en parallèle
     final futures = <Future<Map<String, dynamic>?>>[];
     for (int round = 1; round <= 10; round++) {
-      futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/round/$round'));
+      futures.add(
+        _fetchJson(
+          '/unique-tournament/$_utId/season/$_seasonId2026/events/round/$round',
+        ),
+      );
     }
-    futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/last/0'));
-    futures.add(_fetchJson('/unique-tournament/$_utId/season/$_seasonId2026/events/next/0'));
+    futures.add(
+      _fetchJson(
+        '/unique-tournament/$_utId/season/$_seasonId2026/events/last/0',
+      ),
+    );
+    futures.add(
+      _fetchJson(
+        '/unique-tournament/$_utId/season/$_seasonId2026/events/next/0',
+      ),
+    );
 
     final results = await Future.wait(futures);
 
@@ -199,8 +208,7 @@ class SofaDirectService {
       // Minutes écoulées
       dynamic elapsed;
       if (short == 'LIVE') {
-        final periodStart =
-            (e['time'] ?? {})['currentPeriodStartTimestamp'];
+        final periodStart = (e['time'] ?? {})['currentPeriodStartTimestamp'];
         if (periodStart != null) {
           elapsed = (nowTs - (periodStart as int)) ~/ 60;
         }
@@ -209,20 +217,23 @@ class SofaDirectService {
       }
 
       // Nom du round
-      String roundName = (e['roundInfo'] ?? {})['name'] ??
+      String roundName =
+          (e['roundInfo'] ?? {})['name'] ??
           (e['tournament'] ?? {})['name'] ??
           '';
       if ((e['tournament'] ?? {})['isGroup'] == true) {
         final roundNum = (e['roundInfo'] ?? {})['round'];
-        roundName =
-            roundNum != null ? 'Group Stage - $roundNum' : 'Group Stage';
+        roundName = roundNum != null
+            ? 'Group Stage - $roundNum'
+            : 'Group Stage';
       }
 
       final hs = e['homeScore'] ?? {};
       final as_ = e['awayScore'] ?? {};
       final dt = e['startTimestamp'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              (e['startTimestamp'] as int) * 1000)
+              (e['startTimestamp'] as int) * 1000,
+            )
           : DateTime.now();
 
       final venue = e['venue'];
@@ -251,9 +262,7 @@ class SofaDirectService {
             'elapsed': elapsed,
           },
         },
-        'league': {
-          'round': roundName,
-        },
+        'league': {'round': roundName},
         'teams': {
           'home': {
             'id': (e['homeTeam'] ?? {})['id'],
@@ -269,10 +278,7 @@ class SofaDirectService {
           'away': as_['current'] ?? as_['display'],
         },
         'score': {
-          'penalty': {
-            'home': hs['penalties'],
-            'away': as_['penalties'],
-          },
+          'penalty': {'home': hs['penalties'], 'away': as_['penalties']},
         },
       });
     }
@@ -294,7 +300,8 @@ class SofaDirectService {
   /// Récupère les classements des groupes de la Coupe du Monde 2026
   static Future<Map<String, dynamic>?> fetchStandings2026() async {
     final groupsData = await _fetchJson(
-        '/unique-tournament/$_utId/season/$_seasonId2026/groups');
+      '/unique-tournament/$_utId/season/$_seasonId2026/groups',
+    );
     if (groupsData == null || groupsData['groups'] == null) return null;
 
     final allStandings = <List<Map<String, dynamic>>>[];
@@ -304,12 +311,16 @@ class SofaDirectService {
       if (tid == null) continue;
 
       final groupName = g['groupName']?.toString().trim() ?? '';
-      if (!RegExp(r'^Group\s+[A-Z]$', caseSensitive: false).hasMatch(groupName)) {
+      if (!RegExp(
+        r'^Group\s+[A-Z]$',
+        caseSensitive: false,
+      ).hasMatch(groupName)) {
         continue;
       }
 
       final data = await _fetchJson(
-          '/tournament/$tid/season/$_seasonId2026/standings/total');
+        '/tournament/$tid/season/$_seasonId2026/standings/total',
+      );
       if (data != null && (data['standings'] as List?)?.isNotEmpty == true) {
         final teams = <Map<String, dynamic>>[];
         for (final r in (data['standings'] as List).first['rows'] as List) {
@@ -317,13 +328,9 @@ class SofaDirectService {
           teams.add({
             'rank': r['position'],
             'group': groupName,
-            'team': {
-              'id': t['id'],
-              'name': t['name'],
-            },
+            'team': {'id': t['id'], 'name': t['name']},
             'points': r['points'] ?? 0,
-            'goalsDiff':
-                (r['goalsFor'] ?? 0) - (r['goalsAgainst'] ?? 0),
+            'goalsDiff': (r['goalsFor'] ?? 0) - (r['goalsAgainst'] ?? 0),
             'all': {
               'played': r['matches'] ?? 0,
               'win': r['wins'] ?? 0,
@@ -347,9 +354,9 @@ class SofaDirectService {
             'id': _utId,
             'name': 'World Cup 2026',
             'standings': allStandings,
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
   }
 
@@ -360,7 +367,8 @@ class SofaDirectService {
   /// Récupère les meilleurs buteurs de la Coupe du Monde 2026
   static Future<List<Map<String, dynamic>>> fetchTopScorers2026() async {
     final raw = await _fetchJson(
-        '/unique-tournament/$_utId/season/$_seasonId2026/top-players/goals');
+      '/unique-tournament/$_utId/season/$_seasonId2026/top-players/goals',
+    );
     if (raw == null) return [];
 
     final topPlayers = raw['topPlayers'] as List? ?? [];
@@ -370,10 +378,7 @@ class SofaDirectService {
       final player = p['player'] ?? {};
       final stats = p['statistics'] ?? {};
       formatted.add({
-        'player': {
-          'id': player['id'],
-          'name': player['name'],
-        },
+        'player': {'id': player['id'], 'name': player['name']},
         'team': p['team'] ?? {},
         'goals': stats['goals'] ?? 0,
         'assists': stats['assists'] ?? 0,
@@ -409,7 +414,7 @@ class SofaDirectService {
     final awayTeamRaw = eventRaw['awayTeam'] ?? {};
     final hs = eventRaw['homeScore'] ?? {};
     final as_ = eventRaw['awayScore'] ?? {};
-    
+
     final scoreH = hs['display'] ?? hs['current'] ?? 0;
     final scoreA = as_['display'] ?? as_['current'] ?? 0;
 
@@ -438,7 +443,7 @@ class SofaDirectService {
             'name': pl['shortName'] ?? pl['name'] ?? 'Joueur',
             'number': p['shirtNumber'] ?? p['jerseyNumber'] ?? 0,
             'pos': p['position'] ?? '',
-          }
+          },
         };
         if (p['substitute'] == true) {
           subs.add(entry);
@@ -469,10 +474,17 @@ class SofaDirectService {
     // 5. Normalisation des incidents
     final cleanIncidents = <Map<String, dynamic>>[];
     final rawIncidents = incidentsData['incidents'] as List? ?? [];
-    
+
     for (final inc in rawIncidents) {
       final iType = inc['incidentType'];
-      if (!['goal', 'substitution', 'card', 'varDecision', 'injuryTime', 'penaltyShootout'].contains(iType)) {
+      if (![
+        'goal',
+        'substitution',
+        'card',
+        'varDecision',
+        'injuryTime',
+        'penaltyShootout',
+      ].contains(iType)) {
         continue;
       }
 
@@ -511,7 +523,8 @@ class SofaDirectService {
         final pl = inc['player'] ?? {};
         item['player'] = {
           'id': pl['id'] ?? 0,
-          'name': pl['shortName'] ?? pl['name'] ?? inc['playerName'] ?? 'Joueur',
+          'name':
+              pl['shortName'] ?? pl['name'] ?? inc['playerName'] ?? 'Joueur',
         };
         if (iType == 'card') item['reason'] = inc['reason'] ?? '';
       } else if (iType == 'goal' || iType == 'penaltyShootout') {
@@ -532,7 +545,7 @@ class SofaDirectService {
 
       cleanIncidents.add(item);
     }
-    
+
     // Trier par temps
     cleanIncidents.sort((a, b) {
       final t1 = a['time'] as int? ?? 0;
@@ -548,9 +561,11 @@ class SofaDirectService {
 
     // 6. Venue
     final venueRaw = eventRaw['venue'] ?? {};
-    final venueName = venueRaw['name'] ?? venueRaw['stadium']?['name'] ?? 'Stadium';
+    final venueName =
+        venueRaw['name'] ?? venueRaw['stadium']?['name'] ?? 'Stadium';
     final venueCity = venueRaw['city']?['name'] ?? '';
-    final venueCapacity = venueRaw['capacity'] ?? venueRaw['stadium']?['capacity'] ?? '';
+    final venueCapacity =
+        venueRaw['capacity'] ?? venueRaw['stadium']?['capacity'] ?? '';
 
     // 7. Referee
     final refRaw = eventRaw['referee'] ?? {};
@@ -574,7 +589,9 @@ class SofaDirectService {
           'homeScore': {'current': scoreH, 'penalties': hs['penalties']},
           'awayScore': {'current': scoreA, 'penalties': as_['penalties']},
           'winnerCode': eventRaw['winnerCode'],
-          'status': eventRaw['status'] ?? {'description': 'Terminé', 'type': 'finished'},
+          'status':
+              eventRaw['status'] ??
+              {'description': 'Terminé', 'type': 'finished'},
           'startTimestamp': eventRaw['startTimestamp'] ?? 0,
         },
         'venue': {
@@ -582,10 +599,7 @@ class SofaDirectService {
           'city': venueCity,
           'capacity': venueCapacity.toString(),
         },
-        'referee': {
-          'name': refName,
-          'country': refCountry,
-        },
+        'referee': {'name': refName, 'country': refCountry},
         'managers': {
           'home': {'name': homeTeamRaw['manager']?['name'] ?? ''},
           'away': {'name': awayTeamRaw['manager']?['name'] ?? ''},
@@ -593,11 +607,8 @@ class SofaDirectService {
         'lineups': cleanLineups,
         'statistics': statisticsData['statistics'] ?? [],
         'incidents': cleanIncidents,
-        'kitColors': {
-          'home': homeKitColor,
-          'away': awayKitColor,
-        },
-      }
+        'kitColors': {'home': homeKitColor, 'away': awayKitColor},
+      },
     };
   }
 
@@ -617,7 +628,8 @@ class SofaDirectService {
     if (managerId != null) {
       final details = await _fetchJson('/manager/$managerId');
       final mgr = details?['manager'] ?? details;
-      final dob = mgr?['dateOfBirthTimestamp'] ?? manager['dateOfBirthTimestamp'];
+      final dob =
+          mgr?['dateOfBirthTimestamp'] ?? manager['dateOfBirthTimestamp'];
       if (dob is int) {
         final birth = DateTime.fromMillisecondsSinceEpoch(dob * 1000);
         final now = DateTime.now();
@@ -692,26 +704,35 @@ class SofaDirectService {
 
   /// Récupère les stats d'un joueur pour un tournoi
   static Future<Map<String, dynamic>?> fetchPlayerStats(
-      int playerId, int seasonId) async {
+    int playerId,
+    int seasonId,
+  ) async {
     final data = await _fetchJson(
-        '/player/$playerId/unique-tournament/$_utId/season/$seasonId/statistics/overall');
+      '/player/$playerId/unique-tournament/$_utId/season/$seasonId/statistics/overall',
+    );
     return data;
   }
 
   /// Récupère les statistiques en équipe nationale d'un joueur
-  static Future<Map<String, dynamic>?> fetchPlayerNationalStats(int playerId) async {
+  static Future<Map<String, dynamic>?> fetchPlayerNationalStats(
+    int playerId,
+  ) async {
     return await _fetchJson('/player/$playerId/national-team-statistics');
   }
 
   /// Récupère les caractéristiques physiques d'un joueur
   /// (taille, poids, pied préféré, âge, poste)
-  static Future<Map<String, dynamic>?> fetchPlayerCharacteristics(int playerId) async {
+  static Future<Map<String, dynamic>?> fetchPlayerCharacteristics(
+    int playerId,
+  ) async {
     return await _fetchJson('/player/$playerId/characteristics');
   }
 
   /// Récupère les attributs de notation d'un joueur
   /// (vitesse, tir, passe, dribble, défense, physique — style FIFA)
-  static Future<Map<String, dynamic>?> fetchPlayerAttributes(int playerId) async {
+  static Future<Map<String, dynamic>?> fetchPlayerAttributes(
+    int playerId,
+  ) async {
     return await _fetchJson('/player/$playerId/attribute-overviews');
   }
 }

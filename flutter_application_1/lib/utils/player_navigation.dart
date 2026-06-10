@@ -63,7 +63,14 @@ void openPlayerProfile(
   if (effectiveId <= 0) {
     effectiveId = resolvePlayerIdByName(playerName, lineups) ?? 0;
   }
-  if (effectiveId <= 0) return;
+  if (effectiveId <= 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profil joueur indisponible pour le moment.'),
+      ),
+    );
+    return;
+  }
 
   final resolvedCode = (teamCode != null && teamCode.isNotEmpty)
       ? teamCode
@@ -77,7 +84,8 @@ void openPlayerProfile(
           name: playerName,
           position: position ?? '',
           shirtNumber: shirtNumber,
-          photoUrl: photoUrl ??
+          photoUrl:
+              photoUrl ??
               'https://api.sofascore.app/api/v1/player/$effectiveId/image',
           nationality: teamName ?? '',
           nationalityCode: resolvedCode,

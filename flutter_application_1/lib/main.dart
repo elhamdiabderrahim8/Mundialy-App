@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
+import 'services/api_service.dart';
 import 'services/ad_mob_service.dart';
 import 'services/theme_provider.dart';
 import 'widgets/animated_goal_overlay.dart';
@@ -27,82 +28,91 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await AdMobService.initialize();
-
-  // Initialisation de Firebase
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // Demander les permissions (surtout pour iOS, sans effet bloquant sur Android)
-    await FirebaseMessaging.instance.requestPermission();
-
-    // S'abonner au topic "live_matches" correspondant au backend Python
-    await FirebaseMessaging.instance.subscribeToTopic('live_matches');
-
-    // Écouter les messages au premier plan (Foreground)
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('⚽ FCM Foreground Message: ${message.notification?.title}');
-
-      final type = message.data['type'];
-      final context = globalNavigatorKey.currentContext;
-
-      if (context != null && context.mounted) {
-        if (type == 'goal') {
-          // Animation élégante "GOAL" avec drapeau
-          showGoalOverlay(context, message.data);
-        } else {
-          // Alertes classiques (Mi-temps, match commencé, penalty)
-          final title = message.notification?.title ?? "Alerte Match";
-          final body = message.notification?.body ?? "";
-          final homeTeam = message.data['homeTeamName'] ?? '';
-          final awayTeam = message.data['awayTeamName'] ?? '';
-          final minute = message.data['minute'] ?? '';
-
-          if (homeTeam.isNotEmpty && awayTeam.isNotEmpty) {
-            InAppNotification.show(
-              context,
-              homeTeam,
-              awayTeam,
-              minute,
-              title,
-              body,
-              isGoal: false,
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '$title - $body',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                backgroundColor: AppColors.primary,
-                duration: const Duration(seconds: 4),
-              ),
-            );
-          }
-        }
-      }
-
-      // Déclencher le rafraîchissement brusque de l'interface (tableaux et données)
-      refreshStreamController.add(null);
-    });
-  } catch (e) {
-    debugPrint("Firebase init error: $e");
-  }
-
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
       child: const MyApp(),
     ),
   );
+
+  unawaited(_initializeStartupServices());
 }
 
-// Point d'entrée pour l'Overlay (le mini-widget flottant)
+Future<void> _initializeStartupServices() async {
+  try {
+    await ApiService.initNotifications();
+  } catch (error, stackTrace) {
+    debugPrint('Startup notifications init error: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    await AdMobService.initialize();
+  } catch (error, stackTrace) {
+    debugPrint('Startup AdMob init error: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await FirebaseMessaging.instance.requestPermission();
+    await FirebaseMessaging.instance.subscribeToTopic('live_matches');
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+  } catch (error, stackTrace) {
+    debugPrint("Firebase init error: $error");
+    debugPrintStack(stackTrace: stackTrace);
+  }
+}
+
+void _handleForegroundMessage(RemoteMessage message) {
+  debugPrint('FCM Foreground Message: ${message.notification?.title}');
+
+  final type = message.data['type'];
+  final context = globalNavigatorKey.currentContext;
+
+  if (context != null && context.mounted) {
+    if (type == 'goal') {
+      showGoalOverlay(context, message.data);
+    } else {
+      final title = message.notification?.title ?? "Alerte Match";
+      final body = message.notification?.body ?? "";
+      final homeTeam = message.data['homeTeamName'] ?? '';
+      final awayTeam = message.data['awayTeamName'] ?? '';
+      final minute = message.data['minute'] ?? '';
+
+      if (homeTeam.isNotEmpty && awayTeam.isNotEmpty) {
+        InAppNotification.show(
+          context,
+          homeTeam,
+          awayTeam,
+          minute,
+          title,
+          body,
+          isGoal: false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '$title - $body',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: AppColors.primary,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  refreshStreamController.add(null);
+}
+
+// Point d'entrÃ©e pour l'Overlay (le mini-widget flottant)
 @pragma("vm:entry-point")
 void overlayMain() {
   WidgetsFlutterBinding.ensureInitialized();

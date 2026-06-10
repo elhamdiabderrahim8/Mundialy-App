@@ -5,14 +5,12 @@ class AdUnits {
 
   static const bool useTestAds = true;
 
-  static const String androidAppId =
-      'ca-app-pub-3940256099942544~3347511713';
+  static const String androidAppId = 'ca-app-pub-3940256099942544~3347511713';
   static const String iosAppId = 'ca-app-pub-3940256099942544~1458002511';
 
   static const String _androidTestBanner =
       'ca-app-pub-3940256099942544/6300978111';
-  static const String _iosTestBanner =
-      'ca-app-pub-3940256099942544/2934735716';
+  static const String _iosTestBanner = 'ca-app-pub-3940256099942544/2934735716';
 
   static const String _androidProductionBanner = '';
   static const String _iosProductionBanner = '';

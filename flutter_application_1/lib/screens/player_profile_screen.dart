@@ -24,6 +24,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _statsData;
   bool _statsLoading = true;
+  String? _statsError;
   late TabController _tabController;
 
   @override
@@ -40,17 +41,28 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
   }
 
   Future<void> _loadStats() async {
-    final id = widget.entity.id;
-    if (id != 0) {
-      final data = await ApiService.fetchPlayerStats(
-        playerId: id,
-        season: widget.season,
-      );
-      if (mounted) {
-        setState(() {
-          _statsData = data;
-          _statsLoading = false;
-        });
+    final id = _asInt(widget.entity.id);
+    if (id > 0) {
+      try {
+        final data = await ApiService.fetchPlayerStats(
+          playerId: id,
+          season: widget.season,
+        );
+        if (mounted) {
+          setState(() {
+            _statsData = data;
+            _statsLoading = false;
+            _statsError = null;
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _statsData = null;
+            _statsLoading = false;
+            _statsError = 'Statistiques indisponibles';
+          });
+        }
       }
     } else {
       setState(() => _statsLoading = false);
@@ -72,26 +84,38 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         : resolveCountryCode(nationality);
 
     // Extract data from new unified format
-    final characteristics = (_statsData?['characteristics'] ?? {}) as Map<String, dynamic>;
-    final attributes = (_statsData?['attributes'] ?? {}) as Map<String, dynamic>;
-    final nationalStats = (_statsData?['nationalStats'] ?? {}) as Map<String, dynamic>;
-    final tournamentStats =
-        (_statsData?['tournamentStats'] ?? {}) as Map<String, dynamic>;
+    final characteristics = _asMap(_statsData?['characteristics']);
+    final attributes = _asMap(_statsData?['attributes']);
+    final nationalStats = _asMap(_statsData?['nationalStats']);
+    final tournamentStats = _asMap(_statsData?['tournamentStats']);
 
     // Characteristics
-    final charData = characteristics['playerCharacteristics'] ?? characteristics;
+    final charData = _asMap(
+      characteristics['playerCharacteristics'],
+      fallback: characteristics,
+    );
     final String preferredFoot = charData['preferredFoot']?.toString() ?? '';
-    final int height = charData['height'] ?? 0;
-    final int weight = charData['weight'] ?? 0;
-    final String position = charData['position'] ?? (widget.entity is TeamPlayer ? (widget.entity as TeamPlayer).position : '');
-    final int shirtNumber = widget.entity is TeamPlayer ? ((widget.entity as TeamPlayer).shirtNumber ?? 0) : 0;
+    final int height = _asInt(charData['height']);
+    final int weight = _asInt(charData['weight']);
+    final String position =
+        charData['position']?.toString() ??
+        (widget.entity is TeamPlayer
+            ? (widget.entity as TeamPlayer).position
+            : '');
+    final int shirtNumber = widget.entity is TeamPlayer
+        ? _asInt((widget.entity as TeamPlayer).shirtNumber)
+        : 0;
 
     // Attributes — style FIFA
-    final List<dynamic> attrCategories = attributes['averageAttributeOverviews'] ?? [];
+    final List<dynamic> attrCategories = _asList(
+      attributes['averageAttributeOverviews'],
+    );
 
     // National team stats
-    final List<dynamic> natStatsList = (nationalStats['statistics'] as List?) ?? 
-        (nationalStats['response'] as List?) ?? [];
+    final List<dynamic> natStatsList = _asList(
+      nationalStats['statistics'],
+      fallback: _asList(nationalStats['response']),
+    );
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -118,7 +142,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                         end: Alignment.bottomCenter,
                         colors: isDark
                             ? [const Color(0xFF1D2D3B), const Color(0xFF0E1A24)]
-                            : [const Color(0xFFEAF0F6), const Color(0xFFF7F2E8)],
+                            : [
+                                const Color(0xFFEAF0F6),
+                                const Color(0xFFF7F2E8),
+                              ],
                       ),
                     ),
                   ),
@@ -160,7 +187,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                                 backgroundColor: isDark
                                     ? const Color(0xFF1D2D3B)
                                     : Colors.white,
-                                backgroundImage: (photo != null && photo.isNotEmpty)
+                                backgroundImage:
+                                    (photo != null && photo.isNotEmpty)
                                     ? NetworkImage(photo)
                                     : null,
                                 child: (photo == null || photo.isEmpty)
@@ -173,7 +201,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                               ),
                             ),
                             if (nationalityCode.isNotEmpty)
-                              NationFlagBadge(countryCode: nationalityCode, size: 36),
+                              NationFlagBadge(
+                                countryCode: nationalityCode,
+                                size: 36,
+                              ),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -190,12 +221,15 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                         if (position.isNotEmpty)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: _kGold.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
-                              border:
-                                  Border.all(color: _kGold.withValues(alpha: 0.4)),
+                              border: Border.all(
+                                color: _kGold.withValues(alpha: 0.4),
+                              ),
                             ),
                             child: Text(
                               _localizePosition(position),
@@ -221,8 +255,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                   controller: _tabController,
                   indicatorColor: _kGold,
                   labelColor: _kGold,
-                  unselectedLabelColor:
-                      isDark ? Colors.white54 : Colors.black54,
+                  unselectedLabelColor: isDark
+                      ? Colors.white54
+                      : Colors.black54,
                   labelStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -268,6 +303,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                         natStatsList,
                         tournamentStats,
                         widget.season,
+                        _statsError,
                       ),
               ],
             ),
@@ -336,8 +372,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                 value: preferredFoot == 'left'
                     ? 'Gauche'
                     : preferredFoot == 'right'
-                        ? 'Droit'
-                        : preferredFoot,
+                    ? 'Droit'
+                    : preferredFoot,
                 color: Colors.purple,
               ),
           ]),
@@ -350,7 +386,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     );
   }
 
-  Widget _buildInfoCard(bool isDark, Color cardColor, Color textColor, List<Widget> rows) {
+  Widget _buildInfoCard(
+    bool isDark,
+    Color cardColor,
+    Color textColor,
+    List<Widget> rows,
+  ) {
     if (rows.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 40),
@@ -374,17 +415,32 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         ],
       ),
       child: Column(
-        children: rows
-            .expand((row) => [row, Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05))])
-            .toList()
-          ..removeLast(),
+        children:
+            rows
+                .expand(
+                  (row) => [
+                    row,
+                    Divider(
+                      height: 1,
+                      color: isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.05),
+                    ),
+                  ],
+                )
+                .toList()
+              ..removeLast(),
       ),
     );
   }
 
   // ─────────────────────────────────────────────
-  Widget _buildAttributesTab(bool isDark, Color textColor, Color cardColor,
-      List<dynamic> attrCategories) {
+  Widget _buildAttributesTab(
+    bool isDark,
+    Color textColor,
+    Color cardColor,
+    List<dynamic> attrCategories,
+  ) {
     if (attrCategories.isEmpty) {
       return Center(
         child: Text(
@@ -398,16 +454,31 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
       padding: const EdgeInsets.all(20),
       child: Column(
         children: attrCategories.map<Widget>((cat) {
-          final String catName = cat['name']?.toString() ?? '';
-          final List<dynamic> items = cat['averageAttributes'] ?? cat['items'] ?? [];
-          return _buildAttributeCategory(isDark, cardColor, textColor, catName, items);
+          final category = _asMap(cat);
+          final String catName = category['name']?.toString() ?? '';
+          final List<dynamic> items = _asList(
+            category['averageAttributes'],
+            fallback: _asList(category['items']),
+          );
+          return _buildAttributeCategory(
+            isDark,
+            cardColor,
+            textColor,
+            catName,
+            items,
+          );
         }).toList(),
       ),
     );
   }
 
-  Widget _buildAttributeCategory(bool isDark, Color cardColor, Color textColor,
-      String name, List<dynamic> items) {
+  Widget _buildAttributeCategory(
+    bool isDark,
+    Color cardColor,
+    Color textColor,
+    String name,
+    List<dynamic> items,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -438,8 +509,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
             const SizedBox(height: 12),
           ],
           ...items.map((item) {
-            final String attrName = item['name']?.toString() ?? '';
-            final num value = item['value'] ?? item['average'] ?? 0;
+            final attribute = _asMap(item);
+            final String attrName = attribute['name']?.toString() ?? '';
+            final num value = _asNum(
+              attribute['value'],
+              fallback: _asNum(attribute['average']),
+            );
             return _buildAttributeBar(textColor, attrName, value.toDouble());
           }),
         ],
@@ -451,8 +526,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final Color barColor = value >= 80
         ? Colors.green
         : value >= 65
-            ? Colors.orange
-            : Colors.red;
+        ? Colors.orange
+        : Colors.red;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -515,14 +590,17 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     List<dynamic> statsList,
     Map<String, dynamic> tournamentStats,
     int season,
+    String? statsError,
   ) {
-    final wcStats = tournamentStats['statistics'] as Map<String, dynamic>? ??
-        tournamentStats['stats'] as Map<String, dynamic>?;
+    final wcStats = _asMap(
+      tournamentStats['statistics'],
+      fallback: _asMap(tournamentStats['stats']),
+    );
 
-    if (statsList.isEmpty && (wcStats == null || wcStats.isEmpty)) {
+    if (statsList.isEmpty && wcStats.isEmpty) {
       return Center(
         child: Text(
-          'Statistiques non disponibles',
+          statsError ?? 'Statistiques non disponibles',
           style: TextStyle(color: textColor.withValues(alpha: 0.5)),
           textAlign: TextAlign.center,
         ),
@@ -532,7 +610,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (wcStats != null && wcStats.isNotEmpty) ...[
+        if (wcStats.isNotEmpty) ...[
           _buildTournamentStatsCard(
             isDark,
             textColor,
@@ -547,7 +625,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
             isDark,
             textColor,
             cardColor,
-            statsList[i] as Map<String, dynamic>,
+            _asMap(statsList[i]),
           );
         }),
       ],
@@ -626,11 +704,16 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     Color cardColor,
     Map<String, dynamic> stat,
   ) {
-    final team = stat['team'] as Map<String, dynamic>? ?? {};
-    final stats = stat['statistics'] as Map<String, dynamic>? ?? {};
-    final season = stat['tournament']?['season']?['name'] ??
-        stat['season']?['name'] ??
-        stat['uniqueTournament']?['name'] ??
+    final team = _asMap(stat['team']);
+    final stats = _asMap(stat['statistics']);
+    final tournament = _asMap(stat['tournament']);
+    final tournamentSeason = _asMap(tournament['season']);
+    final statSeason = _asMap(stat['season']);
+    final uniqueTournament = _asMap(stat['uniqueTournament']);
+    final season =
+        tournamentSeason['name'] ??
+        statSeason['name'] ??
+        uniqueTournament['name'] ??
         'Tournoi';
 
     return Container(
@@ -652,12 +735,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
         children: [
           Row(
             children: [
-                  NationFlagBadge(
-                    countryCode: resolveCountryCode(
-                      team['name']?.toString() ?? '',
-                    ),
-                    size: 28,
-                  ),
+              NationFlagBadge(
+                countryCode: resolveCountryCode(team['name']?.toString() ?? ''),
+                size: 28,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -673,10 +754,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                     ),
                     Text(
                       season,
-                      style: const TextStyle(
-                        color: _kGold,
-                        fontSize: 11,
-                      ),
+                      style: const TextStyle(color: _kGold, fontSize: 11),
                     ),
                   ],
                 ),
@@ -702,8 +780,12 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
       items.add({'label': 'Minutes', 'value': "${stats['minutesPlayed']}'"});
     if (stats['yellowCards'] != null)
       items.add({'label': 'Cartons J.', 'value': '${stats['yellowCards']}'});
-    if (stats['rating'] != null)
-      items.add({'label': 'Note', 'value': (stats['rating'] as num).toStringAsFixed(2)});
+    if (stats['rating'] != null) {
+      items.add({
+        'label': 'Note',
+        'value': _asNum(stats['rating']).toStringAsFixed(2),
+      });
+    }
 
     if (items.isEmpty) {
       return Text(
@@ -749,22 +831,60 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
 
   String _localizePosition(String pos) {
     final map = {
-      'G': 'GARDIEN', 'GK': 'GARDIEN', 'goalkeeper': 'GARDIEN',
-      'D': 'DÉFENSEUR', 'defender': 'DÉFENSEUR',
-      'M': 'MILIEU', 'midfielder': 'MILIEU',
-      'F': 'ATTAQUANT', 'forward': 'ATTAQUANT',
+      'G': 'GARDIEN',
+      'GK': 'GARDIEN',
+      'goalkeeper': 'GARDIEN',
+      'D': 'DÉFENSEUR',
+      'defender': 'DÉFENSEUR',
+      'M': 'MILIEU',
+      'midfielder': 'MILIEU',
+      'F': 'ATTAQUANT',
+      'forward': 'ATTAQUANT',
     };
     return map[pos] ?? pos.toUpperCase();
   }
+
+  // ─────────────────────────────────────────────
+  static Map<String, dynamic> _asMap(
+    dynamic value, {
+    Map<String, dynamic> fallback = const {},
+  }) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return fallback;
+  }
+
+  static List<dynamic> _asList(
+    dynamic value, {
+    List<dynamic> fallback = const [],
+  }) {
+    if (value is List) return value;
+    return fallback;
+  }
+
+  static int _asInt(dynamic value, {int fallback = 0}) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  static num _asNum(dynamic value, {num fallback = 0}) {
+    if (value is num) return value;
+    return num.tryParse(value?.toString() ?? '') ?? fallback;
+  }
 }
 
-// ─────────────────────────────────────────────
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
-  const _InfoRow({required this.icon, required this.label, required this.value, required this.color});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -59,7 +59,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
     final List<LiveMatch> matches2022 = results[1] as List<LiveMatch>;
     final List<LiveMatch> matches2026 = results[2] as List<LiveMatch>;
-    
+
     final List<LiveMatch> teamMatches = [...matches2022, ...matches2026]
         .where(
           (m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
@@ -199,7 +199,6 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   }
 
   Widget _buildOverviewCard(bool isDark) {
-
     final cardColor = isDark
         ? const Color(0xFF182531)
         : Colors.white.withValues(alpha: 0.94);
@@ -428,8 +427,12 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
       );
     }
 
-    final matches2022 = _matches.where((m) => m.dateTime?.year == 2022).toList();
-    final matches2026 = _matches.where((m) => m.dateTime?.year != 2022).toList();
+    final matches2022 = _matches
+        .where((m) => m.dateTime?.year == 2022)
+        .toList();
+    final matches2026 = _matches
+        .where((m) => m.dateTime?.year != 2022)
+        .toList();
 
     return Column(
       children: [
@@ -468,7 +471,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFE8DECA),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : const Color(0xFFE8DECA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -603,7 +608,10 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     if (value == 'g' || value.contains('goal')) return 'Gardiens';
     if (value == 'd' || value.contains('def')) return 'Defenseurs';
     if (value == 'm' || value.contains('mid')) return 'Milieux';
-    if (value == 'f' || value.contains('for') || value.contains('att') || value.contains('str')) {
+    if (value == 'f' ||
+        value.contains('for') ||
+        value.contains('att') ||
+        value.contains('str')) {
       return 'Attaquants';
     }
     return 'Autres';
@@ -769,10 +777,7 @@ class _TeamMatchCard extends StatelessWidget {
                     children: [
                       Text(
                         match.phaseLabel,
-                        style: TextStyle(
-                          color: secondaryText,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: secondaryText, fontSize: 12),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(

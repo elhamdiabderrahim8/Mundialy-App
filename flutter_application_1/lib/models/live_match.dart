@@ -133,7 +133,7 @@ class LiveMatch {
       penaltyAway: json['penalty_away'] as int?,
       isLive: json['is_live'] as bool? ?? false,
       dateTime: json['date_time'] != null
-          ? DateTime.tryParse(json['date_time'] as String)
+          ? DateTime.tryParse(json['date_time'] as String)?.toLocal()
           : null,
       streamUrl: json['stream_url'] as String?,
       statusShort: json['status_short'] as String?,

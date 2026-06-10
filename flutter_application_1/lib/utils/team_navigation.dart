@@ -14,11 +14,8 @@ void openTeamProfile(
 
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) => TeamProfileScreen(
-        teamId: resolvedId,
-        teamName: teamName,
-        year: year,
-      ),
+      builder: (_) =>
+          TeamProfileScreen(teamId: resolvedId, teamName: teamName, year: year),
     ),
   );
 }

@@ -138,7 +138,10 @@ class _HomeScreenState extends State<HomeScreen> {
       (_) async {
         if (!mounted) return;
         try {
-          final freshMatches = await ApiService.fetchMatches(year: _selectedYear, forceRefresh: true);
+          final freshMatches = await ApiService.fetchMatches(
+            year: _selectedYear,
+            forceRefresh: true,
+          );
           if (mounted && freshMatches.isNotEmpty) {
             setState(() => _matches = freshMatches);
           }
@@ -423,7 +426,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     opacity: animation,
                     child: NewsDetailScreen(
                       article: Map<String, dynamic>.from(
-                          _newsArticles[i] as Map),
+                        _newsArticles[i] as Map,
+                      ),
                     ),
                   ),
                   transitionDuration: const Duration(milliseconds: 350),
@@ -684,16 +688,16 @@ class _HomeScreenState extends State<HomeScreen> {
         return ListTile(
           onTap: scorer.playerId > 0
               ? () => openPlayerProfile(
-                    context,
-                    playerId: scorer.playerId,
-                    playerName: scorer.playerName,
-                    teamName: scorer.teamName,
-                    teamCode: resolveCountryCode(scorer.teamName),
-                    season: _selectedYear,
-                    photoUrl: scorer.playerPhoto.isNotEmpty
-                        ? scorer.playerPhoto
-                        : null,
-                  )
+                  context,
+                  playerId: scorer.playerId,
+                  playerName: scorer.playerName,
+                  teamName: scorer.teamName,
+                  teamCode: resolveCountryCode(scorer.teamName),
+                  season: _selectedYear,
+                  photoUrl: scorer.playerPhoto.isNotEmpty
+                      ? scorer.playerPhoto
+                      : null,
+                )
               : null,
           leading: CircleAvatar(
             backgroundImage: scorer.playerPhoto.isNotEmpty
@@ -837,7 +841,9 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: isDark ? _kCardDark : lightHeaderBg,
       foregroundColor: isDark ? Colors.white : lightAccent,
       surfaceTintColor: Colors.transparent,
-      shadowColor: isDark ? Colors.black26 : lightAccent.withValues(alpha: 0.12),
+      shadowColor: isDark
+          ? Colors.black26
+          : lightAccent.withValues(alpha: 0.12),
       elevation: isDark ? 0 : 1,
       expandedHeight: 200,
       centerTitle: true,
@@ -934,9 +940,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.45)
-                : Colors.white,
+            color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isDark
@@ -1003,10 +1007,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return BottomNavigationBar(
       backgroundColor: isDark ? const Color(0xFF1A242D) : Colors.white,
       selectedItemColor: _kGold,
-      unselectedItemColor:
-          isDark ? Colors.white38 : const Color(0xFF5B6B79),
+      unselectedItemColor: isDark ? Colors.white38 : const Color(0xFF5B6B79),
       elevation: isDark ? 0 : 8,
-      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
+      selectedLabelStyle: const TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 11,
+      ),
       unselectedLabelStyle: const TextStyle(fontSize: 10),
       currentIndex: _selectedTab,
       onTap: _onTabTap,
@@ -1121,13 +1127,10 @@ class _YearDropdownSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color panelColor =
-        isDark ? const Color(0xFF1E2630) : Colors.white;
+    final Color panelColor = isDark ? const Color(0xFF1E2630) : Colors.white;
     final Color accentColor = _kGold;
-    final Color labelColor =
-        isDark ? Colors.white : const Color(0xFF16324A);
-    final Color mutedColor =
-        isDark ? Colors.white54 : const Color(0xFF5B6B79);
+    final Color labelColor = isDark ? Colors.white : const Color(0xFF16324A);
+    final Color mutedColor = isDark ? Colors.white54 : const Color(0xFF5B6B79);
 
     return Theme(
       data: Theme.of(context).copyWith(
@@ -1149,13 +1152,13 @@ class _YearDropdownSelector extends StatelessWidget {
             final isSel = selectedYear == y;
             final label = 'FIFA $y';
             return PopupMenuItem<int>(
-
-          
               value: y,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 decoration: BoxDecoration(
-                  color: isSel ? accentColor.withValues(alpha: 0.15) : Colors.transparent,
+                  color: isSel
+                      ? accentColor.withValues(alpha: 0.15)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1204,11 +1207,7 @@ class _YearDropdownSelector extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.emoji_events_rounded,
-                color: accentColor,
-                size: 20,
-              ),
+              Icon(Icons.emoji_events_rounded, color: accentColor, size: 20),
               const SizedBox(width: 14),
               Flexible(
                 child: Text(
@@ -1413,11 +1412,11 @@ class _MatchCard extends StatelessWidget {
                             onTap: match.homeTeamId == null
                                 ? null
                                 : () => openTeamProfile(
-                                      context,
-                                      teamName: match.homeTeam,
-                                      teamId: match.homeTeamId,
-                                      year: match.dateTime?.year ?? 2026,
-                                    ),
+                                    context,
+                                    teamName: match.homeTeam,
+                                    teamId: match.homeTeamId,
+                                    year: match.dateTime?.year ?? 2026,
+                                  ),
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerRight,
@@ -1431,8 +1430,9 @@ class _MatchCard extends StatelessWidget {
                                   decoration: match.homeTeamId != null
                                       ? TextDecoration.underline
                                       : null,
-                                  decorationColor:
-                                      textColor.withValues(alpha: 0.25),
+                                  decorationColor: textColor.withValues(
+                                    alpha: 0.25,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1491,11 +1491,11 @@ class _MatchCard extends StatelessWidget {
                             onTap: match.awayTeamId == null
                                 ? null
                                 : () => openTeamProfile(
-                                      context,
-                                      teamName: match.awayTeam,
-                                      teamId: match.awayTeamId,
-                                      year: match.dateTime?.year ?? 2026,
-                                    ),
+                                    context,
+                                    teamName: match.awayTeam,
+                                    teamId: match.awayTeamId,
+                                    year: match.dateTime?.year ?? 2026,
+                                  ),
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
@@ -1508,8 +1508,9 @@ class _MatchCard extends StatelessWidget {
                                   decoration: match.awayTeamId != null
                                       ? TextDecoration.underline
                                       : null,
-                                  decorationColor:
-                                      textColor.withValues(alpha: 0.25),
+                                  decorationColor: textColor.withValues(
+                                    alpha: 0.25,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1735,11 +1736,11 @@ class _BracketTeamRow extends StatelessWidget {
       onTap: teamId == null
           ? null
           : () => openTeamProfile(
-                context,
-                teamName: name,
-                teamId: teamId,
-                year: year,
-              ),
+              context,
+              teamName: name,
+              teamId: teamId,
+              year: year,
+            ),
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -1758,18 +1759,18 @@ class _BracketTeamRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-        if (penalty != null)
-          Text(
-            '($penalty)',
-            style: TextStyle(
-              color: isWinner
-                  ? _kGold.withValues(alpha: 0.8)
-                  : textColor.withValues(alpha: 0.38),
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        const SizedBox(width: 6),
+            if (penalty != null)
+              Text(
+                '($penalty)',
+                style: TextStyle(
+                  color: isWinner
+                      ? _kGold.withValues(alpha: 0.8)
+                      : textColor.withValues(alpha: 0.38),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            const SizedBox(width: 6),
             Text(
               score?.toString() ?? '-',
               style: TextStyle(
@@ -1887,13 +1888,9 @@ class _GroupTable extends StatelessWidget {
                     ),
                   ],
                 ),
-                Divider(
-                  color: textColor.withValues(alpha: 0.12),
-                  height: 20,
-                ),
+                Divider(color: textColor.withValues(alpha: 0.12), height: 20),
                 ...group.teams.map((t) {
-                  final status =
-                      standingQualification(t.rank, year: year);
+                  final status = standingQualification(t.rank, year: year);
                   final statusColor = standingStatusColor(status);
                   return InkWell(
                     onTap: () => openTeamProfile(
@@ -2117,9 +2114,7 @@ class _HeroBannerDivider extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _kGold.withValues(alpha: isDark ? 0.12 : 0.18),
-                border: Border.all(
-                  color: _kGold.withValues(alpha: 0.45),
-                ),
+                border: Border.all(color: _kGold.withValues(alpha: 0.45)),
               ),
               child: Icon(
                 Icons.sports_soccer_rounded,
@@ -2880,9 +2875,7 @@ class _GroupsAutoCarouselState extends State<_GroupsAutoCarousel> {
               controller: _controller,
               itemCount: widget.groups.length,
               onPageChanged: (i) => setState(() => _currentIndex = i),
-              itemBuilder: (context, i) => _GroupCard(
-                group: widget.groups[i],
-              ),
+              itemBuilder: (context, i) => _GroupCard(group: widget.groups[i]),
             ),
           ),
           const SizedBox(height: 12),
@@ -2927,10 +2920,7 @@ class _GroupCard extends StatelessWidget {
               : [const Color(0xFFFFF8E7), const Color(0xFFE8C96A)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFE7C16A),
-          width: 1.8,
-        ),
+        border: Border.all(color: const Color(0xFFE7C16A), width: 1.8),
         boxShadow: [
           BoxShadow(
             color: _kGold.withValues(alpha: isDark ? 0.2 : 0.35),

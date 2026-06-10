@@ -22,10 +22,7 @@ void main() {
       ]);
 
       expect(TeamResolver.resolve('Tunisia', hintId: 28), 4729);
-      expect(
-        TeamResolver.isSameTeam('Tunisia', 28, 'Tunisia', 4729),
-        isTrue,
-      );
+      expect(TeamResolver.isSameTeam('Tunisia', 28, 'Tunisia', 4729), isTrue);
     });
   });
 }

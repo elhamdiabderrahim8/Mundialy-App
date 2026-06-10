@@ -11,10 +11,11 @@ class SofaScraperService {
   static Future<Map<String, dynamic>?> fetchLineups(String matchId) async {
     try {
       debugPrint('📡 Récupération des détails du match: $matchId');
-      
+
       // Essayer d'abord en direct depuis SofaScore (pas de blocage Cloudflare)
       final directData = await SofaDirectService.fetchMatchDetails(
-          int.tryParse(matchId) ?? 0);
+        int.tryParse(matchId) ?? 0,
+      );
       if (directData != null) return directData;
 
       // Fallback : backend (pour les matchs 2022 en cache)

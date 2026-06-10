@@ -15,15 +15,26 @@ class NewsDetailScreen extends StatelessWidget {
   String get _source => (article['source'] is Map)
       ? article['source']['name'] ?? ''
       : article['source']?.toString() ?? '';
-  String get _publishedAt => article['publishedAt'] ?? article['published_at'] ?? '';
+  String get _publishedAt =>
+      article['publishedAt'] ?? article['published_at'] ?? '';
   String get _url => article['url'] ?? '';
 
   String _formatDate(String raw) {
     try {
       final dt = DateTime.parse(raw).toLocal();
       const months = [
-        'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-        'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
+        'Jan',
+        'Fév',
+        'Mar',
+        'Avr',
+        'Mai',
+        'Juin',
+        'Juil',
+        'Aoû',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Déc',
       ];
       return '${dt.day} ${months[dt.month - 1]} ${dt.year} • ${dt.hour}h${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
@@ -52,7 +63,10 @@ class NewsDetailScreen extends StatelessWidget {
             pinned: true,
             backgroundColor: isDark ? const Color(0xFF0E1A24) : Colors.white,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: _imageUrl.isNotEmpty ? Colors.white : textColor),
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: _imageUrl.isNotEmpty ? Colors.white : textColor,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: _imageUrl.isNotEmpty
@@ -66,7 +80,9 @@ class NewsDetailScreen extends StatelessWidget {
                             _imageUrl,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
-                              color: isDark ? const Color(0xFF1D2D3B) : const Color(0xFFE8DECA),
+                              color: isDark
+                                  ? const Color(0xFF1D2D3B)
+                                  : const Color(0xFFE8DECA),
                             ),
                           ),
                         ),
@@ -100,11 +116,15 @@ class NewsDetailScreen extends StatelessWidget {
                       if (_source.isNotEmpty) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: _kGold.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: _kGold.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: _kGold.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Text(
                             _source.toUpperCase(),
@@ -150,7 +170,8 @@ class NewsDetailScreen extends StatelessWidget {
                         color: _kGold.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: _kGold.withValues(alpha: 0.2)),
+                          color: _kGold.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Text(
                         _description,
@@ -169,7 +190,9 @@ class NewsDetailScreen extends StatelessWidget {
                   if (_content.isNotEmpty) ...[
                     Text(
                       // Remove "[+N chars]" truncation markers from NewsAPI
-                      _content.replaceAll(RegExp(r'\[?\+\d+ chars\]?'), '').trim(),
+                      _content
+                          .replaceAll(RegExp(r'\[?\+\d+ chars\]?'), '')
+                          .trim(),
                       style: TextStyle(
                         color: textColor.withValues(alpha: 0.8),
                         fontSize: 15,

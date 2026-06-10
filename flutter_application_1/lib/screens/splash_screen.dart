@@ -24,9 +24,10 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1400),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-    _scale = Tween<double>(begin: 0.88, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scale = Tween<double>(
+      begin: 0.88,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _controller.forward();
     Future.delayed(const Duration(milliseconds: 2200), _openHome);
   }
@@ -58,11 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0E1A24),
-              Color(0xFF16324A),
-              Color(0xFF1A2F3F),
-            ],
+            colors: [Color(0xFF0E1A24), Color(0xFF16324A), Color(0xFF1A2F3F)],
           ),
         ),
         child: Stack(
@@ -93,7 +90,9 @@ class _SplashScreenState extends State<SplashScreen>
                           color: Colors.white.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: const Color(0xFFE7C16A).withValues(alpha: 0.45),
+                            color: const Color(
+                              0xFFE7C16A,
+                            ).withValues(alpha: 0.45),
                           ),
                         ),
                         child: const MundialyLogo(size: 88, showLabel: false),

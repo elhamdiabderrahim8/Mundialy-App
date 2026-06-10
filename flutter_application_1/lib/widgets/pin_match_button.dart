@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 const _kGold = Color(0xFFE7C16A);
 
 class PinMatchButton extends StatelessWidget {
-  const PinMatchButton({
-    super.key,
-    required this.onTap,
-    this.compact = false,
-  });
+  const PinMatchButton({super.key, required this.onTap, this.compact = false});
 
   final VoidCallback onTap;
   final bool compact;

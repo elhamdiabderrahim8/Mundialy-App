@@ -58,7 +58,8 @@ class TeamPlayer {
     if (player['age'] != null) {
       ageLabel = player['age'].toString();
     } else {
-      final dob = player['dateOfBirthTimestamp'] ?? json['dateOfBirthTimestamp'];
+      final dob =
+          player['dateOfBirthTimestamp'] ?? json['dateOfBirthTimestamp'];
       if (dob != null && dob is int) {
         final birthDate = DateTime.fromMillisecondsSinceEpoch(dob * 1000);
         final now = DateTime.now();

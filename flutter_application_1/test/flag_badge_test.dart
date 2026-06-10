@@ -25,14 +25,17 @@ void main() {
       );
     });
 
-    test('resolves team names to flagcdn through the shared country mapping', () {
-      final countryCode = resolveCountryCode('England');
+    test(
+      'resolves team names to flagcdn through the shared country mapping',
+      () {
+        final countryCode = resolveCountryCode('England');
 
-      expect(countryCode, 'GB-ENG');
-      expect(
-        NationFlagBadge.resolveFlagUrl(countryCode),
-        'https://flagcdn.com/w160/gb-eng.png',
-      );
-    });
+        expect(countryCode, 'GB-ENG');
+        expect(
+          NationFlagBadge.resolveFlagUrl(countryCode),
+          'https://flagcdn.com/w160/gb-eng.png',
+        );
+      },
+    );
   });
 }

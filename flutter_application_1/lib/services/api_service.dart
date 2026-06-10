@@ -38,6 +38,7 @@ class _MatchState {
 }
 
 class ApiService {
+  static const String _liveAlertsChannelId = 'mundialy_live_alerts_v2';
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   static final Map<String, _MatchState> _matchStates = {};
@@ -47,7 +48,10 @@ class ApiService {
   /// Helper HTTP pour les appels au backend Render.
   /// Gère le "cold start" du plan gratuit (30-60s de réveil)
   /// avec un timeout généreux et un retry automatique.
-  static Future<http.Response?> _backendGet(String path, {int retries = 1}) async {
+  static Future<http.Response?> _backendGet(
+    String path, {
+    int retries = 1,
+  }) async {
     final baseUrls = <String>[
       GlobalConfig.backendUrl,
       if (!kReleaseMode && GlobalConfig.backendUrl.contains('192.168.'))
@@ -62,9 +66,13 @@ class ApiService {
               .get(url)
               .timeout(const Duration(seconds: 60));
           if (response.statusCode == 200) return response;
-          debugPrint('[Backend] Status ${response.statusCode} pour $url (tentative ${attempt + 1})');
+          debugPrint(
+            '[Backend] Status ${response.statusCode} pour $url (tentative ${attempt + 1})',
+          );
         } catch (e) {
-          debugPrint('[Backend] Erreur tentative ${attempt + 1}/$retries pour $url: $e');
+          debugPrint(
+            '[Backend] Erreur tentative ${attempt + 1}/$retries pour $url: $e',
+          );
         }
         if (attempt < retries) {
           await Future.delayed(const Duration(seconds: 2));
@@ -109,7 +117,7 @@ class ApiService {
     await _notifications.initialize(settings);
 
     const channel = AndroidNotificationChannel(
-      'goal_channel',
+      _liveAlertsChannelId,
       'Buts en Direct',
       description: 'Alertes en temps réel lors d\'un but',
       importance: Importance.max,
@@ -258,7 +266,7 @@ class ApiService {
 
     // 2. System Push Notification (Local)
     final android = AndroidNotificationDetails(
-      'goal_channel',
+      _liveAlertsChannelId,
       'Buts en Direct',
       importance: Importance.max,
       priority: Priority.high,
@@ -288,7 +296,9 @@ class ApiService {
         "away_code": m.awayCode,
         "is_goal": isGoal,
         "minute": m.matchMinute,
-        "scoring_team": homeScored != null ? (homeScored ? 'home' : 'away') : null
+        "scoring_team": homeScored != null
+            ? (homeScored ? 'home' : 'away')
+            : null,
       };
 
       await http
@@ -303,7 +313,10 @@ class ApiService {
     }
   }
 
-  static Future<List<LiveMatch>> fetchMatches({int? year, bool forceRefresh = false}) async {
+  static Future<List<LiveMatch>> fetchMatches({
+    int? year,
+    bool forceRefresh = false,
+  }) async {
     final cacheKey = 'matches_$year';
     if (!forceRefresh) {
       final cached = _getCache<List<LiveMatch>>(
@@ -316,7 +329,9 @@ class ApiService {
     try {
       if (year == 2022) {
         // 2022 : chargement INSTANTANÉ depuis les assets embarqués (0 latence)
-        final raw = await rootBundle.loadString('assets/data/matches_2022.json');
+        final raw = await rootBundle.loadString(
+          'assets/data/matches_2022.json',
+        );
         final data = _parseMatchesResponse(raw);
         TeamResolver.indexMatches(data);
         _setCache(cacheKey, data);
@@ -359,10 +374,13 @@ class ApiService {
 
     try {
       if (year == 2022) {
-        final matchesRaw =
-            await rootBundle.loadString('assets/data/matches_2022.json');
+        final matchesRaw = await rootBundle.loadString(
+          'assets/data/matches_2022.json',
+        );
         TeamResolver.indexMatches(_parseMatchesResponse(matchesRaw));
-        final raw = await rootBundle.loadString('assets/data/standings_2022.json');
+        final raw = await rootBundle.loadString(
+          'assets/data/standings_2022.json',
+        );
         final data = _remapStandingsIds(_parseStandingsResponse(raw));
         _setCache(cacheKey, data);
         return data;
@@ -410,7 +428,8 @@ class ApiService {
       // Toujours appeler SofaScore directement (2022 ET 2026)
       // Les IDs dans matches_2022.json ont été régénérés avec les vrais IDs SofaScore
       final decoded = await SofaDirectService.fetchMatchDetails(
-          int.tryParse(fixtureId) ?? 0);
+        int.tryParse(fixtureId) ?? 0,
+      );
 
       if (decoded != null) {
         final dynamic payload = decoded.containsKey('response')
@@ -471,7 +490,9 @@ class ApiService {
       if (playersData.isEmpty) {
         playersData = await SofaDirectService.fetchTeamSquad(resolvedId);
       }
-      debugPrint('🔍 fetchTeamProfile: coach=${coachData != null}, players=${playersData.length}');
+      debugPrint(
+        '🔍 fetchTeamProfile: coach=${coachData != null}, players=${playersData.length}',
+      );
 
       TeamCoach? coach;
       if (coachData != null) {
@@ -487,7 +508,9 @@ class ApiService {
         return TeamPlayer.fromApi(p, teamName ?? '');
       }).toList();
 
-      debugPrint('🔍 fetchTeamProfile: parsed ${squad.length} players, positions: ${squad.map((p) => p.position).toSet()}');
+      debugPrint(
+        '🔍 fetchTeamProfile: parsed ${squad.length} players, positions: ${squad.map((p) => p.position).toSet()}',
+      );
 
       squad.sort(
         (a, b) => (a.shirtNumber ?? 999).compareTo(b.shirtNumber ?? 999),
@@ -558,7 +581,9 @@ class ApiService {
       List data;
       if (season == 2022) {
         // 2022 : chargement INSTANTANÉ depuis les assets embarqués
-        final raw = await rootBundle.loadString('assets/data/topscorers_2022.json');
+        final raw = await rootBundle.loadString(
+          'assets/data/topscorers_2022.json',
+        );
         final body = jsonDecode(raw);
         data = body['response'] as List? ?? [];
       } else {
@@ -697,7 +722,8 @@ class ApiService {
         status['long']?.toString() ?? status['description']?.toString();
 
     // Déterminer si le match est terminé AVANT tout le reste
-    final bool isFinished = shortStatus?.toUpperCase() == 'FT' ||
+    final bool isFinished =
+        shortStatus?.toUpperCase() == 'FT' ||
         shortStatus?.toUpperCase() == 'AET' ||
         shortStatus?.toUpperCase() == 'PEN' ||
         shortStatus?.toUpperCase() == 'FINISHED' ||
@@ -714,17 +740,18 @@ class ApiService {
         : null;
 
     // isLive : seulement si le match est VRAIMENT en cours (pas terminé)
-    bool live = !isFinished &&
+    bool live =
+        !isFinished &&
         ([
-          '1H',
-          '2H',
-          'HT',
-          'ET',
-          'P',
-          'LIVE',
-          'INPROGRESS',
-        ].contains(shortStatus?.toUpperCase()) ||
-        status['type']?.toString().toLowerCase() == 'inprogress');
+              '1H',
+              '2H',
+              'HT',
+              'ET',
+              'P',
+              'LIVE',
+              'INPROGRESS',
+            ].contains(shortStatus?.toUpperCase()) ||
+            status['type']?.toString().toLowerCase() == 'inprogress');
 
     String? minuteStr =
         (status['elapsed'] ??
@@ -825,7 +852,10 @@ class ApiService {
   static List<GroupStanding> _remapStandingsIds(List<GroupStanding> groups) {
     return groups.map((group) {
       final teams = group.teams.map((team) {
-        final resolved = TeamResolver.resolve(team.teamName, hintId: team.teamId);
+        final resolved = TeamResolver.resolve(
+          team.teamName,
+          hintId: team.teamId,
+        );
         return StandingTeam(
           teamId: resolved > 0 ? resolved : team.teamId,
           rank: team.rank,

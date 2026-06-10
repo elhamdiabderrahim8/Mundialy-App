@@ -269,7 +269,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   style: TextStyle(
                     color: widget.match.isLive ? Colors.redAccent : kGold,
                     fontSize: 12,
-                    fontWeight: widget.match.isLive ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: widget.match.isLive
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                   ),
                 ),
               ],
@@ -343,11 +345,14 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        (widget.match.statusShort == 'NS' || widget.match.statusShort == 'TBD')
+                        (widget.match.statusShort == 'NS' ||
+                                widget.match.statusShort == 'TBD')
                             ? '-  :  -'
                             : '${overview.scoreHome} - ${overview.scoreAway}',
                         style: TextStyle(
-                          color: widget.match.isLive ? Colors.redAccent : textColor,
+                          color: widget.match.isLive
+                              ? Colors.redAccent
+                              : textColor,
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1,
@@ -1036,118 +1041,118 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             return GestureDetector(
               onTap: player.id > 0
                   ? () => openPlayerProfile(
-                        context,
-                        playerId: player.id,
-                        playerName: player.name,
-                        teamName: lineup.teamName,
-                        teamCode: lineup.teamCode,
-                        season: _tournamentSeason,
-                        shirtNumber: player.number,
-                        position: player.role,
-                        lineups: _matchLineups,
-                      )
+                      context,
+                      playerId: player.id,
+                      playerName: player.name,
+                      teamName: lineup.teamName,
+                      teamCode: lineup.teamCode,
+                      season: _tournamentSeason,
+                      shirtNumber: player.number,
+                      position: player.role,
+                      lineups: _matchLineups,
+                    )
                   : null,
               child: Container(
-              width: 100,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: textColor.withValues(alpha: 0.05)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Color(lineup.kitColor).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Color(lineup.kitColor).withValues(alpha: 0.3),
-                        width: 2,
+                width: 100,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: textColor.withValues(alpha: 0.05)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Color(lineup.kitColor).withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Color(lineup.kitColor).withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        size: 24,
+                        color: Color(lineup.kitColor),
                       ),
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 24,
-                      color: Color(lineup.kitColor),
+                    const SizedBox(height: 12),
+                    Text(
+                      player.name,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    player.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (player.substitutedOut ||
-                      player.substitutedIn ||
-                      player.goals > 0 ||
-                      player.assists > 0 ||
-                      player.yellowCards > 0 ||
-                      player.redCard)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (player.substitutedIn)
-                            const Icon(
-                              Icons.arrow_upward,
-                              size: 12,
-                              color: Colors.green,
-                            ),
-                          if (player.substitutedOut)
-                            const Icon(
-                              Icons.arrow_downward,
-                              size: 12,
-                              color: Colors.red,
-                            ),
-                          if (player.goals > 0)
-                            ...List.generate(
-                              player.goals,
-                              (_) => const Text(
-                                '⚽',
-                                style: TextStyle(fontSize: 10),
+                    if (player.substitutedOut ||
+                        player.substitutedIn ||
+                        player.goals > 0 ||
+                        player.assists > 0 ||
+                        player.yellowCards > 0 ||
+                        player.redCard)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (player.substitutedIn)
+                              const Icon(
+                                Icons.arrow_upward,
+                                size: 12,
+                                color: Colors.green,
                               ),
-                            ),
-                          if (player.assists > 0)
-                            ...List.generate(
-                              player.assists,
-                              (_) => const Text(
-                                '👟',
-                                style: TextStyle(fontSize: 10),
+                            if (player.substitutedOut)
+                              const Icon(
+                                Icons.arrow_downward,
+                                size: 12,
+                                color: Colors.red,
                               ),
-                            ),
-                          if (player.redCard)
-                            const Icon(
-                              Icons.square,
-                              size: 10,
-                              color: Colors.red,
-                            ),
-                          if (!player.redCard && player.yellowCards > 0)
-                            ...List.generate(
-                              player.yellowCards,
-                              (_) => const Icon(
+                            if (player.goals > 0)
+                              ...List.generate(
+                                player.goals,
+                                (_) => const Text(
+                                  '⚽',
+                                  style: TextStyle(fontSize: 10),
+                                ),
+                              ),
+                            if (player.assists > 0)
+                              ...List.generate(
+                                player.assists,
+                                (_) => const Text(
+                                  '👟',
+                                  style: TextStyle(fontSize: 10),
+                                ),
+                              ),
+                            if (player.redCard)
+                              const Icon(
                                 Icons.square,
                                 size: 10,
-                                color: Colors.yellow,
+                                color: Colors.red,
                               ),
-                            ),
-                        ],
+                            if (!player.redCard && player.yellowCards > 0)
+                              ...List.generate(
+                                player.yellowCards,
+                                (_) => const Icon(
+                                  Icons.square,
+                                  size: 10,
+                                  color: Colors.yellow,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
             );
           }).toList(),
         ),
@@ -1439,11 +1444,11 @@ class _TeamMiniCard extends StatelessWidget {
       onTap: teamId == null
           ? null
           : () => openTeamProfile(
-                context,
-                teamName: name,
-                teamId: teamId,
-                year: year,
-              ),
+              context,
+              teamName: name,
+              teamId: teamId,
+              year: year,
+            ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1631,14 +1636,14 @@ class _EventTile extends StatelessWidget {
                   GestureDetector(
                     onTap: _canOpenPlayer(event.scorerName, event.playerId)
                         ? () => openPlayerProfile(
-                              context,
-                              playerId: event.playerId ?? 0,
-                              playerName: event.scorerName,
-                              teamName: event.teamName,
-                              teamCode: event.teamCode,
-                              season: year,
-                              lineups: lineups,
-                            )
+                            context,
+                            playerId: event.playerId ?? 0,
+                            playerName: event.scorerName,
+                            teamName: event.teamName,
+                            teamCode: event.teamCode,
+                            season: year,
+                            lineups: lineups,
+                          )
                         : null,
                     child: Text(
                       event.scorerName,
@@ -1657,14 +1662,14 @@ class _EventTile extends StatelessWidget {
                     child: GestureDetector(
                       onTap: _canOpenPlayer(event.assistant!, event.assistantId)
                           ? () => openPlayerProfile(
-                                context,
-                                playerId: event.assistantId ?? 0,
-                                playerName: event.assistant!,
-                                teamName: event.teamName,
-                                teamCode: event.teamCode,
-                                season: year,
-                                lineups: lineups,
-                              )
+                              context,
+                              playerId: event.assistantId ?? 0,
+                              playerName: event.assistant!,
+                              teamName: event.teamName,
+                              teamCode: event.teamCode,
+                              season: year,
+                              lineups: lineups,
+                            )
                           : null,
                       child: Row(
                         children: [
@@ -1687,7 +1692,8 @@ class _EventTile extends StatelessWidget {
                             child: Text(
                               event.assistant!,
                               style: TextStyle(
-                                color: _canOpenPlayer(
+                                color:
+                                    _canOpenPlayer(
                                       event.assistant!,
                                       event.assistantId,
                                     )
@@ -1709,16 +1715,20 @@ class _EventTile extends StatelessWidget {
                       children: [
                         if (event.playerIn != null)
                           GestureDetector(
-                            onTap: _canOpenPlayer(event.playerIn!, event.playerInId)
+                            onTap:
+                                _canOpenPlayer(
+                                  event.playerIn!,
+                                  event.playerInId,
+                                )
                                 ? () => openPlayerProfile(
-                                      context,
-                                      playerId: event.playerInId ?? 0,
-                                      playerName: event.playerIn!,
-                                      teamName: event.teamName,
-                                      teamCode: event.teamCode,
-                                      season: year,
-                                      lineups: lineups,
-                                    )
+                                    context,
+                                    playerId: event.playerInId ?? 0,
+                                    playerName: event.playerIn!,
+                                    teamName: event.teamName,
+                                    teamCode: event.teamCode,
+                                    season: year,
+                                    lineups: lineups,
+                                  )
                                 : null,
                             child: _EventPill(
                               label: 'ENTRE: ${event.playerIn!}',
@@ -1729,19 +1739,20 @@ class _EventTile extends StatelessWidget {
                         if (event.playerOut != null) const SizedBox(height: 4),
                         if (event.playerOut != null)
                           GestureDetector(
-                            onTap: _canOpenPlayer(
+                            onTap:
+                                _canOpenPlayer(
                                   event.playerOut!,
                                   event.playerOutId,
                                 )
                                 ? () => openPlayerProfile(
-                                      context,
-                                      playerId: event.playerOutId ?? 0,
-                                      playerName: event.playerOut!,
-                                      teamName: event.teamName,
-                                      teamCode: event.teamCode,
-                                      season: year,
-                                      lineups: lineups,
-                                    )
+                                    context,
+                                    playerId: event.playerOutId ?? 0,
+                                    playerName: event.playerOut!,
+                                    teamName: event.teamName,
+                                    teamCode: event.teamCode,
+                                    season: year,
+                                    lineups: lineups,
+                                  )
                                 : null,
                             child: _EventPill(
                               label: 'SORT: ${event.playerOut!}',
@@ -2235,10 +2246,26 @@ class _PitchTrophyWatermark extends StatelessWidget {
   final bool isDark;
 
   static const _invertMatrix = ColorFilter.matrix([
-    -1, 0, 0, 0, 255,
-    0, -1, 0, 0, 255,
-    0, 0, -1, 0, 255,
-    0, 0, 0, 1, 0,
+    -1,
+    0,
+    0,
+    0,
+    255,
+    0,
+    -1,
+    0,
+    0,
+    255,
+    0,
+    0,
+    -1,
+    0,
+    255,
+    0,
+    0,
+    0,
+    1,
+    0,
   ]);
 
   @override

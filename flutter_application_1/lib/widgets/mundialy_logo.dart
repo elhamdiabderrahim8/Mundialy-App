@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MundialyLogo extends StatelessWidget {
-  const MundialyLogo({
-    super.key,
-    this.size = 28,
-    this.showLabel = false,
-  });
+  const MundialyLogo({super.key, this.size = 28, this.showLabel = false});
 
   final double size;
   final bool showLabel;

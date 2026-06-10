@@ -49,6 +49,9 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:value="#E7C16A" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="mundialy_live_alerts_v2" />
 
         <!-- Désactiver Impeller pour éviter les erreurs GPU Mali sur Infinix -->
         <meta-data

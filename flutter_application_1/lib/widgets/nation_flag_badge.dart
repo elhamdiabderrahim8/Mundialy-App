@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../utils/country_flags.dart';
 
@@ -84,7 +84,9 @@ class NationFlagBadge extends StatelessWidget {
 
   String? _resolveImageUrl() {
     final override = imageUrlOverride;
-    if (override != null && override.isNotEmpty && override.startsWith('http')) {
+    if (override != null &&
+        override.isNotEmpty &&
+        override.startsWith('http')) {
       return override;
     }
 
@@ -119,6 +121,11 @@ class NationFlagBadge extends StatelessWidget {
 
   /// Tries to find an ISO-2 code from a team/country full name
   static String? _resolveByTeamName(String name) {
+    final resolved = resolveCountryCode(name, fallback: '');
+    if (resolved.length == 2 || resolved.contains('-')) {
+      return resolved.toLowerCase();
+    }
+
     const nameMap = {
       'afghanistan': 'af',
       'albania': 'al',
@@ -278,7 +285,7 @@ class NationFlagBadge extends StatelessWidget {
     if (nameMap.containsKey(lower)) return nameMap[lower];
     // Partial match (if team name contains country name)
     for (final entry in nameMap.entries) {
-      if (lower.contains(entry.key) || entry.key.contains(lower)) {
+      if (lower.contains(entry.key)) {
         return entry.value;
       }
     }
@@ -318,7 +325,12 @@ class NationFlagBadge extends StatelessWidget {
   static String? _map3To2(String code3) {
     const map = {
       // A
-      'AFG': 'AF', 'ALB': 'AL', 'ALG': 'DZ', 'DZA': 'DZ', 'AND': 'AD', 'ANG': 'AO',
+      'AFG': 'AF',
+      'ALB': 'AL',
+      'ALG': 'DZ',
+      'DZA': 'DZ',
+      'AND': 'AD',
+      'ANG': 'AO',
       'ANT': 'AG', 'ARG': 'AR', 'ARM': 'AM', 'ARU': 'AW', 'ASA': 'AS',
       'AUS': 'AU', 'AUT': 'AT', 'AZE': 'AZ',
       // B
@@ -446,4 +458,3 @@ class _DiamondClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
-

@@ -17,7 +17,7 @@ void main() {
         'score_home': 3,
         'score_away': 3,
         'is_live': true,
-        'status_short': 'HT'
+        'status_short': 'HT',
       };
 
       final match = LiveMatch.fromJson(json);
