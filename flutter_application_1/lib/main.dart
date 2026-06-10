@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
+import 'services/ad_mob_service.dart';
 import 'services/theme_provider.dart';
 import 'widgets/animated_goal_overlay.dart';
 import 'widgets/in_app_notification.dart';
@@ -25,6 +26,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await AdMobService.initialize();
 
   // Initialisation de Firebase
   try {

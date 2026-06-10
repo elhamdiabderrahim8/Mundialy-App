@@ -19,6 +19,7 @@ import '../utils/team_navigation.dart';
 import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/pin_match_button.dart';
+import '../widgets/inline_adaptive_banner.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 
@@ -343,6 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 14),
           _buildNewsCarousel2026(),
+          const InlineAdaptiveBanner(),
           const SizedBox(height: 28),
 
           // ── STANDINGS / GROUPS ──
@@ -486,6 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
+      var matchIndex = 0;
       for (final m in grouped[key]!) {
         widgets.add(
           _AnimatedEntrance(
@@ -499,6 +502,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         );
+        matchIndex++;
+        if (matchIndex == 3 && grouped[key]!.length >= 5) {
+          widgets.add(const InlineAdaptiveBanner(horizontalMargin: 16));
+        }
       }
     }
     return widgets;
@@ -618,10 +625,14 @@ class _HomeScreenState extends State<HomeScreen> {
               color: _kGold,
             ),
           );
-          for (final m in upcomingMatches) {
+          for (var i = 0; i < upcomingMatches.length; i++) {
+            final m = upcomingMatches[i];
             items.add(
               _MatchCard(match: m, year: _selectedYear, textColor: textColor),
             );
+            if (i == 2 && upcomingMatches.length >= 5) {
+              items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
+            }
           }
         }
         // Finished matches section

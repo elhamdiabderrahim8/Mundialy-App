@@ -48,19 +48,27 @@ class ApiService {
   /// Gère le "cold start" du plan gratuit (30-60s de réveil)
   /// avec un timeout généreux et un retry automatique.
   static Future<http.Response?> _backendGet(String path, {int retries = 1}) async {
-    final url = Uri.parse('${GlobalConfig.backendUrl}$path');
-    for (int attempt = 0; attempt <= retries; attempt++) {
-      try {
-        final response = await http
-            .get(url)
-            .timeout(const Duration(seconds: 60));
-        if (response.statusCode == 200) return response;
-        debugPrint('[Backend] Status ${response.statusCode} pour $path (tentative ${attempt + 1})');
-      } catch (e) {
-        debugPrint('[Backend] Erreur tentative ${attempt + 1}/$retries pour $path: $e');
-      }
-      if (attempt < retries) {
-        await Future.delayed(const Duration(seconds: 2));
+    final baseUrls = <String>[
+      GlobalConfig.backendUrl,
+      if (!kReleaseMode && GlobalConfig.backendUrl.contains('192.168.'))
+        'https://mundialy-backend.onrender.com',
+    ];
+
+    for (final baseUrl in baseUrls) {
+      final url = Uri.parse('$baseUrl$path');
+      for (int attempt = 0; attempt <= retries; attempt++) {
+        try {
+          final response = await http
+              .get(url)
+              .timeout(const Duration(seconds: 60));
+          if (response.statusCode == 200) return response;
+          debugPrint('[Backend] Status ${response.statusCode} pour $url (tentative ${attempt + 1})');
+        } catch (e) {
+          debugPrint('[Backend] Erreur tentative ${attempt + 1}/$retries pour $url: $e');
+        }
+        if (attempt < retries) {
+          await Future.delayed(const Duration(seconds: 2));
+        }
       }
     }
     return null;
@@ -76,6 +84,12 @@ class ApiService {
       }
     }
     return null;
+  }
+
+  static T? _getAnyCache<T>(String key) {
+    final entry = _cache[key];
+    if (entry == null) return null;
+    return entry.data as T;
   }
 
   static void _setCache(String key, dynamic data) {
@@ -111,19 +125,24 @@ class ApiService {
   }
 
   static Future<List<LiveMatch>> fetchLiveMatches() async {
+    const cacheKey = 'live_matches';
     try {
       // Appel DIRECT à SofaScore depuis le téléphone (jamais bloqué)
       final data = await SofaDirectService.fetchLiveMatches();
       final matches = data.map((j) => _mapSofaToMatch(j)).toList();
-      TeamResolver.indexMatches(matches);
-      _checkGoals(matches);
-      return matches;
+      if (matches.isNotEmpty) {
+        TeamResolver.indexMatches(matches);
+        _setCache(cacheKey, matches);
+        _checkGoals(matches);
+        return matches;
+      }
+      debugPrint('fetchLiveMatches: SofaScore returned no live matches');
     } on TimeoutException {
       debugPrint('⚠️ fetchLiveMatches: timeout, returning empty list');
     } catch (e) {
       debugPrint('❌ fetchLiveMatches Error: $e');
     }
-    return [];
+    return _getCache<List<LiveMatch>>(cacheKey, ttlMinutes: 1) ?? [];
   }
 
   static void _checkGoals(List<LiveMatch> matches) {
@@ -311,11 +330,23 @@ class ApiService {
           _setCache(cacheKey, data);
           return data;
         }
+        debugPrint('fetchMatches: SofaScore direct returned no fixtures');
+
+        final response = await _backendGet('/api/fixtures?season=2026');
+        if (response != null) {
+          final data = _parseMatchesResponse(response.body);
+          if (data.isNotEmpty) {
+            TeamResolver.indexMatches(data);
+            _setCache(cacheKey, data);
+            return data;
+          }
+          debugPrint('fetchMatches: backend returned no fixtures');
+        }
       }
     } catch (e) {
       debugPrint('❌ fetchMatches Error: $e');
     }
-    return [];
+    return _getAnyCache<List<LiveMatch>>(cacheKey) ?? [];
   }
 
   static Future<List<GroupStanding>> fetchStandings({int? year}) async {
@@ -340,14 +371,27 @@ class ApiService {
         final rawData = await SofaDirectService.fetchStandings2026();
         if (rawData != null) {
           final data = _parseStandingsResponse(jsonEncode(rawData));
-          _setCache(cacheKey, data);
-          return data;
+          if (data.isNotEmpty) {
+            _setCache(cacheKey, data);
+            return data;
+          }
+          debugPrint('fetchStandings: SofaScore direct returned no groups');
+        }
+
+        final response = await _backendGet('/api/standings?season=2026');
+        if (response != null) {
+          final data = _parseStandingsResponse(response.body);
+          if (data.isNotEmpty) {
+            _setCache(cacheKey, data);
+            return data;
+          }
+          debugPrint('fetchStandings: backend returned no groups');
         }
       }
     } catch (e) {
       debugPrint('❌ fetchStandings Error: $e');
     }
-    return [];
+    return _getAnyCache<List<GroupStanding>>(cacheKey) ?? [];
   }
 
   static Future<MatchDetails?> fetchFullMatchDetails(

@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../utils/country_flags.dart';
 import '../utils/mock_match_details_data.dart';
 import '../widgets/nation_flag_badge.dart';
+import '../widgets/inline_adaptive_banner.dart';
 import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
 
@@ -206,6 +207,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     _buildScoreCard(cardColor, textColor),
                     const SizedBox(height: 14),
                     _buildSwitchButtons(cardColor, textColor),
+                    const InlineAdaptiveBanner(horizontalMargin: 0),
                     const SizedBox(height: 14),
                     if (_selectedView == 0) ...[
                       _buildSummarySection(cardColor, textColor),
