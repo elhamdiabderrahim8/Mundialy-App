@@ -2,8 +2,6 @@ name: Flutter CI/CD to GitHub Releases
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
   workflow_dispatch:
