@@ -1,0 +1,31 @@
+﻿name: Recover Keystore
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Recover Secret
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "Secret is EMPTY!"
+          else
+            echo "Secret found! Decoding..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > recovered.keystore
+          fi
+
+      - name: Upload Keystore Artifact
+        if: env.KEYSTORE_BASE64 != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-keystore
+          path: recovered.keystore
