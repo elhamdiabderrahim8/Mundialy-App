@@ -10,13 +10,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-}
-
-val useLegacyApkpureSigning = project.hasProperty("legacyApkpureSigning") || System.getenv("LEGACY_APKPURE_SIGNING") == "true"
+// Removed unused properties logic
 
 android {
     namespace = "com.mundialy.app"
@@ -40,14 +34,6 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = (keystoreProperties["storeFile"] as String?)?.let {
-                rootProject.file(it)
-            }
-            storePassword = keystoreProperties["storePassword"] as String?
-        }
-        create("legacyApkpure") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
             storeFile = file("apkpure-debug.keystore")
@@ -57,13 +43,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (useLegacyApkpureSigning) {
-                signingConfigs.getByName("legacyApkpure")
-            } else if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
