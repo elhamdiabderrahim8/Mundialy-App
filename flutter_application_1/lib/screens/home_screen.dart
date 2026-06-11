@@ -117,7 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       debugPrint('💥 Error loading data: $e');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _jumpToTodayMatchPage();
+      }
     }
   }
 
@@ -194,10 +197,106 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedTab = index;
     });
     java_timer.unawaited(AdMobService.maybeShowInterstitialAfterNavigation());
-    if (_pageController.hasClients) _pageController.jumpToPage(0);
+    if (index == 2 && _matchFilterMode == 0) {
+      _jumpToTodayMatchPage();
+    } else if (_pageController.hasClients) {
+      _pageController.jumpToPage(0);
+    }
+  }
+
+  void _jumpToTodayMatchPage() {
+    if (_selectedTab != 2 || _matchFilterMode != 0) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_pageController.hasClients) return;
+      final todayIndex = _datePageDays().indexWhere(_isToday);
+      if (todayIndex != -1) {
+        _pageController.jumpToPage(todayIndex);
+      }
+    });
   }
 
   bool get isDark => Theme.of(context).brightness == Brightness.dark;
+
+  DateTime _dayOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _isToday(DateTime date) => _isSameDay(date, DateTime.now());
+
+  String _dateKey(DateTime date) {
+    final day = _dayOnly(date);
+    return '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+  }
+
+  String _dateLabel(DateTime date) {
+    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const months = [
+      'janvier',
+      'fevrier',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'aout',
+      'septembre',
+      'octobre',
+      'novembre',
+      'decembre',
+    ];
+    final day = _dayOnly(date);
+    return '${weekdays[day.weekday - 1]} ${day.day} ${months[day.month - 1]} ${day.year}';
+  }
+
+  List<DateTime> _datePageDays() {
+    final matchDays =
+        _matches
+            .map((m) => m.dateTime)
+            .whereType<DateTime>()
+            .map(_dayOnly)
+            .toSet()
+            .toList()
+          ..sort();
+
+    final today = _dayOnly(DateTime.now());
+    if (matchDays.isEmpty) return [today];
+
+    var first = matchDays.first;
+    var last = matchDays.last;
+    if (_selectedYear == today.year) {
+      if (today.isBefore(first)) first = today;
+      if (today.isAfter(last)) last = today;
+    }
+
+    final days = <DateTime>[];
+    for (
+      var day = first;
+      !day.isAfter(last);
+      day = day.add(const Duration(days: 1))
+    ) {
+      days.add(day);
+    }
+    return days;
+  }
+
+  Map<String, List<LiveMatch>> _matchesGroupedByDay() {
+    final grouped = <String, List<LiveMatch>>{};
+    for (final match in _matches) {
+      final date = match.dateTime;
+      if (date == null) continue;
+      grouped.putIfAbsent(_dateKey(date), () => []).add(match);
+    }
+    for (final matches in grouped.values) {
+      matches.sort((a, b) {
+        final aDate = a.dateTime;
+        final bDate = b.dateTime;
+        if (aDate == null || bDate == null) return 0;
+        return aDate.compareTo(bDate);
+      });
+    }
+    return grouped;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 _matchFilterMode = i;
               });
-              if (_pageController.hasClients) _pageController.jumpToPage(0);
+              if (i == 0) {
+                _jumpToTodayMatchPage();
+              } else if (_pageController.hasClients) {
+                _pageController.jumpToPage(0);
+              }
             } else {
               _showFilterBottomSheet(i);
             }
@@ -518,6 +621,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildPagedMatchView(Color textColor) {
+    if (_selectedTab == 2 && _matchFilterMode == 0) {
+      return _buildPagedDateMatchView(textColor);
+    }
+
     final List<String> Function(LiveMatch) keysOf;
     if (_selectedTab == 2) {
       switch (_matchFilterMode) {
@@ -654,6 +761,145 @@ class _HomeScreenState extends State<HomeScreen> {
             items.add(
               _MatchCard(match: m, year: _selectedYear, textColor: textColor),
             );
+          }
+        }
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+          children: items,
+        );
+      },
+    );
+  }
+
+  Widget _buildPagedDateMatchView(Color textColor) {
+    final days = _datePageDays();
+    final grouped = _matchesGroupedByDay();
+    if (days.isEmpty) {
+      return const _EmptyState(msg: 'Aucun match disponible.');
+    }
+
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: days.length,
+      itemBuilder: (context, index) {
+        final day = days[index];
+        final matches = grouped[_dateKey(day)] ?? const <LiveMatch>[];
+        final upcomingMatches = matches.where((m) => !m.isFinished).toList();
+        final finishedMatches = matches.where((m) => m.isFinished).toList();
+        final isToday = _isToday(day);
+
+        final items = <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (index > 0)
+                  GestureDetector(
+                    onTap: () => _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: _kGold,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isToday ? "AUJOURD'HUI" : _dateLabel(day).toUpperCase(),
+                        style: const TextStyle(
+                          color: _kGold,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          letterSpacing: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      if (isToday) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          _dateLabel(day),
+                          style: TextStyle(
+                            color: textColor.withValues(alpha: 0.55),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (index < days.length - 1)
+                  GestureDetector(
+                    onTap: () => _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: _kGold,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ];
+
+        if (matches.isEmpty) {
+          items.add(
+            _EmptyState(
+              msg: isToday
+                  ? "Pas de match aujourd'hui."
+                  : 'Aucun match programme ce jour.',
+            ),
+          );
+        } else {
+          if (upcomingMatches.isNotEmpty) {
+            items.add(
+              _StatusSectionHeader(
+                icon: Icons.schedule_rounded,
+                label: 'A VENIR',
+                color: _kGold,
+              ),
+            );
+            for (var i = 0; i < upcomingMatches.length; i++) {
+              final m = upcomingMatches[i];
+              items.add(
+                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+              );
+              if (i == 2 && upcomingMatches.length >= 5) {
+                items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
+              }
+            }
+          }
+          if (finishedMatches.isNotEmpty) {
+            items.add(
+              _StatusSectionHeader(
+                icon: Icons.check_circle_outline_rounded,
+                label: 'TERMINES',
+                color: Colors.grey,
+              ),
+            );
+            for (final m in finishedMatches) {
+              items.add(
+                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+              );
+            }
           }
         }
 
@@ -1052,20 +1298,24 @@ class _HomeScreenState extends State<HomeScreen> {
       final currentKeyIndex = _pageController.hasClients
           ? _pageController.page?.round() ?? 0
           : 0;
-      final keys = groupedKeys((m) => [m.dateLabel]);
-      final selectedDateLabel = keys.isNotEmpty && currentKeyIndex < keys.length
-          ? keys[currentKeyIndex]
-          : '';
+      final days = _datePageDays();
+      final selectedDate =
+          days.isNotEmpty &&
+              currentKeyIndex >= 0 &&
+              currentKeyIndex < days.length
+          ? days[currentKeyIndex]
+          : _dayOnly(DateTime.now());
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (context) => _CalendarBottomSheet(
           matches: _matches,
-          selectedDateLabel: selectedDateLabel,
+          selectedDate: selectedDate,
+          allowedDates: days,
           isDark: isDark,
-          onDateSelected: (dateLabel) {
-            final idx = keys.indexOf(dateLabel);
+          onDateSelected: (date) {
+            final idx = days.indexWhere((day) => _isSameDay(day, date));
             if (idx != -1) {
               _pageController.jumpToPage(idx);
               Navigator.pop(context);
@@ -3145,33 +3395,109 @@ class _MatchFilterBar extends StatelessWidget {
   }
 }
 
-class _CalendarBottomSheet extends StatelessWidget {
+class _CalendarBottomSheet extends StatefulWidget {
   final List<LiveMatch> matches;
-  final String selectedDateLabel;
-  final void Function(String) onDateSelected;
+  final DateTime selectedDate;
+  final List<DateTime> allowedDates;
+  final void Function(DateTime) onDateSelected;
   final bool isDark;
   const _CalendarBottomSheet({
     required this.matches,
-    required this.selectedDateLabel,
+    required this.selectedDate,
+    required this.allowedDates,
     required this.onDateSelected,
     required this.isDark,
   });
+
+  @override
+  State<_CalendarBottomSheet> createState() => _CalendarBottomSheetState();
+}
+
+class _CalendarBottomSheetState extends State<_CalendarBottomSheet> {
+  late DateTime _visibleMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _visibleMonth = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+    );
+  }
+
+  DateTime _dayOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _dayKey(DateTime date) {
+    final day = _dayOnly(date);
+    return '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _isAllowed(DateTime date) =>
+      widget.allowedDates.any((day) => _sameDay(day, date));
+
+  Map<String, int> _matchCountsByDay() {
+    final counts = <String, int>{};
+    for (final match in widget.matches) {
+      final date = match.dateTime;
+      if (date == null) continue;
+      final key = _dayKey(date);
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  String _monthTitle(DateTime date) {
+    const months = [
+      'Janvier',
+      'Fevrier',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Aout',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Decembre',
+    ];
+    return 'Calendrier ${months[date.month - 1]} ${date.year}';
+  }
+
+  void _changeMonth(int delta) {
+    setState(() {
+      _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month + delta);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bgColor = isDark ? const Color(0xFF23303C) : Colors.white;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final keysSet = <String>{};
-    for (var m in matches) {
-      keysSet.add(m.dateLabel);
-    }
-    final keys = keysSet.toList();
+    final bgColor = widget.isDark ? const Color(0xFF23303C) : Colors.white;
+    final textColor = widget.isDark ? Colors.white : Colors.black87;
+    final mutedColor = textColor.withValues(alpha: 0.45);
+    final counts = _matchCountsByDay();
+    final firstDay = DateTime(_visibleMonth.year, _visibleMonth.month);
+    final daysInMonth = DateTime(
+      _visibleMonth.year,
+      _visibleMonth.month + 1,
+      0,
+    ).day;
+    final leadingEmptyCells = firstDay.weekday - 1;
+    final totalCells = leadingEmptyCells + daysInMonth;
+    final rowCount = (totalCells / 7).ceil();
+    final today = _dayOnly(DateTime.now());
+
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      child: SafeArea(
+        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -3184,27 +3510,140 @@ class _CalendarBottomSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'CHOISIR DATE',
-              style: TextStyle(color: _kGold, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                IconButton(
+                  tooltip: 'Mois precedent',
+                  onPressed: () => _changeMonth(-1),
+                  icon: const Icon(Icons.chevron_left_rounded),
+                  color: _kGold,
+                ),
+                Expanded(
+                  child: Text(
+                    _monthTitle(_visibleMonth),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _kGold,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Mois suivant',
+                  onPressed: () => _changeMonth(1),
+                  icon: const Icon(Icons.chevron_right_rounded),
+                  color: _kGold,
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: keys.map((k) {
-                final isSel = k == selectedDateLabel;
-                return ChoiceChip(
-                  label: Text(k),
-                  selected: isSel,
-                  onSelected: (_) => onDateSelected(k),
-                  selectedColor: _kGold,
-                  backgroundColor: textColor.withValues(alpha: 0.05),
-                  labelStyle: TextStyle(
-                    color: isSel ? Colors.black : textColor,
+            const SizedBox(height: 12),
+            Row(
+              children: ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+                  .map(
+                    (day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: TextStyle(
+                            color: mutedColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: rowCount * 7,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemBuilder: (context, index) {
+                final dayNumber = index - leadingEmptyCells + 1;
+                if (dayNumber < 1 || dayNumber > daysInMonth) {
+                  return const SizedBox.shrink();
+                }
+                final date = DateTime(
+                  _visibleMonth.year,
+                  _visibleMonth.month,
+                  dayNumber,
+                );
+                final allowed = _isAllowed(date);
+                final selected = _sameDay(date, widget.selectedDate);
+                final isToday = _sameDay(date, today);
+                final matchCount = counts[_dayKey(date)] ?? 0;
+                final fillColor = selected
+                    ? _kGold
+                    : matchCount > 0
+                    ? _kGold.withValues(alpha: 0.12)
+                    : Colors.transparent;
+                final borderColor = selected
+                    ? _kGold
+                    : isToday
+                    ? _kGold.withValues(alpha: 0.65)
+                    : matchCount > 0
+                    ? _kGold.withValues(alpha: 0.35)
+                    : textColor.withValues(alpha: 0.08);
+
+                return Tooltip(
+                  message: matchCount == 0
+                      ? 'Aucun match'
+                      : '$matchCount match${matchCount > 1 ? 's' : ''}',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: allowed ? () => widget.onDateSelected(date) : null,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: fillColor,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Text(
+                            '$dayNumber',
+                            style: TextStyle(
+                              color: selected
+                                  ? const Color(0xFF14202A)
+                                  : allowed
+                                  ? textColor
+                                  : mutedColor.withValues(alpha: 0.45),
+                              fontWeight: selected || isToday || matchCount > 0
+                                  ? FontWeight.w900
+                                  : FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (matchCount > 0)
+                            Positioned(
+                              bottom: 5,
+                              child: Container(
+                                width: 5,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? const Color(0xFF14202A)
+                                      : _kGold,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ],
         ),
