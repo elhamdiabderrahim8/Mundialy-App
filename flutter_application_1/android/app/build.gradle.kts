@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.mundialy.app"
+        applicationId = "com.mundialy.football"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
