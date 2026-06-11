@@ -16,6 +16,8 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val useLegacyApkpureSigning = project.hasProperty("legacyApkpureSigning")
+
 android {
     namespace = "com.mundialy.app"
     compileSdk = flutter.compileSdkVersion
@@ -45,11 +47,19 @@ android {
             }
             storePassword = keystoreProperties["storePassword"] as String?
         }
+        create("legacyApkpure") {
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+        }
     }
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
+            signingConfig = if (useLegacyApkpureSigning) {
+                signingConfigs.getByName("legacyApkpure")
+            } else if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
