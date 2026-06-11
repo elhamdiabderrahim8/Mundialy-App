@@ -73,7 +73,7 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.android
-          echo "$LEGACY_KEYSTORE_BASE64" | base64 --decode > ~/.android/debug.keystore
+          printf '%s' "$LEGACY_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > ~/.android/debug.keystore
 
       - name: Verify APKPure legacy keystore
         if: startsWith(github.ref, 'refs/tags/')
