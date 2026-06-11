@@ -50,7 +50,7 @@ android {
         create("legacyApkpure") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storeFile = file("apkpure-debug.keystore")
             storePassword = "android"
         }
     }
