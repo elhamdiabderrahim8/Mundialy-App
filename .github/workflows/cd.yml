@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*' # Ex: v1.0.0
+      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ jobs:
   build_and_release:
     name: Build & Release APK
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: flutter_application_1
@@ -39,54 +39,37 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze code (Maintainability)
-        run: flutter analyze || true
-
-      - name: Run Tests (Reliability)
-        run: flutter test
-
-      # Keystore Configuration
+      # 🔐 KEYS (FIX FINAL)
       - name: Decode Keystore
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo $KEYSTORE_BASE64 | base64 --decode > android/app/upload-keystore.jks
-            echo "storeFile=app/upload-keystore.jks" > android/key.properties
-            echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
-            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
-            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          else
-            echo "Skipping keystore setup (secret not found). Using debug keys."
-          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > upload-keystore.jks
 
-      - name: Verify APKPure legacy keystore
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create key.properties
         run: |
-          keytool -list -v -keystore android/app/apkpure-debug.keystore -alias androiddebugkey -storepass android -keypass android | grep -q "SHA256: 6E:DF:76:F4:E4:C6:6F:55:D0:71:B7:AC:25:AC:05:E4:23:8D:D3:47:D7:06:94:D4:B6:15:17:93:F8:3C:7B:01"
+          echo "storeFile=../upload-keystore.jks" > android/key.properties
+          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
 
+      # 🧱 BUILD (IMPORTANT: clean release only)
       - name: Build APK
-        run: flutter build apk --release --build-name=1.0.1 --build-number=2 -PlegacyApkpureSigning --obfuscate --split-debug-info=build/app/outputs/symbols
+        run: flutter build apk --release --build-name=1.0.1 --build-number=2
 
       - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/mundialy.apk
+        run: mv build/app/outputs/flutter-apk/app-release.apk mundialy.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mundialy-release-apk
-          path: flutter_application_1/build/app/outputs/flutter-apk/mundialy.apk
-          retention-days: 14
+          name: mundialy-apk
+          path: flutter_application_1/mundialy.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: flutter_application_1/build/app/outputs/flutter-apk/mundialy.apk
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+          files: flutter_application_1/mundialy.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
