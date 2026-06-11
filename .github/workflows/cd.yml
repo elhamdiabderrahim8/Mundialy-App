@@ -53,23 +53,36 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
 
-      # 🧱 BUILD (IMPORTANT: clean release only)
-      - name: Build APK
-        run: flutter build apk --release --build-name=1.0.1 --build-number=2
+      # 🧱 BUILD APK (Google Play / Default)
+      - name: Build standard APK
+        run: flutter build apk --release
 
-      - name: Rename APK
-        run: mv build/app/outputs/flutter-apk/app-release.apk mundialy.apk
+      - name: Rename standard APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk mundialy-release.apk
 
-      - name: Upload APK artifact
+      # 🧱 BUILD APK (APKPure Legacy)
+      - name: Build APKPure APK
+        env:
+          LEGACY_APKPURE_SIGNING: "true"
+        run: flutter build apk --release
+
+      - name: Rename APKPure APK
+        run: mv build/app/outputs/flutter-apk/app-release.apk mundialy-apkpure.apk
+
+      - name: Upload APKs artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mundialy-apk
-          path: flutter_application_1/mundialy.apk
+          name: mundialy-apks
+          path: |
+            flutter_application_1/mundialy-release.apk
+            flutter_application_1/mundialy-apkpure.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: flutter_application_1/mundialy.apk
+          files: |
+            flutter_application_1/mundialy-release.apk
+            flutter_application_1/mundialy-apkpure.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

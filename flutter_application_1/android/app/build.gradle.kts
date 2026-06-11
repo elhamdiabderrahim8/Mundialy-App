@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-val useLegacyApkpureSigning = project.hasProperty("legacyApkpureSigning")
+val useLegacyApkpureSigning = project.hasProperty("legacyApkpureSigning") || System.getenv("LEGACY_APKPURE_SIGNING") == "true"
 
 android {
     namespace = "com.mundialy.app"
