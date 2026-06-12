@@ -46,7 +46,7 @@ jobs:
       - name: Restore release keystore
         env:
           MUNDIALY_KEYSTORE_BASE64: ${{ secrets.MUNDIALY_KEYSTORE_BASE64 }}
-        run: echo "$MUNDIALY_KEYSTORE_BASE64" | base64 --decode > android/app/mundialy.keystore
+        run: echo "$MUNDIALY_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > android/app/mundialy.keystore
 
       # 🧱 BUILD
       - name: Build APK
