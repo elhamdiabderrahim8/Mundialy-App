@@ -96,9 +96,14 @@ class Scores365Service {
       if (g['shortStatusText'] == 'Mi-temps') matchMinute = 'HT';
     }
 
-    final dt = g['startTime'] != null
-        ? DateTime.parse(g['startTime']).toLocal()
-        : DateTime.now();
+    DateTime dt = DateTime.now();
+    if (g['startTime'] != null) {
+      String st = g['startTime'].toString();
+      if (!st.endsWith('Z') && !st.contains('+') && !st.contains('-')) {
+        st += 'Z'; // Force UTC interpretation if no timezone is provided
+      }
+      dt = DateTime.parse(st).toLocal();
+    }
 
     final teamHomeName = _cleanTeamName(home['name']);
     final teamAwayName = _cleanTeamName(away['name']);

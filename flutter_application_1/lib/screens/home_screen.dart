@@ -1628,13 +1628,22 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? (match.isLive ? const Color(0xFF221515) : _kCardDark)
-            : (match.isLive ? const Color(0xFFFFF0F0) : Colors.white),
+        gradient: match.isLive
+            ? LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF330000), const Color(0xFF1a0000)]
+                    : [const Color(0xFFFFE5E5), const Color(0xFFFFFFFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: match.isLive
+            ? null
+            : (isDark ? _kCardDark : Colors.white),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: match.isLive
-              ? Colors.redAccent.withValues(alpha: 0.5)
+              ? Colors.redAccent.withValues(alpha: 0.6)
               : (isDark
                     ? Colors.white.withValues(alpha: 0.08)
                     : Colors.black.withValues(alpha: 0.05)),
@@ -1644,10 +1653,11 @@ class _MatchCard extends StatelessWidget {
           if (!match.isFinished)
             BoxShadow(
               color: match.isLive
-                  ? Colors.redAccent.withValues(alpha: 0.15)
+                  ? Colors.redAccent.withValues(alpha: 0.25)
                   : Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 15,
+              spreadRadius: match.isLive ? 2 : 0,
+              offset: const Offset(0, 5),
             ),
         ],
       ),
@@ -1655,7 +1665,24 @@ class _MatchCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match)),
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) => MatchDetailsScreen(match: match),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(0.0, 0.05);
+                const end = Offset.zero;
+                const curve = Curves.easeOutCubic;
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: FadeTransition(
+                    opacity: animation.drive(fadeTween),
+                    child: child,
+                  ),
+                );
+              },
+              transitionDuration: const Duration(milliseconds: 350),
+            ),
           ),
           borderRadius: BorderRadius.circular(20),
           child: Opacity(
@@ -1807,10 +1834,24 @@ class _MatchCard extends StatelessWidget {
                                 key: ValueKey<String>(centerText),
                                 style: TextStyle(
                                   color: match.isLive
-                                      ? Colors.redAccent
+                                      ? Colors.white
                                       : _kGold,
-                                  fontSize: 20,
+                                  fontSize: match.isLive ? 24 : 20,
                                   fontWeight: FontWeight.w900,
+                                  letterSpacing: match.isLive ? 1.0 : 0,
+                                  shadows: match.isLive
+                                      ? [
+                                          Shadow(
+                                            color: Colors.redAccent.withValues(alpha: 0.8),
+                                            blurRadius: 10,
+                                          ),
+                                          Shadow(
+                                            color: Colors.black.withValues(alpha: 0.5),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          )
+                                        ]
+                                      : null,
                                 ),
                               ),
                             ),
@@ -3330,7 +3371,24 @@ class _LiveMatchCard2026State extends State<_LiveMatchCard2026>
           ),
           child: InkWell(
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: m)),
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => MatchDetailsScreen(match: m),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(0.0, 0.05);
+                  const end = Offset.zero;
+                  const curve = Curves.easeOutCubic;
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: FadeTransition(
+                      opacity: animation.drive(fadeTween),
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 350),
+              ),
             ),
             borderRadius: BorderRadius.circular(20),
             child: Padding(

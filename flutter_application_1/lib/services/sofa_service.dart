@@ -80,10 +80,19 @@ class SofaService {
     home ??= {};
     away ??= {};
 
+    DateTime dt = DateTime.now();
+    if (g['startTime'] != null) {
+      String st = g['startTime'].toString();
+      if (!st.endsWith('Z') && !st.contains('+') && !st.contains('-')) {
+        st += 'Z'; // Force UTC interpretation if no timezone is provided
+      }
+      dt = DateTime.tryParse(st)?.toLocal() ?? DateTime.now();
+    }
+
     return LiveMatch(
       id: '${g['id']}',
-      dateLabel: g['startTime']?.toString().substring(0, 10) ?? '',
-      localTime: g['startTime']?.toString().substring(11, 16) ?? '',
+      dateLabel: '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}',
+      localTime: '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}',
       city: 'Coupe du Monde 2026',
       homeTeam: home['name'] ?? 'TBD',
       homeCode: resolveCountryCode(home['name'] ?? ''),

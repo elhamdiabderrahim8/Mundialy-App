@@ -132,6 +132,24 @@ class ApiService {
         ?.createNotificationChannel(channel);
   }
 
+  static Future<void> showSystemNotification(String title, String body) async {
+    const androidDetails = AndroidNotificationDetails(
+      _liveAlertsChannelId,
+      'Buts en Direct',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+    const details = NotificationDetails(android: androidDetails);
+    await _notifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      details,
+    );
+  }
+
   static Future<List<LiveMatch>> fetchLiveMatches() async {
     const cacheKey = 'live_matches';
     try {

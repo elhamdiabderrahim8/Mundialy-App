@@ -153,7 +153,8 @@ const Map<String, String> _countryCodeByName = {
   'turkey': 'TR', 'turkiye': 'TR', 'turkmenistan': 'TM',
   // U
   'uae': 'AE', 'united arab emirates': 'AE', 'uganda': 'UG',
-  'ukraine': 'UA', 'united states': 'US', 'usa': 'US', 'uruguay': 'UY',
+  'ukraine': 'UA', 'united kingdom': 'GB', 'uk': 'GB', 'united states': 'US',
+  'usa': 'US', 'united states of america': 'US', 'uruguay': 'UY',
   'uzbekistan': 'UZ',
   // V
   'vanuatu': 'VU', 'venezuela': 'VE', 'vietnam': 'VN',
@@ -164,6 +165,12 @@ const Map<String, String> _countryCodeByName = {
   'yemen': 'YE',
   // Z
   'zambia': 'ZM', 'zimbabwe': 'ZW',
+  
+  // Extra missing common aliases
+  'holland': 'NL',
+  'republic of ireland': 'IE',
+  'drc': 'CD',
+  'bosnia & herzegovina': 'BA',
 };
 
 const Map<String, String> _alpha2ToAlpha3 = {

@@ -19,6 +19,16 @@ import 'widgets/nation_flag_badge.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint("Background message: ${message.notification?.title}");
+  
+  final type = message.data['type'];
+  if (type == 'goal') {
+    final homeTeam = message.data['homeTeamName'] ?? '';
+    final awayTeam = message.data['awayTeamName'] ?? '';
+    final title = "BUT ! 🔥";
+    final body = "$homeTeam vs $awayTeam";
+    await ApiService.initNotifications();
+    await ApiService.showSystemNotification(title, body);
+  }
 }
 
 void main() async {
@@ -73,6 +83,19 @@ void _handleForegroundMessage(RemoteMessage message) {
   if (context != null && context.mounted) {
     if (type == 'goal') {
       showGoalOverlay(context, message.data);
+      
+      final homeTeam = message.data['homeTeamName'] ?? '';
+      final awayTeam = message.data['awayTeamName'] ?? '';
+      final minute = message.data['minute'] ?? '';
+      InAppNotification.show(
+        context,
+        homeTeam,
+        awayTeam,
+        minute,
+        "BUT ! 🔥",
+        "$homeTeam vs $awayTeam",
+        isGoal: true,
+      );
     } else {
       final title = message.notification?.title ?? "Alerte Match";
       final body = message.notification?.body ?? "";
