@@ -35,24 +35,40 @@ class TopScorer {
     );
   }
 
-  // for local assets (2022)
+  // for local assets (2022) & multi-format support
   factory TopScorer.fromApi(Map<String, dynamic> json, int rank) {
     final pl = json['player'] ?? {};
-    final stat = (json['statistics'] as List?)?.isNotEmpty == true
-        ? json['statistics'][0]
-        : {};
-    final t = stat['team'] ?? {};
-    final g = stat['goals'] ?? {};
+    final statsList = json['statistics'] as List?;
 
-    return TopScorer(
-      rank: rank,
-      playerId: pl['id'] ?? 0,
-      playerName: pl['name'] ?? '',
-      teamName: t['name'] ?? '',
-      teamCode: t['id']?.toString() ?? '',
-      goals: g['total'] ?? 0,
-      matches: 0,
-      assists: g['assists'] ?? 0,
-    );
+    if (statsList != null && statsList.isNotEmpty) {
+      // Format API-Sports (nested)
+      final stat = statsList[0];
+      final t = stat['team'] ?? {};
+      final g = stat['goals'] ?? {};
+
+      return TopScorer(
+        rank: rank,
+        playerId: pl['id'] ?? 0,
+        playerName: pl['name'] ?? '',
+        teamName: t['name'] ?? '',
+        teamCode: t['id']?.toString() ?? '',
+        goals: g['total'] ?? 0,
+        matches: 0,
+        assists: g['assists'] ?? 0,
+      );
+    } else {
+      // Format SofaScore/Direct (flat)
+      final t = json['team'] ?? {};
+      return TopScorer(
+        rank: rank,
+        playerId: pl['id'] ?? 0,
+        playerName: pl['name'] ?? '',
+        teamName: t['name'] ?? '',
+        teamCode: t['id']?.toString() ?? '',
+        goals: json['goals'] ?? 0,
+        matches: json['played'] ?? 0,
+        assists: json['assists'] ?? 0,
+      );
+    }
   }
 }
