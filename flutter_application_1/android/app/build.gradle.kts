@@ -34,10 +34,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            keyAlias = "28676763Ab"
+            keyPassword = "28676763Ab"
             storeFile = file("mundialy.keystore")
-            storePassword = "android"
+            storePassword = "28676763Ab"
         }
     }
 
