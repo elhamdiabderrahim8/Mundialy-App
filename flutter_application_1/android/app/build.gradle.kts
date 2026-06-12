@@ -36,7 +36,7 @@ android {
         create("release") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
-            storeFile = file("apkpure-debug.keystore")
+            storeFile = file("mundialy.keystore")
             storePassword = "android"
         }
     }

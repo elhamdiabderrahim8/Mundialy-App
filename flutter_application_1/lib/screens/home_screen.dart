@@ -1,4 +1,5 @@
 import 'dart:async' as java_timer;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -1765,12 +1766,6 @@ class _MatchCard extends StatelessWidget {
                                       color: textColor,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 14,
-                                      decoration: match.homeTeamId != null
-                                          ? TextDecoration.underline
-                                          : null,
-                                      decorationColor: textColor.withValues(
-                                        alpha: 0.25,
-                                      ),
                                     ),
                                   ),
                                 ),
@@ -1866,12 +1861,6 @@ class _MatchCard extends StatelessWidget {
                                       color: textColor,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 14,
-                                      decoration: match.awayTeamId != null
-                                          ? TextDecoration.underline
-                                          : null,
-                                      decorationColor: textColor.withValues(
-                                        alpha: 0.25,
-                                      ),
                                     ),
                                   ),
                                 ),
@@ -3127,7 +3116,7 @@ class _NewsCard2026 extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background image
+              // Background image with slight zoom effect base
               if (item['img'] != null)
                 Image.network(
                   item['img'],
@@ -3152,47 +3141,64 @@ class _NewsCard2026 extends StatelessWidget {
                     ),
                   ),
                 ),
-              // Gradient overlay
+              // Premium gradient overlay
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.45, 1.0],
                     colors: [
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.9),
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0.95),
                     ],
                   ),
                 ),
               ),
               // Content
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Source badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
+                    // Glassmorphic Source badge
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.article_rounded, color: Colors.white, size: 10),
+                              const SizedBox(width: 4),
+                              Text(
+                                item['source']?.toString().toUpperCase() ?? 'FIFA',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        item['source'] ?? 'FIFA',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     // Title + date
@@ -3204,17 +3210,18 @@ class _NewsCard2026 extends StatelessWidget {
                           maxLines: 3,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
-                            height: 1.3,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            height: 1.25,
+                            letterSpacing: -0.3,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             Container(
-                              width: 20,
+                              width: 24,
                               height: 2,
                               decoration: BoxDecoration(
                                 color: _kGold,
@@ -3226,13 +3233,18 @@ class _NewsCard2026 extends StatelessWidget {
                               child: Text(
                                 _formatNewsDate(item['date']),
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 10,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              color: Colors.white.withValues(alpha: 0.5),
+                              size: 10,
+                            )
                           ],
                         ),
                       ],

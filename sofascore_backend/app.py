@@ -3,6 +3,7 @@ import time
 import json
 import datetime
 import urllib.request
+import urllib.parse
 import threading
 import firebase_admin
 from firebase_admin import credentials, messaging
@@ -21,8 +22,7 @@ try:
     firebase_admin.initialize_app(cred)
     print("Firebase Admin initialized successfully.")
 except Exception as e:
-    # On masque cette erreur car Firebase n'est utile que pour les Push Notifications, pas pour l'API
-    pass
+    print(f"Firebase Init Error: {e}")
 
 @app.route('/')
 def home():
@@ -38,6 +38,14 @@ UT_ID = 16
 S_ID_2026 = 58210
 S_ID_2022 = 41087
 SOFA_BASE_URL = "https://api.sofascore.com/api/v1"
+SCORES365_BASE_URL = "https://webws.365scores.com/web"
+SCORES365_COMPETITION_ID = 5930
+SCORES365_SEASON_NUM = 25
+SCORES365_LANG_ID = os.environ.get("SCORES365_LANG_ID", "27")
+SCORES365_APP_TYPE_ID = os.environ.get("SCORES365_APP_TYPE_ID", "5")
+SCORES365_TIMEZONE = os.environ.get("SCORES365_TIMEZONE", "Europe/Paris")
+SCORES365_START_DATE = "11/06/2026"
+SCORES365_END_DATE = "19/07/2026"
 
 DATA_DIR = "data"
 WC2022_DIR = os.path.join(DATA_DIR, "wc2022")
@@ -115,6 +123,365 @@ def fetch_json_fast(url, retries=4, base_timeout=10):
 
 def fetch_json(url):
     return fetch_json_fast(url)
+
+def fetch_365_json(path, params=None, retries=3, base_timeout=12):
+    """Fetch JSON from 365Scores with small retry/backoff."""
+    params = params or {}
+    defaults = {
+        "appTypeId": SCORES365_APP_TYPE_ID,
+        "langId": SCORES365_LANG_ID,
+        "timezoneName": SCORES365_TIMEZONE,
+    }
+    query = defaults | params
+    qs = urllib.parse.urlencode(query)
+    url = f"{SCORES365_BASE_URL}/{path.lstrip('/')}?{qs}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+        "Origin": "https://www.365scores.com",
+        "Referer": "https://www.365scores.com/",
+    }
+    last_error = None
+    for attempt in range(retries):
+        profile = _PROFILES[attempt % len(_PROFILES)]
+        try:
+            r = cffi_requests.get(
+                url,
+                headers=headers,
+                impersonate=profile["impersonate"],
+                timeout=base_timeout + attempt * 4
+            )
+            if r.status_code == 200:
+                return r.json()
+            elif r.status_code == 429:
+                time.sleep(2 ** attempt)
+            else:
+                print(f"[365Scores HTTP {r.status_code}] {url}")
+                time.sleep(1)
+        except Exception as e:
+            last_error = e
+            time.sleep(2 ** attempt)
+            
+    if last_error:
+        print(f"Error fetching 365 JSON: {last_error}")
+    return None
+
+def _safe_int(value, default=0):
+    try:
+        if value is None:
+            return default
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
+def _score_or_none(value):
+    if value is None:
+        return None
+    try:
+        numeric = int(float(value))
+        return numeric if numeric >= 0 else None
+    except (TypeError, ValueError):
+        return None
+
+def _parse_365_datetime(value):
+    if not value:
+        return None
+    try:
+        return datetime.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+def _team_code_365(team):
+    return str(team.get("symbolicName") or team.get("nameForURL") or team.get("id") or "TBD").upper()
+
+def _team_logo_365(team_id, size=96):
+    if not team_id:
+        return None
+    return f"https://imagecache.365scores.com/image/upload/f_png,w_{size},h_{size},c_limit,q_auto:eco,dpr_2,d_Competitors:default1.png/Competitors/{team_id}"
+
+def _player_image_365(athlete_id, size=96):
+    if not athlete_id:
+        return None
+    return f"https://imagecache.365scores.com/image/upload/f_png,w_{size},h_{size},c_limit,q_auto:eco,dpr_2,d_Athletes:default.png/Athletes/{athlete_id}"
+
+def _phase_label_365(game):
+    group = game.get("groupName") or ""
+    stage_num = _safe_int(game.get("stageNum"), 1)
+    round_num = game.get("roundNum")
+    round_name = game.get("roundName") or ""
+    if stage_num == 1:
+        return f"Group Stage - {round_num}" if round_num else "Group Stage"
+    if stage_num == 2:
+        return "Round of 32"
+    if stage_num == 3:
+        return "Round of 16"
+    if stage_num == 4:
+        return "Quarter-finals"
+    if stage_num == 5:
+        return "Semi-finals"
+    if stage_num == 6:
+        return "Final"
+    return round_name or group or "World Cup"
+
+def _status_365(game):
+    status_group = _safe_int(game.get("statusGroup"), 0)
+    status_text = game.get("statusText") or game.get("shortStatusText") or ""
+    game_time = game.get("gameTime")
+    if status_group == 3:
+        short = "LIVE"
+    elif status_group == 4:
+        short = "FT"
+    else:
+        short = "NS"
+    elapsed = None
+    if short == "LIVE":
+        elapsed = _safe_int(game_time, 0) if game_time not in [None, -1, -1.0] else None
+    return {"short": short, "long": status_text, "elapsed": elapsed}
+
+def _normalize_365_game(game):
+    home = game.get("homeCompetitor") or {}
+    away = game.get("awayCompetitor") or {}
+    dt = _parse_365_datetime(game.get("startTime"))
+    timestamp = int(dt.timestamp()) if dt else 0
+    return {
+        "fixture": {
+            "id": game.get("id"),
+            "timestamp": timestamp,
+            "date": dt.isoformat() if dt else "",
+            "status": _status_365(game),
+            "venue": {
+                "name": (game.get("venue") or {}).get("name"),
+                "city": (game.get("venue") or {}).get("city"),
+            },
+        },
+        "league": {
+            "round": _phase_label_365(game),
+            "group": game.get("groupName") or "",
+            "stageNum": game.get("stageNum"),
+            "roundNum": game.get("roundNum"),
+        },
+        "teams": {
+            "home": {
+                "id": home.get("id"),
+                "name": home.get("name") or "TBD",
+                "code": _team_code_365(home),
+                "logo": _team_logo_365(home.get("id")),
+            },
+            "away": {
+                "id": away.get("id"),
+                "name": away.get("name") or "TBD",
+                "code": _team_code_365(away),
+                "logo": _team_logo_365(away.get("id")),
+            },
+        },
+        "goals": {
+            "home": _score_or_none(home.get("score")),
+            "away": _score_or_none(away.get("score")),
+        },
+        "score": {
+            "penalty": {
+                "home": _score_or_none(home.get("penaltyScore") or home.get("penalties")),
+                "away": _score_or_none(away.get("penaltyScore") or away.get("penalties")),
+            }
+        },
+        "stream_url": IPTV_STREAM_URL,
+        "source": "365scores",
+    }
+
+def _load_json_file(path):
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+def _save_json_file(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+def _get_365_all_games(force=False):
+    cache_path = os.path.join(WC2026_DIR, "fixtures_365.json")
+    if not force and os.path.exists(cache_path) and (time.time() - os.path.getmtime(cache_path)) < 60:
+        return _load_json_file(cache_path) or []
+    raw = fetch_365_json("games/allscores/", {
+        "startDate": SCORES365_START_DATE,
+        "endDate": SCORES365_END_DATE,
+        "sports": 1,
+    })
+    games = []
+    if isinstance(raw, dict):
+        for game in raw.get("games", []):
+            if _safe_int(game.get("competitionId")) == SCORES365_COMPETITION_ID:
+                games.append(_normalize_365_game(game))
+    games.sort(key=lambda x: x.get("fixture", {}).get("timestamp") or 0)
+    if games:
+        _save_json_file(cache_path, games)
+    return games
+
+def _member_index_365(raw_game):
+    return {m.get("id"): m for m in raw_game.get("members", []) if isinstance(m, dict)}
+
+def _normalize_365_lineup(team, members_by_id):
+    lineups = team.get("lineups") or {}
+    team_id = team.get("id")
+    starters = []
+    substitutes = []
+    coach_name = ""
+    for lineup_member in lineups.get("members", []):
+        member = members_by_id.get(lineup_member.get("id"), {})
+        position = lineup_member.get("position") or {}
+        formation = lineup_member.get("formation") or position
+        entry = {
+            "player": {
+                "id": member.get("athleteId") or member.get("id") or lineup_member.get("id") or 0,
+                "memberId": member.get("id") or lineup_member.get("id"),
+                "name": member.get("shortName") or member.get("name") or "Joueur",
+                "number": _safe_int(member.get("jerseyNumber"), 0),
+                "pos": formation.get("shortName") or position.get("shortName") or "",
+                "photo": _player_image_365(member.get("athleteId")),
+            }
+        }
+        status = _safe_int(lineup_member.get("status"), 0)
+        if status == 1:
+            starters.append(entry)
+        elif status == 2:
+            substitutes.append(entry)
+        elif status == 4:
+            coach_name = member.get("name") or member.get("shortName") or coach_name
+    return {
+        "team": {
+            "id": team_id,
+            "name": team.get("name") or "",
+            "nameCode": _team_code_365(team),
+            "logo": _team_logo_365(team_id),
+        },
+        "formation": lineups.get("formation") or "N/A",
+        "coach": {"name": coach_name},
+        "startXI": starters,
+        "substitutes": substitutes,
+    }
+
+def _normalize_365_stats(raw_stats, home_id, away_id):
+    paired = {}
+    for item in (raw_stats or {}).get("statistics", []):
+        stat_id = item.get("id") or item.get("name")
+        if stat_id is None:
+            continue
+        bucket = paired.setdefault(stat_id, {
+            "name": item.get("name") or str(stat_id),
+            "homeValue": 0,
+            "awayValue": 0,
+            "statisticsType": "positive",
+        })
+        value = item.get("value")
+        if item.get("competitorId") == home_id:
+            bucket["homeValue"] = value
+        elif item.get("competitorId") == away_id:
+            bucket["awayValue"] = value
+    items = sorted(paired.values(), key=lambda x: str(x.get("name")))
+    return [{"period": "ALL", "groups": [{"groupName": "Match", "statisticsItems": items}]}] if items else []
+
+def _normalize_365_incidents(raw_game, members_by_id):
+    events = raw_game.get("events") or raw_game.get("incidents") or []
+    clean = []
+    for index, inc in enumerate(events):
+        if not isinstance(inc, dict):
+            continue
+        raw_type = str(inc.get("type") or inc.get("eventType") or inc.get("incidentType") or "").lower()
+        event_name = str(inc.get("name") or inc.get("text") or "").lower()
+        if "goal" in raw_type or "goal" in event_name:
+            incident_type = "goal"
+        elif "card" in raw_type or "yellow" in event_name or "red" in event_name:
+            incident_type = "card"
+        elif "sub" in raw_type:
+            incident_type = "substitution"
+        else:
+            continue
+        member = members_by_id.get(inc.get("memberId") or inc.get("playerId"), {})
+        team_id = inc.get("competitorId")
+        item = {
+            "time": _safe_int(inc.get("gameTime") or inc.get("minute") or inc.get("time"), 0),
+            "addedTime": inc.get("addedTime"),
+            "displayTime": inc.get("gameTimeDisplay") or f"{_safe_int(inc.get('gameTime') or inc.get('minute') or inc.get('time'), 0)}'",
+            "incidentType": incident_type,
+            "incidentClass": inc.get("class") or inc.get("subType") or "",
+            "homeScore": _score_or_none(inc.get("homeScore")),
+            "awayScore": _score_or_none(inc.get("awayScore")),
+            "isHome": team_id == (raw_game.get("homeCompetitor") or {}).get("id") if team_id else None,
+            "sequence": index,
+        }
+        if member:
+            item["player"] = {
+                "id": member.get("athleteId") or member.get("id"),
+                "name": member.get("shortName") or member.get("name") or "Joueur",
+            }
+        clean.append(item)
+    clean.sort(key=lambda x: (x.get("time") or 0, x.get("addedTime") or 0, x.get("sequence") or 0))
+    return clean
+
+def _build_365_match_details(match_id):
+    raw = fetch_365_json("game/", {"gameId": match_id})
+    if not raw or not raw.get("game"):
+        return None
+    raw_stats = fetch_365_json("game/stats/", {"games": match_id}) or {}
+    game = raw["game"]
+    home = game.get("homeCompetitor") or {}
+    away = game.get("awayCompetitor") or {}
+    members = _member_index_365(game)
+    venue = game.get("venue") or {}
+    officials = game.get("officials") or []
+    official = officials[0] if officials else {}
+    dt = _parse_365_datetime(game.get("startTime"))
+    status = _status_365(game)
+    response = {
+        "response": {
+            "event": {
+                "id": match_id,
+                "homeTeam": {
+                    "id": home.get("id"),
+                    "name": home.get("name") or "Home",
+                    "nameCode": _team_code_365(home),
+                    "logo": _team_logo_365(home.get("id")),
+                },
+                "awayTeam": {
+                    "id": away.get("id"),
+                    "name": away.get("name") or "Away",
+                    "nameCode": _team_code_365(away),
+                    "logo": _team_logo_365(away.get("id")),
+                },
+                "homeScore": {"current": _score_or_none(home.get("score")), "penalties": _score_or_none(home.get("penalties"))},
+                "awayScore": {"current": _score_or_none(away.get("score")), "penalties": _score_or_none(away.get("penalties"))},
+                "winnerCode": game.get("winner"),
+                "status": {"description": status["long"], "type": "finished" if status["short"] == "FT" else ("inprogress" if status["short"] == "LIVE" else "notstarted")},
+                "startTimestamp": int(dt.timestamp()) if dt else 0,
+            },
+            "venue": {
+                "name": venue.get("name") or "",
+                "city": venue.get("city") or venue.get("shortName") or "",
+                "capacity": str(venue.get("capacity") or ""),
+            },
+            "referee": {
+                "name": official.get("name") or "",
+                "country": "",
+            },
+            "managers": {"home": {"name": ""}, "away": {"name": ""}},
+            "lineups": {
+                "home": _normalize_365_lineup(home, members),
+                "away": _normalize_365_lineup(away, members),
+            },
+            "statistics": _normalize_365_stats(raw_stats, home.get("id"), away.get("id")),
+            "incidents": _normalize_365_incidents(game, members),
+            "kitColors": {
+                "home": str(home.get("color") or "#660000").replace("#", ""),
+                "away": str(away.get("color") or away.get("awayColor") or "#003399").replace("#", ""),
+            },
+            "meta": {"source": "365scores", "lastUpdateId": raw.get("lastUpdateId")},
+        }
+    }
+    home_manager = response["response"]["lineups"]["home"].get("coach", {}).get("name", "")
+    away_manager = response["response"]["lineups"]["away"].get("coach", {}).get("name", "")
+    response["response"]["managers"] = {"home": {"name": home_manager}, "away": {"name": away_manager}}
+    return response
 
 # =======================================================
 # AUTOMATISATION INITIALISATION 2022 (LIEN MAÎTRE GLOBAL)
@@ -300,6 +667,19 @@ def get_fixtures():
     if season == '2022':
         return get_wc2022_resource("fixtures")
 
+    try:
+        formatted = _get_365_all_games()
+        if formatted:
+            return jsonify({"response": formatted})
+        raise Exception("No fixtures fetched from 365Scores")
+    except Exception as e:
+        print(f"Error in /api/fixtures 365Scores fetch: {e}")
+        cache_path = os.path.join(WC2026_DIR, "fixtures_365.json")
+        cached = _load_json_file(cache_path)
+        if cached:
+            return jsonify({"response": cached})
+        return jsonify({"response": []})
+
     # Logique Direct / Prochains Matchs 2026 (TTL 30s pour live)
     filepath = os.path.join(DATA_DIR, "wc2026_fixtures.json")
     if os.path.exists(filepath) and (time.time() - os.path.getmtime(filepath)) < 30:
@@ -413,6 +793,68 @@ def get_standings():
     season = request.args.get('season')
     if season == '2022':
         return get_wc2022_resource("standings")
+
+    cache_path = os.path.join(WC2026_DIR, "standings_365.json")
+    try:
+        raw = fetch_365_json("standings/", {"competitions": SCORES365_COMPETITION_ID})
+        standings = (raw or {}).get("standings", [])
+        if standings:
+            table = standings[0]
+            group_names = {
+                g.get("num"): g.get("name") or f"Group {g.get('num')}"
+                for g in table.get("groups", [])
+            }
+            grouped = {}
+            for row in table.get("rows", []):
+                competitor = row.get("competitor") or {}
+                group_num = row.get("groupNum")
+                group_name = group_names.get(group_num, f"Group {group_num}")
+                grouped.setdefault(group_num, []).append({
+                    "rank": _safe_int(row.get("position"), 0),
+                    "group": group_name,
+                    "team": {
+                        "id": competitor.get("id"),
+                        "name": competitor.get("name") or "TBD",
+                        "code": _team_code_365(competitor),
+                        "logo": _team_logo_365(competitor.get("id")),
+                    },
+                    "points": _safe_int(row.get("points"), 0),
+                    "goalsDiff": _safe_int(row.get("ratio"), 0),
+                    "goalsFor": _safe_int(row.get("for"), 0),
+                    "goalsAgainst": _safe_int(row.get("against"), 0),
+                    "destinationNum": row.get("destinationNum"),
+                    "all": {
+                        "played": _safe_int(row.get("gamePlayed"), 0),
+                        "win": _safe_int(row.get("gamesWon"), 0),
+                        "draw": _safe_int(row.get("gamesEven"), 0),
+                        "lose": _safe_int(row.get("gamesLost"), 0),
+                    },
+                })
+            all_s = [sorted(rows, key=lambda r: r.get("rank") or 99) for _, rows in sorted(grouped.items())]
+            res = {
+                "response": [{
+                    "league": {
+                        "id": SCORES365_COMPETITION_ID,
+                        "name": "World Cup 2026",
+                        "season": 2026,
+                        "standings": all_s,
+                    }
+                }],
+                "meta": {
+                    "source": "365scores",
+                    "lastUpdateId": (raw or {}).get("lastUpdateId"),
+                    "destinations": table.get("destinations", []),
+                    "competitionRules": table.get("competitionRules", {}),
+                },
+            }
+            _save_json_file(cache_path, res)
+            return jsonify(res)
+        raise Exception("No standings fetched from 365Scores")
+    except Exception as e:
+        print(f"/api/standings 365Scores fetch error: {e}")
+        cached = _load_json_file(cache_path)
+        if cached:
+            return jsonify(cached)
 
     # Logique Classement 2026
     try:
@@ -937,6 +1379,68 @@ def get_news():
     except Exception as e:
         print("Error fetching news:", e)
         return jsonify([])
+
+_last_broadcasts = {}
+
+@app.route('/api/admin/push', methods=['POST'])
+def send_push_notification():
+    """
+    Route to manually trigger or be triggered by the APK to send FCM push notifications.
+    Expected JSON payload:
+    {
+      "topic": "live_matches",
+      "type": "goal",
+      "homeTeamName": "France",
+      "awayTeamName": "Brazil",
+      "homeScore": 1,
+      "awayScore": 0,
+      "minute": "45"
+    }
+    """
+    admin_key = request.headers.get('X-Admin-Key')
+    if admin_key != 'mundialy_secret_2026':
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    if not data or 'topic' not in data:
+        return jsonify({"error": "Missing topic"}), 400
+        
+    topic = data.pop('topic')
+    
+    # --- Deduplication Logic ---
+    home_team = data.get('homeTeamName', '')
+    away_team = data.get('awayTeamName', '')
+    home_score = data.get('homeScore', '')
+    away_score = data.get('awayScore', '')
+    
+    match_key = f"{home_team}-{away_team}"
+    score_key = f"{home_score}-{away_score}"
+    
+    current_time = time.time()
+    
+    if match_key in _last_broadcasts:
+        last_score, last_time = _last_broadcasts[match_key]
+        # Ignore if the same score was broadcasted less than 5 minutes ago
+        if last_score == score_key and (current_time - last_time) < 300:
+            return jsonify({"success": True, "message": "Already broadcasted recently"}), 200
+            
+    # Save the new state
+    _last_broadcasts[match_key] = (score_key, current_time)
+    
+    # We don't need homeScore and awayScore in FCM payload necessarily, but we can leave them
+    # We must convert all data values to strings for FCM
+    fcm_data = {str(k): str(v) for k, v in data.items()}
+    
+    try:
+        message = messaging.Message(
+            data=fcm_data,
+            topic=topic,
+        )
+        response = messaging.send(message)
+        return jsonify({"success": True, "message_id": response})
+    except Exception as e:
+        print("FCM Error:", e)
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     initialize_wc2022_data()
