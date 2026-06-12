@@ -34,7 +34,7 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "28676763Ab"
+            keyAlias = "androiddebugkey"
             keyPassword = "28676763Ab"
             storeFile = file("mundialy.keystore")
             storePassword = "28676763Ab"
@@ -44,6 +44,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols.add("**/*.so")
         }
     }
 }
