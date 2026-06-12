@@ -29,8 +29,6 @@ Mundialy vous permet de plonger au cœur des compétitions internationales de fo
 
 ## 📸 Aperçus (Screenshots)
 
-> *Remplacez ces liens par vos captures d'écran réelles si vous les hébergez.*
-
 | Accueil & Matchs | Profil de l'Équipe | Lecteur IPTV |
 | :---: | :---: | :---: |
 | <img src="https://via.placeholder.com/250x500.png?text=Accueil" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Profil+%C3%89quipe" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Lecteur+IPTV" width="250"> |
