@@ -6,6 +6,9 @@ import 'package:http/http.dart' as http;
 import '../models/live_match.dart';
 import '../models/match_details.dart';
 import '../models/standings.dart';
+import '../models/top_scorer.dart';
+import '../models/match_news.dart';
+import '../utils/country_flags.dart';
 
 class Scores365Service {
   static const int wcCompetitionId = 5930;
@@ -150,6 +153,10 @@ class Scores365Service {
   }
 
   static String _getTeamCode(String teamName) {
+    // Use ISO-2 country code resolution for correct flag display
+    final iso2 = resolveCountryCode(teamName, fallback: '');
+    if (iso2.isNotEmpty && iso2 != 'UN') return iso2;
+    // Fallback: first 3 chars
     if (teamName.length < 3) return teamName.toUpperCase();
     return teamName.substring(0, 3).toUpperCase();
   }
@@ -660,13 +667,12 @@ class Scores365Service {
     final data = await _fetchJson(url);
     if (data == null ||
         data['athletes'] == null ||
-        (data['athletes'] as List).isEmpty)
-      return null;
+        (data['athletes'] as List).isEmpty) return null;
     final athlete = data['athletes'][0];
 
     return {
       'characteristics': {
-        'preferredFoot': '',
+        'preferredFoot': athlete['preferredFoot'] ?? '',
         'height': athlete['height'] ?? 0,
         'weight': athlete['weight'] ?? 0,
         'position': athlete['position']?['name'] ?? '',
@@ -681,5 +687,43 @@ class Scores365Service {
     };
   }
 
-  static Future<List<dynamic>> fetchTopScorers2026() async => [];
+  static Future<List<TopScorer>> fetchTopScorers(int competitionId) async {
+    final url = 'stats/?$baseParams&competitions=$competitionId';
+    final data = await _fetchJson(url);
+    if (data == null || data['stats'] == null) return [];
+
+    final stats = data['stats'];
+    if (stats is! Map || stats['athletesStats'] == null) return [];
+
+    final athletesStats = stats['athletesStats'] as List;
+    if (athletesStats.isEmpty) return [];
+
+    // "Goals" is usually the first category (id: 1)
+    final goalsCategory = athletesStats.firstWhere(
+      (cat) => cat['name'] == 'Goals' || cat['id'] == 1,
+      orElse: () => null,
+    );
+
+    if (goalsCategory == null || goalsCategory['rows'] == null) return [];
+
+    final rows = goalsCategory['rows'] as List;
+    return rows.map((row) => TopScorer.fromJson(row)).toList();
+  }
+
+  static Future<List<MatchNews>> fetchMatchNews(int matchId) async {
+    final url = 'news/?$baseParams&gameId=$matchId';
+    final data = await _fetchJson(url);
+    if (data == null || data['news'] == null) return [];
+
+    // Parse newsSources to map
+    final Map<int, String> sourcesMap = {};
+    if (data['newsSources'] != null) {
+      for (final source in data['newsSources']) {
+        sourcesMap[source['id']] = source['name'];
+      }
+    }
+
+    final newsList = data['news'] as List;
+    return newsList.map((item) => MatchNews.fromJson(item, sourcesMap)).toList();
+  }
 }

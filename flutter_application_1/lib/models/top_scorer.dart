@@ -1,71 +1,58 @@
 class TopScorer {
-  final int rank;
+  int rank;
   final int playerId;
   final String playerName;
-  final String playerPhoto;
-  final int teamId;
   final String teamName;
-  final String teamLogo;
+  final String teamCode;
   final int goals;
+  final int matches;
   final int assists;
+  final int? jerseyNum;
 
   TopScorer({
-    required this.rank,
-    this.playerId = 0,
+    this.rank = 0,
+    required this.playerId,
     required this.playerName,
-    required this.playerPhoto,
-    required this.teamId,
     required this.teamName,
-    required this.teamLogo,
+    required this.teamCode,
     required this.goals,
+    required this.matches,
     required this.assists,
+    this.jerseyNum,
   });
 
+  // for 365Scores API
+  factory TopScorer.fromJson(Map<String, dynamic> json) {
+    return TopScorer(
+      playerId: json['athleteId'] ?? json['id'] ?? 0,
+      playerName: json['athleteName'] ?? json['name'] ?? '',
+      teamName: json['competitorName'] ?? '',
+      teamCode: json['competitorId']?.toString() ?? '',
+      jerseyNum: json['jerseyNum'],
+      goals: json['value']?.toInt() ?? 0,
+      matches: json['games'] ?? 0,
+      assists: json['assists'] ?? 0,
+    );
+  }
+
+  // for local assets (2022)
   factory TopScorer.fromApi(Map<String, dynamic> json, int rank) {
-    final player = json['player'] as Map<String, dynamic>? ?? {};
-    final statistics =
-        (json['statistics'] != null && (json['statistics'] as List).isNotEmpty)
-        ? json['statistics'][0] as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    // Format API-Sports / assets 2022
-    final team = statistics['team'] as Map<String, dynamic>? ?? {};
-    final goalsData = statistics['goals'] as Map<String, dynamic>? ?? {};
-
-    // Format SofaScore 2026 (plat)
-    final flatTeam = json['team'] as Map<String, dynamic>? ?? {};
-    final flatStats = json['statistics'] is Map<String, dynamic>
-        ? json['statistics'] as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    final resolvedTeam = team.isNotEmpty ? team : flatTeam;
-    final resolvedGoals = goalsData.isNotEmpty
-        ? goalsData
-        : {
-            'total': json['goals'] ?? flatStats['goals'] ?? 0,
-            'assists': json['assists'] ?? flatStats['assists'] ?? 0,
-          };
-
-    final playerId = player['id'] is int
-        ? player['id'] as int
-        : int.tryParse('${player['id']}') ?? 0;
+    final pl = json['player'] ?? {};
+    final stat = (json['statistics'] as List?)?.isNotEmpty == true
+        ? json['statistics'][0]
+        : {};
+    final t = stat['team'] ?? {};
+    final g = stat['goals'] ?? {};
 
     return TopScorer(
       rank: rank,
-      playerId: playerId,
-      playerName: player['name']?.toString() ?? 'Inconnu',
-      playerPhoto: player['photo']?.toString() ?? '',
-      teamId: resolvedTeam['id'] is int
-          ? resolvedTeam['id'] as int
-          : int.tryParse('${resolvedTeam['id']}') ?? 0,
-      teamName: resolvedTeam['name']?.toString() ?? 'Équipe',
-      teamLogo: resolvedTeam['logo']?.toString() ?? '',
-      goals: resolvedGoals['total'] is int
-          ? resolvedGoals['total'] as int
-          : int.tryParse('${resolvedGoals['total']}') ?? 0,
-      assists: resolvedGoals['assists'] is int
-          ? resolvedGoals['assists'] as int
-          : int.tryParse('${resolvedGoals['assists']}') ?? 0,
+      playerId: pl['id'] ?? 0,
+      playerName: pl['name'] ?? '',
+      teamName: t['name'] ?? '',
+      teamCode: t['id']?.toString() ?? '',
+      goals: g['total'] ?? 0,
+      matches: 0,
+      assists: g['assists'] ?? 0,
     );
   }
 }

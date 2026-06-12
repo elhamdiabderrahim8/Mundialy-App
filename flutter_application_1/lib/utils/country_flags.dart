@@ -20,6 +20,16 @@ String resolveCountryCode(String? rawName, {String fallback = 'UN'}) {
   final mapped = _countryCodeByName[normalized];
   if (mapped != null) return mapped;
 
+  // Partial / prefix match — handles truncated names like "Bosnia & Herzegovi..."
+  for (final entry in _countryCodeByName.entries) {
+    if (entry.key.length >= 4 && normalized.startsWith(entry.key)) {
+      return entry.value;
+    }
+    if (entry.key.length >= 4 && entry.key.startsWith(normalized) && normalized.length >= 4) {
+      return entry.value;
+    }
+  }
+
   if (RegExp(r'^[A-Z]{3}$').hasMatch(upper)) {
     final override = _alpha3ToFlagCodeOverrides[upper];
     if (override != null) return override;
@@ -171,6 +181,22 @@ const Map<String, String> _countryCodeByName = {
   'republic of ireland': 'IE',
   'drc': 'CD',
   'bosnia & herzegovina': 'BA',
+
+  // 365Scores specific truncations/aliases (unique keys only)
+  'bosnia and herz': 'BA',
+  'bosnia & herz': 'BA',
+  'bosnia herzeg': 'BA',
+  'trinidad & tobago': 'TT',
+  'st kitts': 'KN',
+  'st. kitts': 'KN',
+  'u.s. virgin islands': 'VI',
+  'central african rep': 'CF',
+  'equat. guinea': 'GQ',
+  'sao tome': 'ST',
+  'dem. rep. congo': 'CD',
+  'fyr macedonia': 'MK',
+  'rep. of ireland': 'IE',
+  'türkiye': 'TR',
 };
 
 const Map<String, String> _alpha2ToAlpha3 = {

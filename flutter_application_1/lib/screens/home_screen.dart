@@ -21,6 +21,9 @@ import '../widgets/mundialy_logo.dart';
 import '../widgets/pin_match_button.dart';
 import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
+import '../widgets/bouncing_card.dart';
+import '../widgets/fade_slide_entrance.dart';
+import '../utils/app_routes.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 
@@ -501,7 +504,20 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 28),
           ],
 
-          // â”€â”€ UPCOMING MATCHES â”€â”€
+          // ── LIVE MATCHES ──
+          if (_matches.any((m) => m.isLive)) ...[
+            _SectionHeader(
+              icon: Icons.whatshot_rounded,
+              title: 'EN DIRECT',
+              subtitle: 'Matchs en cours',
+              textColor: Colors.redAccent,
+            ),
+            const SizedBox(height: 12),
+            ..._buildLiveMatchCards2026(textColor),
+            const SizedBox(height: 28),
+          ],
+
+          // ── UPCOMING MATCHES ──
           _SectionHeader(
             icon: Icons.calendar_month_rounded,
             title: 'PROGRAMME',
@@ -574,8 +590,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  List<Widget> _buildLiveMatchCards2026(Color textColor) {
+    final liveMatches = _matches.where((m) => m.isLive).toList();
+    if (liveMatches.isEmpty) return [];
+
+    return liveMatches.map((m) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+    )).toList();
+  }
+
   List<Widget> _buildUpcomingMatchCards2026(Color textColor) {
-    final upcoming = _matches.where((m) => !m.isLive).toList();
+    final upcoming = _matches.where((m) => !m.isLive && !m.isFinished).toList();
     if (upcoming.isEmpty) {
       return [
         const SizedBox(
@@ -831,7 +857,8 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final day = days[index];
         final matches = grouped[_dateKey(day)] ?? const <LiveMatch>[];
-        final upcomingMatches = matches.where((m) => !m.isFinished).toList();
+        final liveMatches = matches.where((m) => m.isLive).toList();
+        final upcomingMatches = matches.where((m) => !m.isFinished && !m.isLive).toList();
         final finishedMatches = matches.where((m) => m.isFinished).toList();
         final isToday = _isToday(day);
 
@@ -915,6 +942,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         } else {
+          if (liveMatches.isNotEmpty) {
+            items.add(
+              _StatusSectionHeader(
+                icon: Icons.whatshot_rounded,
+                label: 'EN DIRECT',
+                color: Colors.redAccent,
+              ),
+            );
+            for (final m in liveMatches) {
+              items.add(
+                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+              );
+            }
+          }
           if (upcomingMatches.isNotEmpty) {
             items.add(
               _StatusSectionHeader(
@@ -1349,42 +1390,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      backgroundColor: isDark ? const Color(0xFF1A242D) : Colors.white,
-      selectedItemColor: _kGold,
-      unselectedItemColor: isDark ? Colors.white38 : const Color(0xFF5B6B79),
-      elevation: isDark ? 0 : 8,
-      selectedLabelStyle: const TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 11,
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: BottomNavigationBar(
+          backgroundColor: isDark 
+              ? const Color(0xFF1A242D).withValues(alpha: 0.8) 
+              : Colors.white.withValues(alpha: 0.8),
+          selectedItemColor: _kGold,
+          unselectedItemColor: isDark ? Colors.white38 : const Color(0xFF5B6B79),
+          elevation: 0, // removed elevation for flat glass look
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 10),
+          currentIndex: _selectedTab,
+          onTap: _onTabTap,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: 'Accueil',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.bolt), label: 'Live'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today),
+              label: 'Matchs',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.format_list_numbered),
+              label: 'Groupes',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events_outlined),
+              label: 'Buteurs',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_tree_outlined),
+              label: 'Bracket',
+            ),
+          ],
+        ),
       ),
-      unselectedLabelStyle: const TextStyle(fontSize: 10),
-      currentIndex: _selectedTab,
-      onTap: _onTabTap,
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          label: 'Accueil',
-        ),
-        BottomNavigationBarItem(icon: Icon(Icons.bolt), label: 'Live'),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
-          label: 'Matchs',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.format_list_numbered),
-          label: 'Groupes',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.emoji_events_outlined),
-          label: 'Buteurs',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.account_tree_outlined),
-          label: 'Bracket',
-        ),
-      ],
     );
   }
 
@@ -1643,9 +1691,199 @@ class _MatchCard extends StatelessWidget {
     required this.year,
     required this.textColor,
   });
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // ── LIVE MATCH: exact style from reference ──
+    if (match.isLive) {
+      return FadeSlideEntrance(
+        child: _buildLiveCard(context, isDark),
+      );
+    }
+
+    // ── NON-LIVE MATCH ──
+    return FadeSlideEntrance(
+      child: _buildStandardCard(context, isDark),
+    );
+  }
+
+  Widget _buildLiveCard(BuildContext context, bool isDark) {
+    final String scoreText = match.scoreHome != null
+        ? '${match.scoreHome}  -  ${match.scoreAway}'
+        : '–  –';
+    final String? penaltyText =
+        (match.penaltyHome != null && match.penaltyAway != null)
+        ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)'
+        : null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.6), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.redAccent.withValues(alpha: 0.12),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: BouncingCard(
+          onTap: () => Navigator.of(context).push(
+            PremiumPageRoute(page: MatchDetailsScreen(match: match)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Top Row: minute + épingler ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const PulsingLiveDot(),
+                        const SizedBox(width: 6),
+                        Text(
+                          match.statusDisplay,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    PinMatchButton(
+                      compact: true,
+                      onTap: () => _pinMatch(context, match),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // ── Teams + Score Row ──
+                Row(
+                  children: [
+                    // Home team name
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: match.homeTeamId == null
+                            ? null
+                            : () => openTeamProfile(
+                                context,
+                                teamName: match.homeTeam,
+                                teamId: match.homeTeamId,
+                                year: match.dateTime?.year ?? 2026,
+                              ),
+                        child: Text(
+                          match.homeTeam,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // Home flag
+                    Hero(
+                      tag: 'logo_home_${match.id}',
+                      child: NationFlagBadge(
+                        countryCode: match.homeCode,
+                        teamName: match.homeTeam,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Score
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      transitionBuilder: (child, anim) => FadeTransition(
+                        opacity: anim,
+                        child: ScaleTransition(scale: anim, child: child),
+                      ),
+                      child: Column(
+                        key: ValueKey(scoreText),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            scoreText,
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          if (penaltyText != null)
+                            Text(
+                              penaltyText,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.55),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Away flag
+                    Hero(
+                      tag: 'logo_away_${match.id}',
+                      child: NationFlagBadge(
+                        countryCode: match.awayCode,
+                        teamName: match.awayTeam,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    // Away team name
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: match.awayTeamId == null
+                            ? null
+                            : () => openTeamProfile(
+                                context,
+                                teamName: match.awayTeam,
+                                teamId: match.awayTeamId,
+                                year: match.dateTime?.year ?? 2026,
+                              ),
+                        child: Text(
+                          match.awayTeam,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStandardCard(BuildContext context, bool isDark) {
     final String centerText = match.scoreHome != null
         ? '${match.scoreHome} - ${match.scoreAway}'
         : 'VS';
@@ -1657,24 +1895,17 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? (match.isLive ? const Color(0xFF221515) : _kCardDark)
-            : (match.isLive ? const Color(0xFFFFF0F0) : Colors.white),
+        color: isDark ? _kCardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: match.isLive
-              ? Colors.redAccent.withValues(alpha: 0.5)
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05)),
-          width: match.isLive ? 1.5 : 1,
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
         ),
         boxShadow: [
           if (!match.isFinished)
             BoxShadow(
-              color: match.isLive
-                  ? Colors.redAccent.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1682,13 +1913,10 @@ class _MatchCard extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
+        child: BouncingCard(
           onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => MatchDetailsScreen(match: match),
-            ),
+            PremiumPageRoute(page: MatchDetailsScreen(match: match)),
           ),
-          borderRadius: BorderRadius.circular(20),
           child: Opacity(
             opacity: match.isFinished ? 0.65 : 1.0,
             child: Padding(
@@ -1703,18 +1931,7 @@ class _MatchCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (match.isLive) ...[
-                              const PulsingLiveDot(),
-                              const SizedBox(width: 6),
-                              Text(
-                                match.statusDisplay,
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ] else if (match.isFinished) ...[
+                            if (match.isFinished) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -1749,24 +1966,18 @@ class _MatchCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      if (match.isLive)
-                        PinMatchButton(
-                          compact: true,
-                          onTap: () => _pinMatch(context, match),
-                        )
-                      else
-                        Flexible(
-                          flex: 2,
-                          child: Text(
-                            match.phaseLabel,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontSize: 11,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.right,
+                      Flexible(
+                        flex: 2,
+                        child: Text(
+                          match.phaseLabel,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 11,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
                         ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -1837,9 +2048,7 @@ class _MatchCard extends StatelessWidget {
                                 centerText,
                                 key: ValueKey<String>(centerText),
                                 style: TextStyle(
-                                  color: match.isLive
-                                      ? Colors.redAccent
-                                      : _kGold,
+                                  color: _kGold,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -1905,9 +2114,9 @@ class _MatchCard extends StatelessWidget {
                 ],
               ),
             ),
-          ), // Opacity
-        ), // InkWell
-      ), // Material
+          ),
+        ),
+      ),
     );
   }
 
@@ -2733,9 +2942,9 @@ class _BestThirdsTable extends StatelessWidget {
   );
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
 // â”€â”€ PREMIUM 2026 WIDGETS â”€â”€
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
 
 /// Entrance animation wrapper – fade + slide up
 class _AnimatedEntrance extends StatefulWidget {

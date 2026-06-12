@@ -11,7 +11,8 @@ import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
 import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
-
+import '../models/match_news.dart';
+import '../services/scores365_service.dart';
 const Color kGold = Color(0xFFE7C16A);
 const Color _kPasserColor = Color(0xFF38BDF8);
 
@@ -353,7 +354,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                       _buildSummarySection(cardColor, textColor),
                     ] else if (_selectedView == 1) ...[
                       _buildStatsSection(cardColor, textColor),
-                    ] else ...[
+                    ] else if (_selectedView == 2) ...[
                       _buildTeamToggle(cardColor, textColor),
                       const SizedBox(height: 12),
                       if (_selectedLineup != null)
@@ -475,6 +476,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   code: overview.homeCode,
                   logoUrl: overview.homeLogoUrl,
                   teamId: widget.match.homeTeamId,
+                  heroTag: 'logo_home_${widget.match.id}',
                   year: _tournamentSeason,
                 ),
               ),
@@ -534,6 +536,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   code: overview.awayCode,
                   logoUrl: overview.awayLogoUrl,
                   teamId: widget.match.awayTeamId,
+                  heroTag: 'logo_away_${widget.match.id}',
                   year: _tournamentSeason,
                 ),
               ),
@@ -1567,6 +1570,7 @@ class _TeamMiniCard extends StatelessWidget {
     required this.code,
     this.logoUrl,
     this.teamId,
+    this.heroTag,
     this.year = 2022,
   });
 
@@ -1574,6 +1578,7 @@ class _TeamMiniCard extends StatelessWidget {
   final String code;
   final String? logoUrl;
   final int? teamId;
+  final String? heroTag;
   final int year;
 
   @override
@@ -1593,12 +1598,23 @@ class _TeamMiniCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _DiamondFlag(
-            countryCode: code,
-            teamName: name,
-            logoUrl: logoUrl,
-            size: 74,
-          ),
+          if (heroTag != null)
+            Hero(
+              tag: heroTag!,
+              child: _DiamondFlag(
+                countryCode: code,
+                teamName: name,
+                logoUrl: logoUrl,
+                size: 74,
+              ),
+            )
+          else
+            _DiamondFlag(
+              countryCode: code,
+              teamName: name,
+              logoUrl: logoUrl,
+              size: 74,
+            ),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -1686,6 +1702,7 @@ class _SwitchButton extends StatelessWidget {
     );
   }
 }
+
 
 class _EventTile extends StatelessWidget {
   const _EventTile({

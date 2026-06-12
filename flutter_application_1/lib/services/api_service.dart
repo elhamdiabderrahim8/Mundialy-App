@@ -554,29 +554,33 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      List data;
+      List<TopScorer> scorers;
       if (season == 2022) {
         // 2022 : chargement INSTANTANÉ depuis les assets embarqués
         final raw = await rootBundle.loadString(
           'assets/data/topscorers_2022.json',
         );
         final body = jsonDecode(raw);
-        data = body['response'] as List? ?? [];
+        final data = body['response'] as List? ?? [];
+        scorers = data
+            .asMap()
+            .entries
+            .map<TopScorer>(
+              (entry) => TopScorer.fromApi(
+                entry.value as Map<String, dynamic>,
+                entry.key + 1,
+              ),
+            )
+            .toList();
       } else {
         // 2026 : appel DIRECT à 365Scores
-        data = await Scores365Service.fetchTopScorers2026();
+        scorers = await Scores365Service.fetchTopScorers(Scores365Service.wcCompetitionId);
+        // Rank them
+        for (int i = 0; i < scorers.length; i++) {
+          scorers[i].rank = i + 1;
+        }
       }
 
-      final scorers = data
-          .asMap()
-          .entries
-          .map<TopScorer>(
-            (entry) => TopScorer.fromApi(
-              entry.value as Map<String, dynamic>,
-              entry.key + 1,
-            ),
-          )
-          .toList();
       _setCache(cacheKey, scorers);
       return scorers;
     } catch (e) {
