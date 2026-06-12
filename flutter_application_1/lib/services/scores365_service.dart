@@ -93,7 +93,12 @@ class Scores365Service {
     String? matchMinute;
     if (isLive) {
       matchMinute = '${g['gameTime']?.toInt() ?? ''}\'';
-      if (g['shortStatusText'] == 'Mi-temps') matchMinute = 'HT';
+      if (g['shortStatusText'] == 'HT' || 
+          g['shortStatusText'] == 'Mi-temps' || 
+          g['statusText'] == 'Mi-temps' || 
+          g['statusText'] == 'HT') {
+        matchMinute = 'HT';
+      }
     }
 
     DateTime dt = DateTime.now();

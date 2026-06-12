@@ -322,14 +322,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (_selectedTab == 1) {
       return Scaffold(
-        bottomNavigationBar: _buildBottomNav(),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const InlineAdaptiveBanner(horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
+            _buildBottomNav(),
+          ],
+        ),
         body: const IptvMainScreen(),
       );
     }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const InlineAdaptiveBanner(horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
+          _buildBottomNav(),
+        ],
+      ),
       body: Container(
         color: isDark ? _kDarkBg : const Color(0xFFF7F2E8),
         child: Stack(
@@ -687,7 +699,8 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final key = keys[index];
         final matches = grouped[key] ?? [];
-        final upcomingMatches = matches.where((m) => !m.isFinished).toList();
+        final liveMatches = matches.where((m) => m.isLive).toList();
+        final upcomingMatches = matches.where((m) => !m.isFinished && !m.isLive).toList();
         final finishedMatches = matches.where((m) => m.isFinished).toList();
 
         final List<Widget> items = [];
@@ -745,6 +758,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         );
+
+        // Live matches section
+        if (liveMatches.isNotEmpty) {
+          items.add(
+            _StatusSectionHeader(
+              icon: Icons.whatshot_rounded,
+              label: 'EN DIRECT',
+              color: Colors.redAccent,
+            ),
+          );
+          for (final m in liveMatches) {
+            items.add(
+              _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+            );
+          }
+        }
 
         // Upcoming matches section
         if (upcomingMatches.isNotEmpty) {
@@ -1628,22 +1657,13 @@ class _MatchCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        gradient: match.isLive
-            ? LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF330000), const Color(0xFF1a0000)]
-                    : [const Color(0xFFFFE5E5), const Color(0xFFFFFFFF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : null,
-        color: match.isLive
-            ? null
-            : (isDark ? _kCardDark : Colors.white),
+        color: isDark
+            ? (match.isLive ? const Color(0xFF221515) : _kCardDark)
+            : (match.isLive ? const Color(0xFFFFF0F0) : Colors.white),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: match.isLive
-              ? Colors.redAccent.withValues(alpha: 0.6)
+              ? Colors.redAccent.withValues(alpha: 0.5)
               : (isDark
                     ? Colors.white.withValues(alpha: 0.08)
                     : Colors.black.withValues(alpha: 0.05)),
@@ -1653,11 +1673,10 @@ class _MatchCard extends StatelessWidget {
           if (!match.isFinished)
             BoxShadow(
               color: match.isLive
-                  ? Colors.redAccent.withValues(alpha: 0.25)
+                  ? Colors.redAccent.withValues(alpha: 0.15)
                   : Colors.black.withValues(alpha: 0.05),
-              blurRadius: 15,
-              spreadRadius: match.isLive ? 2 : 0,
-              offset: const Offset(0, 5),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
         ],
       ),
@@ -1665,23 +1684,8 @@ class _MatchCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () => Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => MatchDetailsScreen(match: match),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                const begin = Offset(0.0, 0.05);
-                const end = Offset.zero;
-                const curve = Curves.easeOutCubic;
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
-                return SlideTransition(
-                  position: animation.drive(tween),
-                  child: FadeTransition(
-                    opacity: animation.drive(fadeTween),
-                    child: child,
-                  ),
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 350),
+            MaterialPageRoute(
+              builder: (context) => MatchDetailsScreen(match: match),
             ),
           ),
           borderRadius: BorderRadius.circular(20),
@@ -1834,24 +1838,10 @@ class _MatchCard extends StatelessWidget {
                                 key: ValueKey<String>(centerText),
                                 style: TextStyle(
                                   color: match.isLive
-                                      ? Colors.white
+                                      ? Colors.redAccent
                                       : _kGold,
-                                  fontSize: match.isLive ? 24 : 20,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: match.isLive ? 1.0 : 0,
-                                  shadows: match.isLive
-                                      ? [
-                                          Shadow(
-                                            color: Colors.redAccent.withValues(alpha: 0.8),
-                                            blurRadius: 10,
-                                          ),
-                                          Shadow(
-                                            color: Colors.black.withValues(alpha: 0.5),
-                                            blurRadius: 2,
-                                            offset: const Offset(0, 1),
-                                          )
-                                        ]
-                                      : null,
                                 ),
                               ),
                             ),
