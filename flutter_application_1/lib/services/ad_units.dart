@@ -12,17 +12,17 @@ class AdUnits {
       'ca-app-pub-3940256099942544/6300978111';
   static const String _iosTestBanner = 'ca-app-pub-3940256099942544/2934735716';
 
-  static const String _androidTestInterstitial =
-      'ca-app-pub-3940256099942544/1033173712';
-  static const String _iosTestInterstitial =
-      'ca-app-pub-3940256099942544/4411468910';
+  static const String _androidTestAppOpen =
+      'ca-app-pub-3940256099942544/9257395921';
+  static const String _iosTestAppOpen =
+      'ca-app-pub-3940256099942544/5575463023';
 
   static const String _androidProductionBanner =
-      'ca-app-pub-1247207419826743/7799627213';
-  static const String _androidProductionInterstitial =
-      'ca-app-pub-1247207419826743/5093572824';
+      'ca-app-pub-1247207419826743/1505792978';
+  static const String _androidProductionAppOpen =
+      'ca-app-pub-1247207419826743/2487702150';
   static const String _iosProductionBanner = '';
-  static const String _iosProductionInterstitial = '';
+  static const String _iosProductionAppOpen = '';
 
   static bool get isSupported {
     if (kIsWeb) return false;
@@ -41,15 +41,13 @@ class AdUnits {
     return '';
   }
 
-  static String get interstitial {
+  static String get appOpen {
     if (!isSupported) return '';
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return useTestAds
-          ? _androidTestInterstitial
-          : _androidProductionInterstitial;
+      return useTestAds ? _androidTestAppOpen : _androidProductionAppOpen;
     }
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return useTestAds ? _iosTestInterstitial : _iosProductionInterstitial;
+      return useTestAds ? _iosTestAppOpen : _iosProductionAppOpen;
     }
     return '';
   }

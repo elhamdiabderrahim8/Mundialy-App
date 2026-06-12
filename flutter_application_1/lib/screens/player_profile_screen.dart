@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/team_player.dart';
 import '../services/api_service.dart';
 import '../widgets/nation_flag_badge.dart';
+import '../widgets/loading_skeletons.dart';
 import '../utils/country_flags.dart';
 
 const _kGold = Color(0xFFE7C16A);
@@ -20,24 +21,14 @@ class PlayerProfileScreen extends StatefulWidget {
   State<PlayerProfileScreen> createState() => _PlayerProfileScreenState();
 }
 
-class _PlayerProfileScreenState extends State<PlayerProfileScreen>
-    with SingleTickerProviderStateMixin {
+class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   Map<String, dynamic>? _statsData;
   bool _statsLoading = true;
-  String? _statsError;
-  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadStats();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadStats() async {
@@ -52,7 +43,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
           setState(() {
             _statsData = data;
             _statsLoading = false;
-            _statsError = null;
           });
         }
       } catch (_) {
@@ -60,7 +50,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
           setState(() {
             _statsData = null;
             _statsLoading = false;
-            _statsError = 'Statistiques indisponibles';
           });
         }
       }
@@ -76,18 +65,16 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final cardColor = isDark ? const Color(0xFF182531) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF16324A);
 
-    final String name = widget.entity.name;
-    final String? photo = widget.entity.photoUrl;
-    final String nationality = widget.entity.nationality ?? '';
-    final String nationalityCode = widget.entity is TeamPlayer
-        ? (widget.entity as TeamPlayer).nationalityCode
-        : resolveCountryCode(nationality);
-
     // Extract data from new unified format
     final characteristics = _asMap(_statsData?['characteristics']);
     final attributes = _asMap(_statsData?['attributes']);
-    final nationalStats = _asMap(_statsData?['nationalStats']);
-    final tournamentStats = _asMap(_statsData?['tournamentStats']);
+
+    final String name = widget.entity.name;
+    final String nationality =
+        (attributes['nationality']?.toString().isNotEmpty == true)
+        ? attributes['nationality'].toString()
+        : (widget.entity.nationality ?? '');
+    final String nationalityCode = resolveCountryCode(nationality);
 
     // Characteristics
     final charData = _asMap(
@@ -98,25 +85,18 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     final int height = _asInt(charData['height']);
     final int weight = _asInt(charData['weight']);
     final String position =
-        charData['position']?.toString() ??
-        (widget.entity is TeamPlayer
-            ? (widget.entity as TeamPlayer).position
-            : '');
-    final int shirtNumber = widget.entity is TeamPlayer
-        ? _asInt((widget.entity as TeamPlayer).shirtNumber)
-        : 0;
+        (charData['position']?.toString().isNotEmpty == true)
+        ? charData['position'].toString()
+        : (widget.entity is TeamPlayer
+              ? (widget.entity as TeamPlayer).position
+              : '');
+    final int shirtNumber = _asInt(charData['shirtNumber']) > 0
+        ? _asInt(charData['shirtNumber'])
+        : (widget.entity is TeamPlayer
+              ? _asInt((widget.entity as TeamPlayer).shirtNumber)
+              : 0);
 
     // Attributes — style FIFA
-    final List<dynamic> attrCategories = _asList(
-      attributes['averageAttributeOverviews'],
-    );
-
-    // National team stats
-    final List<dynamic> natStatsList = _asList(
-      nationalStats['statistics'],
-      fallback: _asList(nationalStats['response']),
-    );
-
     return Scaffold(
       backgroundColor: bgColor,
       body: CustomScrollView(
@@ -187,17 +167,17 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                                 backgroundColor: isDark
                                     ? const Color(0xFF1D2D3B)
                                     : Colors.white,
-                                backgroundImage:
-                                    (photo != null && photo.isNotEmpty)
-                                    ? NetworkImage(photo)
-                                    : null,
-                                child: (photo == null || photo.isEmpty)
-                                    ? Icon(
-                                        Icons.person,
-                                        size: 55,
-                                        color: _kGold.withValues(alpha: 0.5),
-                                      )
-                                    : null,
+                                child: Center(
+                                  child: Text(
+                                    _getInitials(name),
+                                    style: TextStyle(
+                                      color: _kGold.withValues(alpha: 0.8),
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             if (nationalityCode.isNotEmpty)
@@ -247,67 +227,24 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                 ],
               ),
             ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Container(
-                color: cardColor,
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorColor: _kGold,
-                  labelColor: _kGold,
-                  unselectedLabelColor: isDark
-                      ? Colors.white54
-                      : Colors.black54,
-                  labelStyle: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                  tabs: const [
-                    Tab(text: 'VUE D\'ENSEMBLE'),
-                    Tab(text: 'STATISTIQUES'),
-                  ],
-                ),
-              ),
-            ),
           ),
-
           // --- CONTENT ---
-          SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _statsLoading && attrCategories.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(color: _kGold),
-                      )
-                    : _buildOverviewTab(
-                        isDark,
-                        textColor,
-                        cardColor,
-                        height,
-                        weight,
-                        preferredFoot,
-                        shirtNumber,
-                        nationality,
-                        position,
-                        attrCategories,
-                      ),
-                _statsLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: _kGold),
-                      )
-                    : _buildNationalStatsTab(
-                        isDark,
-                        textColor,
-                        cardColor,
-                        natStatsList,
-                        tournamentStats,
-                        widget.season,
-                        _statsError,
-                      ),
-              ],
-            ),
+          SliverToBoxAdapter(
+            child: _statsLoading
+                ? const PlayerStatsSkeleton()
+                : _buildOverviewTab(
+                    isDark,
+                    textColor,
+                    cardColor,
+                    height,
+                    weight,
+                    preferredFoot,
+                    shirtNumber,
+                    nationality,
+                    position,
+                  ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 50)),
         ],
       ),
     );
@@ -323,9 +260,8 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     int shirtNumber,
     String nationality,
     String position,
-    List<dynamic> attrCategories,
   ) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -341,7 +277,7 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
               _InfoRow(
                 icon: Icons.sports_soccer_rounded,
                 label: 'Poste',
-                value: position,
+                value: _localizePosition(position),
                 color: Colors.teal,
               ),
             if (nationality.isNotEmpty)
@@ -377,10 +313,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
                 color: Colors.purple,
               ),
           ]),
-          if (attrCategories.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildAttributesTab(isDark, textColor, cardColor, attrCategories),
-          ],
         ],
       ),
     );
@@ -434,401 +366,6 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     );
   }
 
-  // ─────────────────────────────────────────────
-  Widget _buildAttributesTab(
-    bool isDark,
-    Color textColor,
-    Color cardColor,
-    List<dynamic> attrCategories,
-  ) {
-    if (attrCategories.isEmpty) {
-      return Center(
-        child: Text(
-          'Attributs non disponibles',
-          style: TextStyle(color: textColor.withValues(alpha: 0.5)),
-        ),
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: attrCategories.map<Widget>((cat) {
-          final category = _asMap(cat);
-          final String catName = category['name']?.toString() ?? '';
-          final List<dynamic> items = _asList(
-            category['averageAttributes'],
-            fallback: _asList(category['items']),
-          );
-          return _buildAttributeCategory(
-            isDark,
-            cardColor,
-            textColor,
-            catName,
-            items,
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildAttributeCategory(
-    bool isDark,
-    Color cardColor,
-    Color textColor,
-    String name,
-    List<dynamic> items,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (name.isNotEmpty) ...[
-            Text(
-              name.toUpperCase(),
-              style: const TextStyle(
-                color: _kGold,
-                fontWeight: FontWeight.w900,
-                fontSize: 11,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-          ...items.map((item) {
-            final attribute = _asMap(item);
-            final String attrName = attribute['name']?.toString() ?? '';
-            final num value = _asNum(
-              attribute['value'],
-              fallback: _asNum(attribute['average']),
-            );
-            return _buildAttributeBar(textColor, attrName, value.toDouble());
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttributeBar(Color textColor, String label, double value) {
-    final Color barColor = value >= 80
-        ? Colors.green
-        : value >= 65
-        ? Colors.orange
-        : Colors.red;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.8),
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: barColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: (value / 100).clamp(0.0, 1.0),
-                  child: Container(
-                    height: 6,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [barColor.withValues(alpha: 0.7), barColor],
-                      ),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            value.toStringAsFixed(0),
-            style: TextStyle(
-              color: barColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────
-  Widget _buildNationalStatsTab(
-    bool isDark,
-    Color textColor,
-    Color cardColor,
-    List<dynamic> statsList,
-    Map<String, dynamic> tournamentStats,
-    int season,
-    String? statsError,
-  ) {
-    final wcStats = _asMap(
-      tournamentStats['statistics'],
-      fallback: _asMap(tournamentStats['stats']),
-    );
-
-    if (statsList.isEmpty && wcStats.isEmpty) {
-      return Center(
-        child: Text(
-          statsError ?? 'Statistiques non disponibles',
-          style: TextStyle(color: textColor.withValues(alpha: 0.5)),
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (wcStats.isNotEmpty) ...[
-          _buildTournamentStatsCard(
-            isDark,
-            textColor,
-            cardColor,
-            wcStats,
-            season,
-          ),
-          const SizedBox(height: 12),
-        ],
-        ...List.generate(statsList.length, (i) {
-          return _buildNationalStatItem(
-            isDark,
-            textColor,
-            cardColor,
-            _asMap(statsList[i]),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildTournamentStatsCard(
-    bool isDark,
-    Color textColor,
-    Color cardColor,
-    Map<String, dynamic> stats,
-    int season,
-  ) {
-    final entries = <String, dynamic>{
-      'Matchs': stats['appearances'] ?? stats['matches'],
-      'Buts': stats['goals'],
-      'Passes': stats['assists'],
-      'Minutes': stats['minutesPlayed'] ?? stats['minutes'],
-      'Cartons jaunes': stats['yellowCards'],
-      'Cartons rouges': stats['redCards'],
-    }..removeWhere((_, v) => v == null);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _kGold.withValues(alpha: 0.35)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Coupe du Monde $season',
-            style: const TextStyle(
-              color: _kGold,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...entries.entries.map(
-            (e) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      e.key,
-                      style: TextStyle(
-                        color: textColor.withValues(alpha: 0.75),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${e.value}',
-                    style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNationalStatItem(
-    bool isDark,
-    Color textColor,
-    Color cardColor,
-    Map<String, dynamic> stat,
-  ) {
-    final team = _asMap(stat['team']);
-    final stats = _asMap(stat['statistics']);
-    final tournament = _asMap(stat['tournament']);
-    final tournamentSeason = _asMap(tournament['season']);
-    final statSeason = _asMap(stat['season']);
-    final uniqueTournament = _asMap(stat['uniqueTournament']);
-    final season =
-        tournamentSeason['name'] ??
-        statSeason['name'] ??
-        uniqueTournament['name'] ??
-        'Tournoi';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              NationFlagBadge(
-                countryCode: resolveCountryCode(team['name']?.toString() ?? ''),
-                size: 28,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      team['name']?.toString() ?? 'Équipe Nationale',
-                      style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      season,
-                      style: const TextStyle(color: _kGold, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildNatStatsGrid(stats, textColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNatStatsGrid(Map<String, dynamic> stats, Color textColor) {
-    final items = <Map<String, String>>[];
-    if (stats['appearances'] != null)
-      items.add({'label': 'Matchs', 'value': '${stats['appearances']}'});
-    if (stats['goals'] != null)
-      items.add({'label': 'Buts', 'value': '${stats['goals']}'});
-    if (stats['goalAssists'] != null)
-      items.add({'label': 'Passes D.', 'value': '${stats['goalAssists']}'});
-    if (stats['minutesPlayed'] != null)
-      items.add({'label': 'Minutes', 'value': "${stats['minutesPlayed']}'"});
-    if (stats['yellowCards'] != null)
-      items.add({'label': 'Cartons J.', 'value': '${stats['yellowCards']}'});
-    if (stats['rating'] != null) {
-      items.add({
-        'label': 'Note',
-        'value': _asNum(stats['rating']).toStringAsFixed(2),
-      });
-    }
-
-    if (items.isEmpty) {
-      return Text(
-        'Aucune statistique disponible',
-        style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 13),
-      );
-    }
-
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: items.map((item) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: _kGold.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _kGold.withValues(alpha: 0.2)),
-          ),
-          child: Column(
-            children: [
-              Text(
-                item['value']!,
-                style: const TextStyle(
-                  color: _kGold,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                ),
-              ),
-              Text(
-                item['label']!,
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.6),
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   String _localizePosition(String pos) {
     final map = {
       'G': 'GARDIEN',
@@ -844,8 +381,18 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     return map[pos] ?? pos.toUpperCase();
   }
 
+  String _getInitials(String name) {
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) {
+      return parts[0].substring(0, 1).toUpperCase();
+    }
+    return '${parts[0].substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
+  }
+
   // ─────────────────────────────────────────────
-  static Map<String, dynamic> _asMap(
+  Map<String, dynamic> _asMap(
     dynamic value, {
     Map<String, dynamic> fallback = const {},
   }) {
@@ -854,21 +401,18 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen>
     return fallback;
   }
 
-  static List<dynamic> _asList(
-    dynamic value, {
-    List<dynamic> fallback = const [],
-  }) {
+  List<dynamic> _asList(dynamic value, {List<dynamic> fallback = const []}) {
     if (value is List) return value;
     return fallback;
   }
 
-  static int _asInt(dynamic value, {int fallback = 0}) {
+  int _asInt(dynamic value, {int fallback = 0}) {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
-  static num _asNum(dynamic value, {num fallback = 0}) {
+  num _asNum(dynamic value, {num fallback = 0}) {
     if (value is num) return value;
     return num.tryParse(value?.toString() ?? '') ?? fallback;
   }

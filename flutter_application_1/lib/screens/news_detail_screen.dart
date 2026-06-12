@@ -79,7 +79,7 @@ class NewsDetailScreen extends StatelessWidget {
                           child: Image.network(
                             _imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, _, _) => Container(
                               color: isDark
                                   ? const Color(0xFF1D2D3B)
                                   : const Color(0xFFE8DECA),

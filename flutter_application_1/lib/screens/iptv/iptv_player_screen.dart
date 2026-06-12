@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import '../../services/iptv_service.dart';
+import '../../widgets/loading_skeletons.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
 const Color _kDarkBg = Color(0xFF0E1A24);
@@ -87,11 +88,12 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
         _triedTs = true;
         _initializePlayer(useM3u8: false);
       } else {
-        if (mounted)
+        if (mounted) {
           setState(() {
             _isLoading = false;
             _isError = true;
           });
+        }
       }
     }
   }
@@ -235,32 +237,7 @@ class _IptvPlayerScreenState extends State<IptvPlayerScreen> {
       ),
       body: Center(
         child: _isLoading
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: CircularProgressIndicator(
-                      color: _kGold,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Connexion au flux en cours...',
-                    style: TextStyle(color: Colors.white54, fontSize: 14),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    widget.channelName,
-                    style: TextStyle(
-                      color: _kGold.withValues(alpha: 0.6),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              )
+            ? VideoPlayerSkeleton(channelName: widget.channelName)
             : _isError
             ? _buildErrorWidget(
                 'Le flux vidéo n\'est pas accessible. Vérifiez votre connexion ou votre abonnement IPTV.',

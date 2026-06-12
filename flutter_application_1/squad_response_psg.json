@@ -1,0 +1,186 @@
+{
+  "squads": [
+    {
+      "competitorId": 100,
+      "athletes": [
+        {
+          "age": 0,
+          "jerseyNum": 40,
+          "birthdate": "1800-01-01T00:00:00+00:00",
+          "gender": 1,
+          "position": {
+            "id": 3,
+            "name": "Mediocampista"
+          },
+          "formationPosition": {
+            "id": 8,
+            "name": "Mediocampista Central",
+            "order": 10
+          },
+          "height": 0,
+          "id": 219422,
+          "createdAt": "2025-08-19T17:45:12.14",
+          "name": "Bodi Thistleton",
+          "nameForURL": "bodi-thistleton",
+          "sportId": 1,
+          "clubId": 100,
+          "nationalityId": 1,
+          "nationalTeamId": 5054,
+          "imageVersion": 1
+        }
+      ],
+      "positions": [
+        {
+          "id": 0,
+          "name": "Direcci\u00f3n",
+          "title": "Direcci\u00f3n",
+          "isStaff": true
+        },
+        {
+          "id": 1,
+          "name": "Portero",
+          "title": "Arqueros",
+          "isStaff": false
+        },
+        {
+          "id": 2,
+          "name": "Defensor",
+          "title": "Defensores",
+          "isStaff": false
+        },
+        {
+          "id": 3,
+          "name": "Mediocampista",
+          "title": "Mediocampistas",
+          "isStaff": false
+        },
+        {
+          "id": 4,
+          "name": "Delantero",
+          "title": "Delanteros",
+          "isStaff": false
+        }
+      ]
+    }
+  ],
+  "sports": [
+    {
+      "id": 1,
+      "name": "F\u00fatbol",
+      "nameForURL": "football",
+      "drawSupport": true,
+      "imageVersion": 1
+    }
+  ],
+  "countries": [
+    {
+      "id": 1,
+      "name": "Inglaterra",
+      "nameForURL": "england",
+      "sportTypes": [
+        11,
+        9,
+        1
+      ],
+      "imageVersion": 1,
+      "isInternational": false
+    },
+    {
+      "id": 54,
+      "name": "Internacional",
+      "nameForURL": "international",
+      "sportTypes": [
+        5,
+        11,
+        8,
+        3,
+        9,
+        1,
+        7,
+        4,
+        13,
+        2
+      ],
+      "imageVersion": 1,
+      "isInternational": true
+    }
+  ],
+  "competitions": [
+    {
+      "id": 321,
+      "countryId": 54,
+      "sportId": 1,
+      "name": "Partido Amistoso",
+      "hasStandings": false,
+      "hasBrackets": false,
+      "hasStats": false,
+      "nameForURL": "club-friendlies",
+      "popularityRank": 2094961,
+      "imageVersion": 4,
+      "currentStageType": 1,
+      "color": "#326295",
+      "competitorsType": 1,
+      "currentPhaseNum": -1,
+      "currentSeasonNum": -1,
+      "currentStageNum": -1,
+      "isInternational": true,
+      "hasHistory": false
+    },
+    {
+      "id": 5677,
+      "countryId": 1,
+      "sportId": 1,
+      "name": "7\u00aa Divisi\u00f3n",
+      "hasStandings": true,
+      "hasStandingsGroups": false,
+      "hasBrackets": false,
+      "hasStats": false,
+      "nameForURL": "non-league-premier",
+      "popularityRank": 214786,
+      "imageVersion": 1,
+      "currentStageType": 3,
+      "competitorsType": 1,
+      "currentPhaseNum": -1,
+      "currentSeasonNum": 12,
+      "currentStageNum": 3,
+      "isInternational": false,
+      "hasHistory": false
+    }
+  ],
+  "competitors": [
+    {
+      "id": 100,
+      "countryId": 1,
+      "sportId": 1,
+      "name": "Kettering",
+      "symbolicName": "KET",
+      "nameForURL": "kettering",
+      "type": 1,
+      "popularityRank": 5,
+      "imageVersion": 1,
+      "color": "#FF0000",
+      "mainCompetitionId": 5677,
+      "hasTransfers": false,
+      "competitorNum": 0,
+      "hideOnSearch": false,
+      "hideOnCatalog": false
+    },
+    {
+      "id": 100,
+      "countryId": 1,
+      "sportId": 1,
+      "name": "Kettering",
+      "symbolicName": "KET",
+      "nameForURL": "kettering",
+      "type": 1,
+      "popularityRank": 5,
+      "imageVersion": 1,
+      "color": "#FF0000",
+      "mainCompetitionId": 5677,
+      "hasTransfers": false,
+      "competitorNum": 0,
+      "hideOnSearch": false,
+      "hideOnCatalog": false
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/iptv_service.dart';
+import '../../widgets/loading_skeletons.dart';
 import 'iptv_login_screen.dart';
 import 'iptv_categories_screen.dart';
 
@@ -45,7 +46,7 @@ class _IptvMainScreenState extends State<IptvMainScreen> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const IptvInitSkeleton();
     }
 
     if (_isConfigured) {

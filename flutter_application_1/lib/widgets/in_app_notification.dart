@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'nation_flag_badge.dart';
 import '../utils/country_flags.dart';
 
 class InAppNotification {
@@ -31,8 +32,8 @@ class InAppNotification {
 
     overlay.insert(entry);
 
-    // Auto-dismiss after 4 seconds
-    Future.delayed(const Duration(seconds: 4), () {
+    // Auto-dismiss after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
       if (entry.mounted) {
         entry.remove();
       }
@@ -67,18 +68,31 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
+
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1.2),
+      begin: const Offset(0, -1.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
   }
@@ -95,12 +109,20 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
 
   @override
   Widget build(BuildContext context) {
+    // Premium Gold color for Goals, vibrant Blue for other notifications
     final accentColor = widget.isGoal
+        ? const Color(0xFFE7C16A) // Gold
+        : const Color(0xFF3498DB); // Blue
+
+    final pulseColor = widget.isGoal
         ? const Color(0xFFD4AF37)
-        : const Color(0xFFE7C16A);
+        : const Color(0xFF2980B9);
+
+    final homeCode = resolveCountryCode(widget.homeTeam);
+    final awayCode = resolveCountryCode(widget.awayTeam);
 
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 10,
+      top: MediaQuery.of(context).padding.top + 16,
       left: 16,
       right: 16,
       child: SafeArea(
@@ -108,148 +130,136 @@ class _AnimatedBannerState extends State<_AnimatedBanner>
           color: Colors.transparent,
           child: SlideTransition(
             position: _slideAnimation,
-            child: GestureDetector(
-              onTap: _dismiss,
-              onVerticalDragEnd: (details) {
-                if (details.primaryVelocity! < 0) _dismiss();
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0E1A24).withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: accentColor.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accentColor.withValues(alpha: 0.15),
-                          blurRadius: 20,
-                          spreadRadius: 4,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: GestureDetector(
+                  onTap: _dismiss,
+                  onVerticalDragEnd: (details) {
+                    if (details.primaryVelocity != null &&
+                        details.primaryVelocity! < 0) {
+                      _dismiss();
+                    }
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Home Team Logo
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF0A121A,
+                          ).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentColor.withValues(alpha: 0.5),
+                            width: 1.5,
                           ),
-                          child: CircleAvatar(
-                            radius: 22,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage: NetworkImage(
-                              'https://flagcdn.com/w80/${resolveCountryCode(widget.homeTeam).toLowerCase()}.png',
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withValues(alpha: 0.25),
+                              blurRadius: 25,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 8),
                             ),
-                            onBackgroundImageError: (e, stack) =>
-                                const Icon(Icons.flag, color: Colors.white70),
-                          ),
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 14),
+                        child: Row(
+                          children: [
+                            // Home Team Logo (using NationFlagBadge)
+                            NationFlagBadge(countryCode: homeCode, size: 42),
+                            const SizedBox(width: 16),
 
-                        // Match Info
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                            // Match Info
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    widget.isGoal
-                                        ? Icons.sports_soccer
-                                        : Icons.notifications_active_rounded,
-                                    color: accentColor,
-                                    size: 14,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Optional glowing icon effect
+                                      Icon(
+                                        widget.isGoal
+                                            ? Icons.sports_soccer_rounded
+                                            : Icons
+                                                  .notifications_active_rounded,
+                                        color: accentColor,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        widget.title.toUpperCase(),
+                                        style: TextStyle(
+                                          color: accentColor,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 11,
+                                          letterSpacing: 2.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    widget.title.toUpperCase(),
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12,
-                                      letterSpacing: 2.0,
+                                    widget.message,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
+                                  if (widget.matchMinute != null &&
+                                      widget.matchMinute!.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: accentColor.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: accentColor.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${widget.matchMinute}\'',
+                                        style: TextStyle(
+                                          color: accentColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                widget.message,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              if (widget.matchMinute != null &&
-                                  widget.matchMinute!.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: accentColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${widget.matchMinute}\'',
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 14),
-                        // Away Team Logo
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: CircleAvatar(
-                            radius: 22,
-                            backgroundColor: Colors.transparent,
-                            backgroundImage: NetworkImage(
-                              'https://flagcdn.com/w80/${resolveCountryCode(widget.awayTeam).toLowerCase()}.png',
                             ),
-                            onBackgroundImageError: (e, stack) =>
-                                const Icon(Icons.flag, color: Colors.white70),
-                          ),
+
+                            const SizedBox(width: 16),
+                            // Away Team Logo (using NationFlagBadge)
+                            NationFlagBadge(countryCode: awayCode, size: 42),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

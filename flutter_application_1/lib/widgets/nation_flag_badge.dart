@@ -67,7 +67,7 @@ class NationFlagBadge extends StatelessWidget {
                           child: Image.network(
                             imageUrl,
                             fit: BoxFit.fill,
-                            errorBuilder: (_, __, ___) => _FlagFallback(
+                            errorBuilder: (_, _, _) => _FlagFallback(
                               countryCode: countryCode,
                               size: size,
                             ),
@@ -83,28 +83,35 @@ class NationFlagBadge extends StatelessWidget {
   }
 
   String? _resolveImageUrl() {
+    // 1. Explicit override (team logos etc.) - Strictly block 365scores
     final override = imageUrlOverride;
     if (override != null &&
         override.isNotEmpty &&
         override.startsWith('http')) {
-      return override;
+      if (!override.toLowerCase().contains('365scores')) {
+        return override;
+      }
     }
 
-    final fromCode = resolveFlagUrl(countryCode);
-    if (fromCode != null) return fromCode;
-
+    // 2. Try resolving from the teamName first (more reliable than raw code)
     final name = teamName;
     if (name != null && name.isNotEmpty) {
-      final iso2 = resolveCountryCode(name);
+      final iso2 = resolveCountryCode(name, fallback: '');
       if (iso2.length == 2 || iso2.contains('-')) {
         return 'https://flagcdn.com/w160/${iso2.toLowerCase()}.png';
       }
     }
 
+    // 3. From the countryCode itself (skip invalid/unknown codes)
+    final code = countryCode.trim().toUpperCase();
+    if (code.isEmpty || code == 'UN' || code == 'UNK') return null;
+    final fromCode = resolveFlagUrl(code);
+    if (fromCode != null) return fromCode;
+
     return null;
   }
 
-  /// Drapeaux uniquement via flagcdn.com â€” jamais de logos SofaScore / fÃ©dÃ©rations.
+  /// Drapeaux uniquement via flagcdn.com — jamais de logos SofaScore / fédérations.
   static String? resolveFlagUrl(String countryCode) {
     final normalizedCode = _normalizeCountryCode(countryCode);
     if (normalizedCode != null) {
@@ -273,7 +280,7 @@ class NationFlagBadge extends StatelessWidget {
       'zambia': 'zm',
       'zimbabwe': 'zw',
       'ivory coast': 'ci',
-      'cÃ´te d\'ivoire': 'ci',
+      'côte d\'ivoire': 'ci',
       'cape verde': 'cv',
       'el salvador': 'sv',
       'equatorial guinea': 'gq',
@@ -420,18 +427,28 @@ class _FlagFallback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalized = countryCode.trim().toUpperCase();
-    final label = normalized.length == 2 ? _emojiFlag(normalized) : normalized;
-
-    return ColoredBox(
-      color: const Color(0xFFE8EEF3),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            color: const Color(0xFF16324A),
-            fontWeight: FontWeight.w800,
-            fontSize: size * 0.22,
+    // Try to show emoji flag for ISO-2 codes
+    if (normalized.length == 2 && RegExp(r'^[A-Z]{2}$').hasMatch(normalized)) {
+      final emoji = _emojiFlag(normalized);
+      return ColoredBox(
+        color: const Color(0xFF1D2D3B),
+        child: Center(
+          child: Text(
+            emoji,
+            style: TextStyle(fontSize: size * 0.45),
+            textAlign: TextAlign.center,
           ),
+        ),
+      );
+    }
+    // Generic globe for unknown codes
+    return ColoredBox(
+      color: const Color(0xFF1D2D3B),
+      child: Center(
+        child: Icon(
+          Icons.public,
+          color: const Color(0xFFE7C16A).withValues(alpha: 0.6),
+          size: size * 0.5,
         ),
       ),
     );

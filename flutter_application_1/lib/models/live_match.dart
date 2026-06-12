@@ -179,12 +179,13 @@ class LiveMatch {
         final code =
             status['code'] ?? status['short'] ?? json['status']?['code'];
         pBase = 0;
-        if (code == 7 || code == '2H')
+        if (code == 7 || code == '2H') {
           pBase = 45;
-        else if (code == 24 || code == 'ET1')
+        } else if (code == 24 || code == 'ET1') {
           pBase = 90;
-        else if (code == 25 || code == 'ET2')
+        } else if (code == 25 || code == 'ET2') {
           pBase = 105;
+        }
 
         if (minuteStr == null || minuteStr.isEmpty) {
           if (code == 31 || code == 'HT') {

@@ -157,7 +157,12 @@ class MatchDetails {
     return incidentsJson
         .map<MatchEvent?>((e) {
           final json = e as Map<String, dynamic>;
-          final type = json['incidentType']?.toString().toLowerCase() ?? '';
+          // Support both 365Scores format ('type') and legacy BFF format ('incidentType')
+          final type =
+              (json['type'] ?? json['incidentType'])
+                  ?.toString()
+                  .toLowerCase() ??
+              '';
           final incidentClass =
               json['incidentClass']?.toString().toLowerCase() ?? '';
           final from = json['from']?.toString().toLowerCase() ?? '';
@@ -195,7 +200,9 @@ class MatchDetails {
             } else {
               title = "BUT !";
             }
-            description = playerName;
+            description = assistName != null
+                ? '$playerName (p. $assistName)'
+                : playerName;
           } else if (type == 'penaltyshootout') {
             final isScored = incidentClass == 'scored';
             icon = isScored
@@ -209,6 +216,14 @@ class MatchDetails {
             if (homeScore != null && awayScore != null) {
               description += ' ($homeScore - $awayScore)';
             }
+          } else if (type == 'missedpenalty') {
+            icon = MatchEventIcon.penaltyMissed;
+            title = "PENALTY MANQUÉ";
+            description = json['player']?['name'] ?? 'Joueur';
+          } else if (type == 'woodwork') {
+            icon = MatchEventIcon.offside; // use available icon
+            title = "POTEAU !";
+            description = json['player']?['name'] ?? 'Joueur';
           } else if (type == 'substitution') {
             icon = MatchEventIcon.substitution;
             title = "CHANGEMENT";
@@ -228,7 +243,7 @@ class MatchDetails {
             description = json['player']?['name'] ?? 'Joueur';
             final reason = json['reason']?.toString() ?? '';
             if (reason.isNotEmpty) description += ' ($reason)';
-          } else if (type == 'vardecision') {
+          } else if (type == 'vardecision' || type == 'var') {
             icon = MatchEventIcon.varReview;
             title = "DÉCISION VAR";
             description = json['player']?['name'] ?? '';
@@ -699,6 +714,10 @@ class MatchEvent {
       } else {
         title = "BUT !";
       }
+      final assistName = json['assist']?['name']?.toString();
+      if (assistName != null) {
+        description = '$description (p. $assistName)';
+      }
     } else if (type == 'substitution') {
       icon = MatchEventIcon.substitution;
       title = "CHANGEMENT";
@@ -709,6 +728,9 @@ class MatchEvent {
       if (incidentClass == 'red') {
         icon = MatchEventIcon.redCard;
         title = "CARTON ROUGE";
+      } else if (incidentClass == 'yellowred') {
+        icon = MatchEventIcon.redCard;
+        title = "SECOND JAUNE";
       } else {
         icon = MatchEventIcon.yellowCard;
         title = "CARTON JAUNE";
@@ -716,16 +738,49 @@ class MatchEvent {
     } else if (type == 'var' || type == 'vardecision') {
       icon = MatchEventIcon.varReview;
       title = "DÉCISION VAR";
+      if (incidentClass == 'goalawarded') {
+        title = "VAR: BUT ACCORDÉ";
+      } else if (incidentClass == 'goalnotawarded') {
+        title = "VAR: BUT ANNULÉ";
+        icon = MatchEventIcon.cancelledGoal;
+      }
+    } else if (type == 'penaltyshootout') {
+      if (incidentClass == 'missed') {
+        icon = MatchEventIcon.penaltyMissed;
+        title = "PENALTY RATÉ (TAB)";
+      } else {
+        icon = MatchEventIcon.goal;
+        title = "PENALTY MARQUÉ (TAB)";
+      }
+    } else if (type == 'missedpenalty') {
+      icon = MatchEventIcon.penaltyMissed;
+      title = "PENALTY MANQUÉ";
+    } else if (type == 'woodwork') {
+      icon = MatchEventIcon.offside;
+      title = "POTEAU !";
+    }
+
+    // Prefer displayTime from 365Scores API, otherwise build from elapsed+extra
+    final String minuteStr;
+    if (json['displayTime'] != null) {
+      minuteStr = json['displayTime'].toString();
+    } else {
+      final elapsed = _readElapsedMinute(json) ?? 0;
+      final extra = json['time'] is Map
+          ? _toInt((json['time'] as Map)['extra'])
+          : null;
+      minuteStr = extra != null && extra > 0 ? "$elapsed+$extra'" : "$elapsed'";
     }
 
     return MatchEvent(
-      minute: "${_readElapsedMinute(json) ?? 0}'",
+      minute: minuteStr,
       title: title,
       description: description,
       icon: icon,
       detail: incidentClass,
       teamId: _toInt(json['team']?['id']),
       teamName: json['team']?['name']?.toString() ?? '',
+      teamCode: json['team']?['logo']?.toString() ?? '',
       playerId: _toInt(json['player']?['id']),
       playerName: json['player']?['name']?.toString(),
       playerIn: json['playerIn']?['name']?.toString(),
@@ -847,13 +902,15 @@ class PlayerSpot {
 
   factory PlayerSpot.fromApi(Map<String, dynamic> json) {
     final player = json['player'] ?? {};
+    final double rawX = (json['x'] as num?)?.toDouble() ?? 0;
+    final double rawY = (json['y'] as num?)?.toDouble() ?? 0;
     return PlayerSpot(
       id: player['id'] ?? 0,
       name: player['name']?.toString() ?? '',
       number: player['number'] ?? json['number'] ?? json['jerseyNumber'] ?? 0,
       role: player['pos']?.toString() ?? player['position']?.toString() ?? '',
-      x: 0,
-      y: 0,
+      x: rawX,
+      y: rawY,
     );
   }
 }
@@ -893,8 +950,17 @@ class TeamLineup {
       coach: json['coach']?['name']?.toString() ?? '',
       players: startXI,
       bench: substitutes,
-      kitColor: 0xFFFFFFFF,
+      kitColor: _parseHexColor(
+        team['colors']?['player']?['primary'] ?? 'FFFFFF',
+      ),
     );
+  }
+
+  static int _parseHexColor(String hex) {
+    final buffer = StringBuffer();
+    if (hex.length == 6 || hex.length == 7) buffer.write('ff');
+    buffer.write(hex.replaceFirst('#', ''));
+    return int.tryParse(buffer.toString(), radix: 16) ?? 0xFFFFFFFF;
   }
 }
 

@@ -20,7 +20,7 @@ import '../utils/team_resolver.dart';
 import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
 import '../utils/app_globals.dart';
-import 'sofa_direct_service.dart';
+import 'scores365_service.dart';
 
 class _CacheEntry {
   final dynamic data;
@@ -135,16 +135,16 @@ class ApiService {
   static Future<List<LiveMatch>> fetchLiveMatches() async {
     const cacheKey = 'live_matches';
     try {
-      // Appel DIRECT à SofaScore depuis le téléphone (jamais bloqué)
-      final data = await SofaDirectService.fetchLiveMatches();
-      final matches = data.map((j) => _mapSofaToMatch(j)).toList();
+      // Appel DIRECT à 365Scores depuis le téléphone
+      List<LiveMatch> matches = await Scores365Service.fetchLiveMatches();
+
       if (matches.isNotEmpty) {
         TeamResolver.indexMatches(matches);
         _setCache(cacheKey, matches);
         _checkGoals(matches);
         return matches;
       }
-      debugPrint('fetchLiveMatches: SofaScore returned no live matches');
+      debugPrint('fetchLiveMatches: No live matches found');
     } on TimeoutException {
       debugPrint('⚠️ fetchLiveMatches: timeout, returning empty list');
     } catch (e) {
@@ -283,33 +283,33 @@ class ApiService {
 
     // 3. Crowdsourcing Firebase Push Notification
     // L'application prévient le backend pour qu'il envoie un push global FCM aux app fermées
-    try {
-      final payload = {
-        "match_id": m.id,
-        "title": title,
-        "body": body,
-        "home_score": m.scoreHome,
-        "away_score": m.scoreAway,
-        "home_team": m.homeTeam,
-        "away_team": m.awayTeam,
-        "home_code": m.homeCode,
-        "away_code": m.awayCode,
-        "is_goal": isGoal,
-        "minute": m.matchMinute,
-        "scoring_team": homeScored != null
-            ? (homeScored ? 'home' : 'away')
-            : null,
-      };
+    if (isGoal) {
+      try {
+        final payload = {
+          "topic": "live_matches",
+          "type": "goal",
+          "title": title,
+          "message": body,
+          "homeTeamName": m.homeTeam,
+          "awayTeamName": m.awayTeam,
+          "homeScore": m.scoreHome,
+          "awayScore": m.scoreAway,
+          "minute": m.matchMinute,
+        };
 
-      await http
-          .post(
-            Uri.parse('${GlobalConfig.backendUrl}/api/trigger_goal'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 5));
-    } catch (e) {
-      debugPrint('⚠️ Erreur en signalant le but au serveur: $e');
+        await http
+            .post(
+              Uri.parse('${GlobalConfig.backendUrl}/api/admin/push'),
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Admin-Key': 'mundialy_secret_2026',
+              },
+              body: jsonEncode(payload),
+            )
+            .timeout(const Duration(seconds: 5));
+      } catch (e) {
+        debugPrint('⚠️ Erreur en signalant le but au serveur: $e');
+      }
     }
   }
 
@@ -337,26 +337,14 @@ class ApiService {
         _setCache(cacheKey, data);
         return data;
       } else {
-        // 2026 : appel DIRECT à SofaScore depuis le téléphone
-        final rawData = await SofaDirectService.fetchFixtures2026();
-        if (rawData.isNotEmpty) {
-          final data = rawData.map((j) => _mapSofaToMatch(j)).toList();
+        // 2026 : appel DIRECT à 365Scores
+        final data = await Scores365Service.fetchFixtures2026();
+        if (data.isNotEmpty) {
           TeamResolver.indexMatches(data);
           _setCache(cacheKey, data);
           return data;
         }
-        debugPrint('fetchMatches: SofaScore direct returned no fixtures');
-
-        final response = await _backendGet('/api/fixtures?season=2026');
-        if (response != null) {
-          final data = _parseMatchesResponse(response.body);
-          if (data.isNotEmpty) {
-            TeamResolver.indexMatches(data);
-            _setCache(cacheKey, data);
-            return data;
-          }
-          debugPrint('fetchMatches: backend returned no fixtures');
-        }
+        debugPrint('fetchMatches: 365Scores direct returned no fixtures');
       }
     } catch (e) {
       debugPrint('❌ fetchMatches Error: $e');
@@ -385,26 +373,13 @@ class ApiService {
         _setCache(cacheKey, data);
         return data;
       } else {
-        // 2026 : appel DIRECT à SofaScore
-        final rawData = await SofaDirectService.fetchStandings2026();
-        if (rawData != null) {
-          final data = _parseStandingsResponse(jsonEncode(rawData));
-          if (data.isNotEmpty) {
-            _setCache(cacheKey, data);
-            return data;
-          }
-          debugPrint('fetchStandings: SofaScore direct returned no groups');
+        // 2026 : appel DIRECT à 365Scores
+        final data = await Scores365Service.fetchStandings2026();
+        if (data.isNotEmpty) {
+          _setCache(cacheKey, data);
+          return data;
         }
-
-        final response = await _backendGet('/api/standings?season=2026');
-        if (response != null) {
-          final data = _parseStandingsResponse(response.body);
-          if (data.isNotEmpty) {
-            _setCache(cacheKey, data);
-            return data;
-          }
-          debugPrint('fetchStandings: backend returned no groups');
-        }
+        debugPrint('fetchStandings: 365Scores direct returned no groups');
       }
     } catch (e) {
       debugPrint('❌ fetchStandings Error: $e');
@@ -425,28 +400,11 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      // Toujours appeler SofaScore directement (2022 ET 2026)
-      // Les IDs dans matches_2022.json ont été régénérés avec les vrais IDs SofaScore
-      final decoded = await SofaDirectService.fetchMatchDetails(
+      final details = await Scores365Service.fetchMatchDetails(
         int.tryParse(fixtureId) ?? 0,
       );
 
-      if (decoded != null) {
-        final dynamic payload = decoded.containsKey('response')
-            ? decoded['response']
-            : decoded;
-
-        MatchDetails details;
-        if (payload is List && payload.isNotEmpty && payload.first is Map) {
-          details = MatchDetails.fromApi(
-            Map<String, dynamic>.from(payload.first as Map),
-          );
-        } else if (payload is Map) {
-          details = MatchDetails.fromApi(Map<String, dynamic>.from(payload));
-        } else {
-          details = MatchDetails.fromApi(decoded);
-        }
-
+      if (details != null) {
         _setCache(cacheKey, details);
         return details;
       }
@@ -481,14 +439,14 @@ class ApiService {
       );
 
       final results = await Future.wait([
-        SofaDirectService.fetchTeamCoach(resolvedId),
-        SofaDirectService.fetchTournamentSquad(resolvedId, seasonId),
+        Scores365Service.fetchTeamCoach(resolvedId),
+        Scores365Service.fetchTournamentSquad(resolvedId, seasonId),
       ]);
 
       final coachData = results[0] as Map<String, dynamic>?;
       var playersData = results[1] as List<Map<String, dynamic>>? ?? [];
       if (playersData.isEmpty) {
-        playersData = await SofaDirectService.fetchTeamSquad(resolvedId);
+        playersData = await Scores365Service.fetchTeamSquad(resolvedId);
       }
       debugPrint(
         '🔍 fetchTeamProfile: coach=${coachData != null}, players=${playersData.length}',
@@ -549,10 +507,10 @@ class ApiService {
           : GlobalConfig.season2026Id;
 
       final results = await Future.wait([
-        SofaDirectService.fetchPlayerNationalStats(playerId),
-        SofaDirectService.fetchPlayerCharacteristics(playerId),
-        SofaDirectService.fetchPlayerAttributes(playerId),
-        SofaDirectService.fetchPlayerStats(playerId, seasonId),
+        Scores365Service.fetchPlayerNationalStats(playerId),
+        Scores365Service.fetchPlayerCharacteristics(playerId),
+        Scores365Service.fetchPlayerAttributes(playerId),
+        Scores365Service.fetchPlayerStats(playerId, seasonId),
       ]);
       final data = {
         'nationalStats': results[0],
@@ -587,8 +545,8 @@ class ApiService {
         final body = jsonDecode(raw);
         data = body['response'] as List? ?? [];
       } else {
-        // 2026 : appel DIRECT à SofaScore
-        data = await SofaDirectService.fetchTopScorers2026();
+        // 2026 : appel DIRECT à 365Scores
+        data = await Scores365Service.fetchTopScorers2026();
       }
 
       final scorers = data
@@ -715,8 +673,30 @@ class ApiService {
     final goals = json['goals'] ?? {};
     final score = json['score'] ?? {};
     final status = fixture['status'] ?? {};
-    final date =
-        DateTime.tryParse(fixture['date'] ?? '')?.toLocal() ?? DateTime.now();
+
+    final timeObj = json['time'] ?? fixture['time'] ?? status['time'] ?? {};
+    final startTsRaw =
+        timeObj['currentPeriodStartTimestamp'] ??
+        json['currentPeriodStartTimestamp'] ??
+        fixture['currentPeriodStartTimestamp'] ??
+        status['currentPeriodStartTimestamp'] ??
+        fixture['timestamp'] ??
+        json['startTimestamp'];
+    final int? startTs = startTsRaw != null
+        ? int.tryParse(startTsRaw.toString())
+        : null;
+
+    DateTime date;
+    if (startTs != null && startTs > 0) {
+      final isMs = startTs > 9999999999;
+      date = DateTime.fromMillisecondsSinceEpoch(
+        isMs ? startTs : startTs * 1000,
+      );
+    } else {
+      date =
+          DateTime.tryParse(fixture['date'] ?? '')?.toLocal() ?? DateTime.now();
+    }
+
     final String? shortStatus = (status['short'] ?? status['type'])?.toString();
     final String? longStatus =
         status['long']?.toString() ?? status['description']?.toString();
@@ -728,16 +708,6 @@ class ApiService {
         shortStatus?.toUpperCase() == 'PEN' ||
         shortStatus?.toUpperCase() == 'FINISHED' ||
         status['type']?.toString().toLowerCase() == 'finished';
-
-    final timeObj = json['time'] ?? fixture['time'] ?? status['time'] ?? {};
-    final startTsRaw =
-        timeObj['currentPeriodStartTimestamp'] ??
-        json['currentPeriodStartTimestamp'] ??
-        fixture['currentPeriodStartTimestamp'] ??
-        status['currentPeriodStartTimestamp'];
-    final int? startTs = startTsRaw != null
-        ? int.tryParse(startTsRaw.toString())
-        : null;
 
     // isLive : seulement si le match est VRAIMENT en cours (pas terminé)
     bool live =

@@ -43,6 +43,8 @@ class SofaDirectService {
   /// En-têtes qui imitent un navigateur mobile normal
   static Map<String, String> _headers() {
     return {
+      'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       'Accept': 'application/json, text/plain, */*',
       'Accept-Language': 'fr-FR,fr;q=0.9',
       'Referer': 'https://www.sofascore.com/',

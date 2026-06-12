@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -55,7 +56,7 @@ class IptvService {
         }
       }
     } catch (e) {
-      print('IPTV Login Error: $e');
+      debugPrint('IPTV Login Error: $e');
     }
     return false;
   }
@@ -81,7 +82,7 @@ class IptvService {
         return jsonDecode(response.body) as List<dynamic>;
       }
     } catch (e) {
-      print('IPTV Categories Error: $e');
+      debugPrint('IPTV Categories Error: $e');
     }
     return [];
   }
@@ -97,7 +98,7 @@ class IptvService {
         return jsonDecode(response.body) as List<dynamic>;
       }
     } catch (e) {
-      print('IPTV Streams Error: $e');
+      debugPrint('IPTV Streams Error: $e');
     }
     return [];
   }

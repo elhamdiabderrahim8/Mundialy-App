@@ -1,0 +1,86 @@
+{
+  "squads": [
+    {
+      "competitorId": 5961,
+      "athletes": [],
+      "positions": [
+        {
+          "id": 0,
+          "name": "Direcci\u00f3n",
+          "title": "Direcci\u00f3n",
+          "isStaff": true
+        },
+        {
+          "id": 1,
+          "name": "Portero",
+          "title": "Arqueros",
+          "isStaff": false
+        },
+        {
+          "id": 2,
+          "name": "Defensor",
+          "title": "Defensores",
+          "isStaff": false
+        },
+        {
+          "id": 3,
+          "name": "Mediocampista",
+          "title": "Mediocampistas",
+          "isStaff": false
+        },
+        {
+          "id": 4,
+          "name": "Delantero",
+          "title": "Delanteros",
+          "isStaff": false
+        }
+      ]
+    }
+  ],
+  "sports": [
+    {
+      "id": 1,
+      "name": "F\u00fatbol",
+      "nameForURL": "football",
+      "drawSupport": true,
+      "imageVersion": 1
+    }
+  ],
+  "countries": [
+    {
+      "id": 25,
+      "name": "Finlandia",
+      "nameForURL": "finland",
+      "sportTypes": [
+        5,
+        2,
+        8,
+        7,
+        1,
+        4
+      ],
+      "imageVersion": 1,
+      "isInternational": false
+    }
+  ],
+  "competitions": [],
+  "competitors": [
+    {
+      "id": 5961,
+      "countryId": 25,
+      "sportId": 1,
+      "name": "FC Futura",
+      "symbolicName": "FUT",
+      "nameForURL": "fc-futura",
+      "type": 1,
+      "popularityRank": 1,
+      "imageVersion": 3,
+      "color": "#21282D",
+      "mainCompetitionId": 0,
+      "hasTransfers": false,
+      "competitorNum": 0,
+      "hideOnSearch": false,
+      "hideOnCatalog": false
+    }
+  ]
+}

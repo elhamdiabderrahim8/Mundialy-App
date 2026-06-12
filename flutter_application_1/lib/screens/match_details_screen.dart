@@ -3,12 +3,12 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 
 import '../models/live_match.dart';
 import '../models/match_details.dart';
-import '../models/team_player.dart';
 import '../services/api_service.dart';
 import '../utils/country_flags.dart';
 import '../utils/mock_match_details_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import '../widgets/inline_adaptive_banner.dart';
+import '../widgets/loading_skeletons.dart';
 import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
 
@@ -64,6 +64,149 @@ const Map<String, List<Offset>> _formationCoordinates = {
     Offset(0.38, 0.45),
     Offset(0.62, 0.45),
     Offset(0.9, 0.45), // MID
+    Offset(0.20, 0.20), Offset(0.5, 0.15), Offset(0.80, 0.20), // ATT
+  ],
+  '4-1-4-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.5, 0.55), // CDM
+    Offset(0.15, 0.40),
+    Offset(0.38, 0.40),
+    Offset(0.62, 0.40),
+    Offset(0.85, 0.40), // MID
+    Offset(0.5, 0.15), // ATT
+  ],
+  '3-5-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.25, 0.75), Offset(0.5, 0.80), Offset(0.75, 0.75), // DEF
+    Offset(0.15, 0.45),
+    Offset(0.35, 0.55),
+    Offset(0.5, 0.50),
+    Offset(0.65, 0.55),
+    Offset(0.85, 0.45), // MID
+    Offset(0.35, 0.20), Offset(0.65, 0.20), // ATT
+  ],
+  '4-3-2-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.25, 0.50), Offset(0.5, 0.55), Offset(0.75, 0.50), // MID
+    Offset(0.35, 0.30), Offset(0.65, 0.30), // AM
+    Offset(0.5, 0.15), // ATT
+  ],
+  '4-5-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.15, 0.45),
+    Offset(0.32, 0.50),
+    Offset(0.5, 0.45),
+    Offset(0.68, 0.50),
+    Offset(0.85, 0.45), // MID
+    Offset(0.5, 0.15), // ATT
+  ],
+  '5-4-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.1, 0.70),
+    Offset(0.3, 0.75),
+    Offset(0.5, 0.75),
+    Offset(0.7, 0.75),
+    Offset(0.9, 0.70), // DEF
+    Offset(0.15, 0.45),
+    Offset(0.38, 0.50),
+    Offset(0.62, 0.50),
+    Offset(0.85, 0.45), // MID
+    Offset(0.5, 0.15), // ATT
+  ],
+  '4-4-1-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.15, 0.45),
+    Offset(0.38, 0.50),
+    Offset(0.62, 0.50),
+    Offset(0.85, 0.45), // MID
+    Offset(0.5, 0.30), // AM
+    Offset(0.5, 0.15), // ATT
+  ],
+  '4-2-2-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.35, 0.55), Offset(0.65, 0.55), // CDM
+    Offset(0.20, 0.35), Offset(0.80, 0.35), // CAM
+    Offset(0.35, 0.15), Offset(0.65, 0.15), // ATT
+  ],
+  '3-4-2-1': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.25, 0.75), Offset(0.5, 0.75), Offset(0.75, 0.75), // DEF
+    Offset(0.1, 0.50),
+    Offset(0.38, 0.55),
+    Offset(0.62, 0.55),
+    Offset(0.9, 0.50), // MID
+    Offset(0.35, 0.30), Offset(0.65, 0.30), // AM
+    Offset(0.5, 0.15), // ATT
+  ],
+  '3-4-1-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.25, 0.75), Offset(0.5, 0.75), Offset(0.75, 0.75), // DEF
+    Offset(0.1, 0.50),
+    Offset(0.38, 0.55),
+    Offset(0.62, 0.55),
+    Offset(0.9, 0.50), // MID
+    Offset(0.5, 0.35), // AM
+    Offset(0.35, 0.15), Offset(0.65, 0.15), // ATT
+  ],
+  '4-1-2-1-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.5, 0.60), // CDM
+    Offset(0.25, 0.45), Offset(0.75, 0.45), // CM
+    Offset(0.5, 0.30), // CAM
+    Offset(0.35, 0.15), Offset(0.65, 0.15), // ATT
+  ],
+  '4-1-3-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.5, 0.55), // CDM
+    Offset(0.20, 0.40), Offset(0.5, 0.40), Offset(0.80, 0.40), // MID
+    Offset(0.35, 0.15), Offset(0.65, 0.15), // ATT
+  ],
+  '4-3-1-2': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.15, 0.70),
+    Offset(0.38, 0.75),
+    Offset(0.62, 0.75),
+    Offset(0.85, 0.70), // DEF
+    Offset(0.25, 0.50), Offset(0.5, 0.55), Offset(0.75, 0.50), // MID
+    Offset(0.5, 0.35), // CAM
+    Offset(0.35, 0.15), Offset(0.65, 0.15), // ATT
+  ],
+  '5-2-3': [
+    Offset(0.5, 0.90), // GK
+    Offset(0.1, 0.70),
+    Offset(0.3, 0.75),
+    Offset(0.5, 0.75),
+    Offset(0.7, 0.75),
+    Offset(0.9, 0.70), // DEF
+    Offset(0.35, 0.45), Offset(0.65, 0.45), // MID
     Offset(0.20, 0.20), Offset(0.5, 0.15), Offset(0.80, 0.20), // ATT
   ],
 };
@@ -174,10 +317,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     final Color textColor = isDark ? Colors.white : Colors.black87;
 
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: bgColor,
-        body: const Center(child: CircularProgressIndicator(color: kGold)),
-      );
+      return const MatchDetailsSkeleton();
     }
 
     if (_details == null) {
@@ -254,7 +394,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   details.overview.title,
                   textAlign: TextAlign.center,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: TextStyle(
                     color: textColor,
                     fontSize: 18,
@@ -566,7 +706,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                         fontSize: 11,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                     ),
                     const SizedBox(height: 10),
                     ...homeEvents.asMap().entries.map((entry) {
@@ -607,7 +747,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                         fontSize: 11,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                       textAlign: TextAlign.right,
                     ),
                     const SizedBox(height: 10),
@@ -741,7 +881,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               label,
               style: TextStyle(
                 color: textColor.withValues(alpha: 0.24),
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
               ),
@@ -889,7 +1029,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          overflow: TextOverflow.clip,
                           maxLines: 1,
                         ),
                         const SizedBox(height: 4),
@@ -901,7 +1041,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                             letterSpacing: 1.2,
                             fontSize: 12,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          overflow: TextOverflow.clip,
                           maxLines: 1,
                         ),
                       ],
@@ -938,7 +1078,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            overflow: TextOverflow.clip,
                             maxLines: 1,
                             textAlign: TextAlign.end,
                           ),
@@ -948,214 +1088,226 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return Container(
-                    height: fieldHeight,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF132231)
-                          : Colors.green.shade900.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: textColor.withValues(alpha: 0.05),
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: CustomPaint(painter: _PitchPainter()),
-                          ),
-                          Center(child: _PitchTrophyWatermark(isDark: isDark)),
-                          ...List.generate(lineup.players.length, (index) {
-                            final player = lineup.players[index];
-                            final coords =
-                                _formationCoordinates[lineup.formation] ??
-                                _formationCoordinates['4-3-3']!;
-                            final Offset relativePos = index < coords.length
-                                ? coords[index]
-                                : Offset(player.x, player.y);
-
-                            const double widgetWidth = 80;
-                            final double posX =
-                                (relativePos.dx * constraints.maxWidth) -
-                                (widgetWidth / 2);
-                            final double posY =
-                                (relativePos.dy * fieldHeight) - 30;
-
-                            return Positioned(
-                              left: posX,
-                              top: posY,
-                              width: widgetWidth,
-                              child: GestureDetector(
-                                onTap: () => openPlayerProfile(
-                                  context,
-                                  playerId: player.id,
-                                  playerName: player.name,
-                                  teamName: lineup.teamName,
-                                  teamCode: lineup.teamCode,
-                                  season: _tournamentSeason,
-                                  shirtNumber: player.number,
-                                  position: player.role,
-                                  lineups: _matchLineups,
-                                ),
-                                child: _PlayerJersey(
-                                  player: player,
-                                  kitColor: Color(lineup.kitColor),
-                                  textColor: isDark
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 16),
-          child: Text(
-            'BANC DE TOUCHE',
-            style: TextStyle(
-              color: textColor.withValues(alpha: 0.38),
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
-            ),
-          ),
-        ),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: lineup.bench.map((player) {
-            return GestureDetector(
-              onTap: player.id > 0
-                  ? () => openPlayerProfile(
-                      context,
-                      playerId: player.id,
-                      playerName: player.name,
-                      teamName: lineup.teamName,
-                      teamCode: lineup.teamCode,
-                      season: _tournamentSeason,
-                      shirtNumber: player.number,
-                      position: player.role,
-                      lineups: _matchLineups,
-                    )
-                  : null,
-              child: Container(
-                width: 100,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: textColor.withValues(alpha: 0.05)),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
+              if (lineup.players.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Container(
+                      height: fieldHeight,
                       decoration: BoxDecoration(
-                        color: Color(lineup.kitColor).withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+                        color: isDark
+                            ? const Color(0xFF132231)
+                            : Colors.green.shade900.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: Color(lineup.kitColor).withValues(alpha: 0.3),
-                          width: 2,
+                          color: textColor.withValues(alpha: 0.05),
                         ),
                       ),
-                      child: Icon(
-                        Icons.person,
-                        size: 24,
-                        color: Color(lineup.kitColor),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      player.name,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (player.substitutedOut ||
-                        player.substitutedIn ||
-                        player.goals > 0 ||
-                        player.assists > 0 ||
-                        player.yellowCards > 0 ||
-                        player.redCard)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
                           children: [
-                            if (player.substitutedIn)
-                              const Icon(
-                                Icons.arrow_upward,
-                                size: 12,
-                                color: Colors.green,
-                              ),
-                            if (player.substitutedOut)
-                              const Icon(
-                                Icons.arrow_downward,
-                                size: 12,
-                                color: Colors.red,
-                              ),
-                            if (player.goals > 0)
-                              ...List.generate(
-                                player.goals,
-                                (_) => const Text(
-                                  '⚽',
-                                  style: TextStyle(fontSize: 10),
+                            Positioned.fill(
+                              child: CustomPaint(painter: _PitchPainter()),
+                            ),
+                            Center(
+                              child: _PitchTrophyWatermark(isDark: isDark),
+                            ),
+                            ...List.generate(lineup.players.length, (index) {
+                              final player = lineup.players[index];
+                              final coords =
+                                  _formationCoordinates[lineup.formation] ??
+                                  _formationCoordinates['4-3-3']!;
+                              final Offset relativePos = index < coords.length
+                                  ? coords[index]
+                                  : Offset(player.x, player.y);
+
+                              const double widgetWidth = 65;
+                              final double posX =
+                                  (relativePos.dx * constraints.maxWidth) -
+                                  (widgetWidth / 2);
+                              final double posY =
+                                  (relativePos.dy * fieldHeight) - 30;
+
+                              return Positioned(
+                                left: posX,
+                                top: posY,
+                                width: widgetWidth,
+                                child: GestureDetector(
+                                  onTap: () => openPlayerProfile(
+                                    context,
+                                    playerId: player.id,
+                                    playerName: player.name,
+                                    teamName: lineup.teamName,
+                                    teamCode: lineup.teamCode,
+                                    season: _tournamentSeason,
+                                    shirtNumber: player.number,
+                                    position: player.role,
+                                    lineups: _matchLineups,
+                                  ),
+                                  child: _PlayerJersey(
+                                    player: player,
+                                    kitColor: Color(lineup.kitColor),
+                                    textColor: isDark
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
-                              ),
-                            if (player.assists > 0)
-                              ...List.generate(
-                                player.assists,
-                                (_) => const Text(
-                                  '👟',
-                                  style: TextStyle(fontSize: 10),
-                                ),
-                              ),
-                            if (player.redCard)
-                              const Icon(
-                                Icons.square,
-                                size: 10,
-                                color: Colors.red,
-                              ),
-                            if (!player.redCard && player.yellowCards > 0)
-                              ...List.generate(
-                                player.yellowCards,
-                                (_) => const Icon(
-                                  Icons.square,
-                                  size: 10,
-                                  color: Colors.yellow,
-                                ),
-                              ),
+                              );
+                            }),
                           ],
                         ),
                       ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-            );
-          }).toList(),
+              ],
+            ],
+          ),
         ),
+        if (lineup.bench.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 16),
+            child: Text(
+              lineup.players.isNotEmpty
+                  ? 'BANC DE TOUCHE'
+                  : 'EFFECTIF DE L\'ÉQUIPE',
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.38),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: lineup.bench.map((player) {
+              return GestureDetector(
+                onTap: player.id > 0
+                    ? () => openPlayerProfile(
+                        context,
+                        playerId: player.id,
+                        playerName: player.name,
+                        teamName: lineup.teamName,
+                        teamCode: lineup.teamCode,
+                        season: _tournamentSeason,
+                        shirtNumber: player.number,
+                        position: player.role,
+                        lineups: _matchLineups,
+                      )
+                    : null,
+                child: Container(
+                  width: 100,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: textColor.withValues(alpha: 0.05),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Color(lineup.kitColor).withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Color(
+                              lineup.kitColor,
+                            ).withValues(alpha: 0.3),
+                            width: 2,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.person,
+                          size: 24,
+                          color: Color(lineup.kitColor),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        player.name,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.clip,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (player.substitutedOut ||
+                          player.substitutedIn ||
+                          player.goals > 0 ||
+                          player.assists > 0 ||
+                          player.yellowCards > 0 ||
+                          player.redCard)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (player.substitutedIn)
+                                const Icon(
+                                  Icons.arrow_upward,
+                                  size: 12,
+                                  color: Colors.green,
+                                ),
+                              if (player.substitutedOut)
+                                const Icon(
+                                  Icons.arrow_downward,
+                                  size: 12,
+                                  color: Colors.red,
+                                ),
+                              if (player.goals > 0)
+                                ...List.generate(
+                                  player.goals,
+                                  (_) => const Text(
+                                    '⚽',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                ),
+                              if (player.assists > 0)
+                                ...List.generate(
+                                  player.assists,
+                                  (_) => const Text(
+                                    '👟',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                ),
+                              if (player.redCard)
+                                const Icon(
+                                  Icons.square,
+                                  size: 10,
+                                  color: Colors.red,
+                                ),
+                              if (!player.redCard && player.yellowCards > 0)
+                                ...List.generate(
+                                  player.yellowCards,
+                                  (_) => const Icon(
+                                    Icons.square,
+                                    size: 10,
+                                    color: Colors.yellow,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ],
     );
   }
@@ -1211,6 +1363,16 @@ class _PlayerJersey extends StatelessWidget {
     return Colors.transparent;
   }
 
+  String _formatName(String name) {
+    if (name.isEmpty) return '';
+    final parts = name.split(' ');
+    if (parts.length > 1) {
+      final firstInit = parts[0][0].toUpperCase();
+      return '$firstInit. ${parts.sublist(1).join(' ')}';
+    }
+    return name;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1224,38 +1386,16 @@ class _PlayerJersey extends StatelessWidget {
               size: const Size(38, 38), // On agrandit un peu
               painter: _JerseyPainter(color: kitColor),
             ),
-            // PHOTO DU JOUEUR (SofaScore CDN)
-            if (player.id > 0)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  'https://api.sofascore.app/api/v1/player/${player.id}/image',
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Text(
-                    '${player.number}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: kitColor.computeLuminance() > 0.5
-                          ? Colors.black
-                          : Colors.white,
-                    ),
-                  ),
-                ),
-              )
-            else
-              Text(
-                '${player.number}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: kitColor.computeLuminance() > 0.5
-                      ? Colors.black
-                      : Colors.white,
-                ),
+            Text(
+              '${player.number}',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: kitColor.computeLuminance() > 0.5
+                    ? Colors.black
+                    : Colors.white,
               ),
+            ),
             // Affichage de la NOTE
             if (player.rating.isNotEmpty)
               Positioned(
@@ -1295,7 +1435,7 @@ class _PlayerJersey extends StatelessWidget {
                     vertical: 1,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Row(
@@ -1346,10 +1486,11 @@ class _PlayerJersey extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                player.name,
+                _formatName(player.name),
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
                 maxLines: 1,
@@ -1609,7 +1750,7 @@ class _EventTile extends StatelessWidget {
                           color: textColor,
                           fontWeight: FontWeight.w700,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                         maxLines: 2,
                       ),
                     ),
@@ -1779,7 +1920,7 @@ class _EventTile extends StatelessWidget {
                         _translateDetail(event.detail).toUpperCase(),
                         style: TextStyle(
                           color: _getDetailTextColor(event),
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
                         ),
@@ -1796,11 +1937,13 @@ class _EventTile extends StatelessWidget {
 
   String _translateDetail(String detail) {
     final d = detail.toLowerCase();
-    if (d.contains('missed penalty') || d.contains('penalty missed'))
+    if (d.contains('missed penalty') || d.contains('penalty missed')) {
       return 'Penalty manqué';
+    }
     if (d.contains('penalty goal') ||
-        (d.contains('penalty') && !d.contains('missed')))
+        (d.contains('penalty') && !d.contains('missed'))) {
       return 'Penalty marqué';
+    }
     if (d.contains('hit the post')) return 'Poteau';
     if (d.contains('saved')) return 'Arrêt du gardien';
     if (d.contains('goal cancelled')) return 'But annulé (VAR)';
@@ -1860,7 +2003,7 @@ class _EventPill extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
               ),
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
             ),
           ),
         ],
@@ -1898,7 +2041,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               value,
               style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
               maxLines: 3,
             ),
           ),
@@ -1947,7 +2090,7 @@ class _StatBar extends StatelessWidget {
                   fontSize: 11,
                   letterSpacing: 1.2,
                 ),
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
               ),
             ),
             SizedBox(
@@ -2099,7 +2242,7 @@ class _EventIconBadge extends StatelessWidget {
               style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w800,
-                fontSize: 10,
+                fontSize: 9,
               ),
             )
           : isCard
@@ -2222,7 +2365,7 @@ class _ShootoutRow extends StatelessWidget {
         fontWeight: FontWeight.w500,
       ),
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      overflow: TextOverflow.clip,
     );
 
     return Padding(

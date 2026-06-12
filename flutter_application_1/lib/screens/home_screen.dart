@@ -1,14 +1,12 @@
 import 'dart:async' as java_timer;
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
-
+import 'package:flutter/services.dart';
 import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../services/api_service.dart';
-import '../services/ad_mob_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/country_flags.dart';
 import '../utils/standing_status.dart';
@@ -21,6 +19,7 @@ import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/pin_match_button.dart';
 import '../widgets/inline_adaptive_banner.dart';
+import '../widgets/loading_skeletons.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 
@@ -60,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Écouter les notifications FCM pour rafraîchir brusquement
     _refreshSubscription = refreshStreamController.stream.listen((_) {
-      debugPrint('🔄 FCM déclenche un rafraîchissement brusque !');
+      debugPrint('ðŸ”„ FCM déclenche un rafraîchissement brusque !');
       _loadInitialData();
     });
   }
@@ -115,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       _startSilentScoreRefresh();
     } catch (e) {
-      debugPrint('💥 Error loading data: $e');
+      debugPrint('ðŸ’¥ Error loading data: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -136,9 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return dt.year == now.year && dt.month == now.month && dt.day == now.day;
     });
     if (!hasLiveOrTodayMatches || _selectedYear == 2022) return;
-    // Refresh silencieux toutes les 30 secondes (sans spinner)
+    // Refresh silencieux toutes les 15 secondes pour le dynamisme
     _silentRefreshTimer = java_timer.Timer.periodic(
-      const Duration(seconds: 30),
+      const Duration(seconds: 15),
       (_) async {
         if (!mounted) return;
         try {
@@ -147,6 +146,23 @@ class _HomeScreenState extends State<HomeScreen> {
             forceRefresh: true,
           );
           if (mounted && freshMatches.isNotEmpty) {
+            bool scoreChanged = false;
+            for (var fresh in freshMatches) {
+              final old = _matches.firstWhere(
+                (m) => m.id == fresh.id,
+                orElse: () => fresh,
+              );
+              if (old.scoreHome != fresh.scoreHome ||
+                  old.scoreAway != fresh.scoreAway) {
+                scoreChanged = true;
+                break;
+              }
+            }
+
+            if (scoreChanged) {
+              HapticFeedback.heavyImpact();
+            }
+
             setState(() => _matches = freshMatches);
           }
         } catch (_) {}
@@ -155,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool _isFetchingLive = false;
+  // ignore: unused_element
   Future<void> _fetchLiveMode() async {
     if (_isFetchingLive) return;
     _isFetchingLive = true;
@@ -196,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedTab = index;
     });
-    java_timer.unawaited(AdMobService.maybeShowInterstitialAfterNavigation());
+    // AdMobService.maybeShowInterstitialAfterNavigation(); // Removed in favor of AppOpenAd
     if (index == 2 && _matchFilterMode == 0) {
       _jumpToTodayMatchPage();
     } else if (_pageController.hasClients) {
@@ -327,9 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
             NestedScrollView(
               headerSliverBuilder: (context, _) => [_buildCollapsingHeader()],
               body: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: _kGold),
-                    )
+                  ? MatchListSkeleton(isDark: isDark)
                   : _buildMainContent(textColor),
             ),
           ],
@@ -339,8 +354,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMainContent(Color textColor) {
-    if (_selectedTab == 0 && _selectedYear == 2026)
+    if (_selectedTab == 0 && _selectedYear == 2026) {
       return _buildModernHome2026(textColor);
+    }
     switch (_selectedTab) {
       case 0:
         return _buildPagedMatchView(textColor);
@@ -392,12 +408,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // ── HERO BANNER ──
+          // â”€â”€ HERO BANNER â”€â”€
           const _HeroBannerDivider(),
           const _TournamentHero2026(),
           const SizedBox(height: 20),
 
-          // ── NEWS SECTION ──
+          // â”€â”€ NEWS SECTION â”€â”€
           _SectionHeader(
             icon: Icons.newspaper_rounded,
             title: 'ACTUALITÉS FIFA',
@@ -455,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const InlineAdaptiveBanner(),
           const SizedBox(height: 28),
 
-          // ── STANDINGS / GROUPS ──
+          // â”€â”€ STANDINGS / GROUPS â”€â”€
           if (_standings.isNotEmpty) ...[
             _SectionHeader(
               icon: Icons.leaderboard_rounded,
@@ -472,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 28),
           ],
 
-          // ── UPCOMING MATCHES ──
+          // â”€â”€ UPCOMING MATCHES â”€â”€
           _SectionHeader(
             icon: Icons.calendar_month_rounded,
             title: 'PROGRAMME',
@@ -527,7 +543,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // Naviguer vers l'écran détail de l'article
               Navigator.of(context).push(
                 PageRouteBuilder(
-                  pageBuilder: (_, animation, __) => FadeTransition(
+                  pageBuilder: (_, animation, _) => FadeTransition(
                     opacity: animation,
                     child: NewsDetailScreen(
                       article: Map<String, dynamic>.from(
@@ -912,22 +928,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStandingsView(Color textColor) {
-    if (_standings.isEmpty)
+    if (_standings.isEmpty) {
       return const _EmptyState(msg: 'Aucun classement disponible.');
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: _standings.length,
-      itemBuilder: (context, i) => _GroupTable(
-        group: _standings[i],
-        textColor: textColor,
-        year: _selectedYear,
-      ),
+    }
+
+    // Collect all third-placed teams (rank == 3) and sort by FIFA rules:
+    // 1. Points  2. Goal diff  3. Goals for
+    final thirdPlaced =
+        _standings
+            .expand(
+              (g) => g.teams
+                  .where((t) => t.rank == 3)
+                  .map((t) => (t, g.groupName)),
+            )
+            .toList()
+          ..sort((a, b) {
+            int cmp = b.$1.points.compareTo(a.$1.points);
+            if (cmp != 0) return cmp;
+            cmp = b.$1.goalsDiff.compareTo(a.$1.goalsDiff);
+            return cmp;
+          });
+    // Top 8 qualify in a 48-team 12-group tournament
+    const int qualifiedThirds = 8;
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, i) => _GroupTable(
+                group: _standings[i],
+                textColor: textColor,
+                year: _selectedYear,
+              ),
+              childCount: _standings.length,
+            ),
+          ),
+        ),
+        if (thirdPlaced.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+            sliver: SliverToBoxAdapter(
+              child: _BestThirdsTable(
+                thirds: thirdPlaced,
+                qualifiedThirds: qualifiedThirds,
+                textColor: textColor,
+                year: _selectedYear,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildTopScorersView(Color textColor) {
-    if (_topScorers.isEmpty)
+    if (_topScorers.isEmpty) {
       return const _EmptyState(msg: 'Aucun buteur disponible.');
+    }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: _topScorers.length,
@@ -977,8 +1036,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBracketView(Color textColor) {
     final rounds = _buildKnockoutRounds(_matches);
-    if (rounds.isEmpty)
+    if (rounds.isEmpty) {
       return const _EmptyState(msg: 'Phase finale non disponible.');
+    }
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -1070,15 +1130,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final v = raw.toLowerCase().replaceAll('_', ' ');
     if (v.contains('round of 16') ||
         v.contains('8th finals') ||
-        v.contains('huitième'))
+        v.contains('huitième')) {
       return 'Round of 16';
+    }
     if (v.contains('quarter') || v.contains('quart')) return 'Quarter-finals';
     if (v.contains('semi') || v.contains('demi')) return 'Semi-finals';
-    if (v.contains('third place') || v.contains('troisième'))
+    if (v.contains('third place') || v.contains('troisième')) {
       return 'Third place';
+    }
     if (v == 'final' ||
-        (v.contains('final') && !v.contains('semi') && !v.contains('quarter')))
+        (v.contains('final') &&
+            !v.contains('semi') &&
+            !v.contains('quarter'))) {
       return 'Final';
+    }
     return null;
   }
 
@@ -1364,8 +1429,9 @@ class _HomeScreenState extends State<HomeScreen> {
       keysSet.addAll(keysOf(m));
     }
     final keys = keysSet.toList();
-    if (_selectedTab == 2 && (_matchFilterMode == 1 || _matchFilterMode == 2))
+    if (_selectedTab == 2 && (_matchFilterMode == 1 || _matchFilterMode == 2)) {
       keys.sort();
+    }
     return keys;
   }
 }
@@ -1558,227 +1624,270 @@ class _MatchCard extends StatelessWidget {
         ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)'
         : null;
 
-    return Card(
-      elevation: 0,
-      color: isDark ? _kCardDark : Colors.white,
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? (match.isLive ? const Color(0xFF221515) : _kCardDark)
+            : (match.isLive ? const Color(0xFFFFF0F0) : Colors.white),
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
+        border: Border.all(
           color: match.isLive
-              ? Colors.redAccent.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.05),
+              ? Colors.redAccent.withValues(alpha: 0.5)
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05)),
           width: match.isLive ? 1.5 : 1,
         ),
+        boxShadow: [
+          if (!match.isFinished)
+            BoxShadow(
+              color: match.isLive
+                  ? Colors.redAccent.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
       ),
-      child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match)),
-        ),
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            children: [
-              // Top row: status + phase
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => MatchDetailsScreen(match: match)),
+          ),
+          borderRadius: BorderRadius.circular(20),
+          child: Opacity(
+            opacity: match.isFinished ? 0.65 : 1.0,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
                 children: [
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (match.isLive) ...[
-                          const _LiveDot(),
-                          const SizedBox(width: 6),
-                          Text(
-                            match.statusDisplay,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ] else if (match.isFinished) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'TERMINÉ',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 10,
-                                letterSpacing: 0.5,
+                  // Top row: status + phase
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (match.isLive) ...[
+                              const PulsingLiveDot(),
+                              const SizedBox(width: 6),
+                              Text(
+                                match.statusDisplay,
+                                style: const TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                          ),
-                        ] else ...[
-                          Text(
-                            match.localTime,
+                            ] else if (match.isFinished) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  'TERMINÉ',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 10,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ] else ...[
+                              Text(
+                                match.localTime,
+                                style: const TextStyle(
+                                  color: _kGold,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (match.isLive)
+                        PinMatchButton(
+                          compact: true,
+                          onTap: () => _pinMatch(context, match),
+                        )
+                      else
+                        Flexible(
+                          flex: 2,
+                          child: Text(
+                            match.phaseLabel,
                             style: const TextStyle(
-                              color: _kGold,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              color: Colors.grey,
+                              fontSize: 11,
                             ),
                             overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (match.isLive)
-                    PinMatchButton(
-                      compact: true,
-                      onTap: () => _pinMatch(context, match),
-                    )
-                  else
-                    Flexible(
-                      flex: 2,
-                      child: Text(
-                        match.phaseLabel,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 11,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right,
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Teams + Score row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: match.homeTeamId == null
+                                    ? null
+                                    : () => openTeamProfile(
+                                        context,
+                                        teamName: match.homeTeam,
+                                        teamId: match.homeTeamId,
+                                        year: match.dateTime?.year ?? 2026,
+                                      ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    match.homeTeam,
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      decoration: match.homeTeamId != null
+                                          ? TextDecoration.underline
+                                          : null,
+                                      decorationColor: textColor.withValues(
+                                        alpha: 0.25,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Hero(
+                              tag: 'logo_home_${match.id}',
+                              child: NationFlagBadge(
+                                countryCode: match.homeCode,
+                                teamName: match.homeTeam,
+                                size: 24,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Teams + Score row
-              Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Flexible(
-                          child: GestureDetector(
-                            onTap: match.homeTeamId == null
-                                ? null
-                                : () => openTeamProfile(
-                                    context,
-                                    teamName: match.homeTeam,
-                                    teamId: match.homeTeamId,
-                                    year: match.dateTime?.year ?? 2026,
+                      Container(
+                        width: 80,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              transitionBuilder: (child, animation) =>
+                                  SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0.0, -0.2),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
                                   ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerRight,
                               child: Text(
-                                match.homeTeam,
-                                textAlign: TextAlign.right,
+                                centerText,
+                                key: ValueKey<String>(centerText),
                                 style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                  decoration: match.homeTeamId != null
-                                      ? TextDecoration.underline
-                                      : null,
-                                  decorationColor: textColor.withValues(
-                                    alpha: 0.25,
+                                  color: match.isLive
+                                      ? Colors.redAccent
+                                      : _kGold,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            if (penaltyText != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  penaltyText,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Hero(
+                              tag: 'logo_away_${match.id}',
+                              child: NationFlagBadge(
+                                countryCode: match.awayCode,
+                                teamName: match.awayTeam,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: match.awayTeamId == null
+                                    ? null
+                                    : () => openTeamProfile(
+                                        context,
+                                        teamName: match.awayTeam,
+                                        teamId: match.awayTeamId,
+                                        year: match.dateTime?.year ?? 2026,
+                                      ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    match.awayTeam,
+                                    style: TextStyle(
+                                      color: textColor,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      decoration: match.awayTeamId != null
+                                          ? TextDecoration.underline
+                                          : null,
+                                      decorationColor: textColor.withValues(
+                                        alpha: 0.25,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        NationFlagBadge(
-                          countryCode: match.homeCode,
-                          teamName: match.homeTeam,
-                          size: 24,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 80,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          centerText,
-                          style: TextStyle(
-                            color: match.isLive ? Colors.redAccent : _kGold,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        if (penaltyText != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                              penaltyText,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        NationFlagBadge(
-                          countryCode: match.awayCode,
-                          teamName: match.awayTeam,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: GestureDetector(
-                            onTap: match.awayTeamId == null
-                                ? null
-                                : () => openTeamProfile(
-                                    context,
-                                    teamName: match.awayTeam,
-                                    teamId: match.awayTeamId,
-                                    year: match.dateTime?.year ?? 2026,
-                                  ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                match.awayTeam,
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                  decoration: match.awayTeamId != null
-                                      ? TextDecoration.underline
-                                      : null,
-                                  decorationColor: textColor.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          ), // Opacity
+        ), // InkWell
+      ), // Material
     );
   }
 
@@ -1900,7 +2009,7 @@ class _BracketMatchCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '${match.dateLabel} • ${match.localTime}',
+                '${match.dateLabel} â€¢ ${match.localTime}',
                 style: const TextStyle(
                   color: _kGold,
                   fontSize: 12,
@@ -2144,7 +2253,12 @@ class _GroupTable extends StatelessWidget {
                 ),
                 Divider(color: textColor.withValues(alpha: 0.12), height: 20),
                 ...group.teams.map((t) {
-                  final status = standingQualification(t.rank, year: year);
+                  final status = standingQualification(
+                    t.rank,
+                    year: year,
+                    isQualified: t.isQualified,
+                    toQualify: t.toQualify,
+                  );
                   final statusColor = standingStatusColor(status);
                   return InkWell(
                     onTap: () => openTeamProfile(
@@ -2283,9 +2397,325 @@ class _GroupTable extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// ── PREMIUM 2026 WIDGETS ──
-// ═══════════════════════════════════════════════════════
+// =========================================================
+// -- MEILLEURS TROISIEMES TABLE --
+// =========================================================
+
+class _BestThirdsTable extends StatelessWidget {
+  final List<(StandingTeam, String)> thirds;
+  final int qualifiedThirds;
+  final Color textColor;
+  final int year;
+
+  const _BestThirdsTable({
+    required this.thirds,
+    required this.qualifiedThirds,
+    required this.textColor,
+    required this.year,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: textColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFE7C16A).withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFE7C16A).withValues(alpha: 0.25),
+                  const Color(0xFFE7C16A).withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.emoji_events_rounded,
+                  color: Color(0xFFE7C16A),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'MEILLEURS TROISIEMES',
+                    style: TextStyle(
+                      color: Color(0xFFE7C16A),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      fontSize: 13,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2ECC71).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF2ECC71).withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    'Top $qualifiedThirds qualifies',
+                    style: const TextStyle(
+                      color: Color(0xFF2ECC71),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    _hdr(flex: 1, text: '#', textColor: textColor),
+                    _hdr(flex: 1, text: 'GRP', textColor: textColor),
+                    _hdr(
+                      flex: 4,
+                      text: 'Equipe',
+                      textColor: textColor,
+                      align: TextAlign.left,
+                    ),
+                    _hdr(flex: 1, text: 'MJ', textColor: textColor),
+                    _hdr(flex: 1, text: 'GD', textColor: textColor),
+                    _hdr(flex: 1, text: 'PTS', textColor: textColor),
+                  ],
+                ),
+                Divider(color: textColor.withValues(alpha: 0.12), height: 20),
+                ...thirds.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final (team, groupName) = entry.value;
+                  final isQualified = idx < qualifiedThirds;
+                  final statusColor = isQualified
+                      ? const Color(0xFF2ECC71)
+                      : const Color(0xFFE74C3C);
+                  final groupLetter = groupName.replaceAll('Group ', '').trim();
+                  return InkWell(
+                    onTap: () => openTeamProfile(
+                      context,
+                      teamName: team.teamName,
+                      teamId: team.teamId,
+                      year: year,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: statusColor.withValues(alpha: 0.6),
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Text(
+                                '${idx + 1}',
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFFE7C16A,
+                                ).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                groupLetter,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFFE7C16A),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 4,
+                            child: Row(
+                              children: [
+                                NationFlagBadge(
+                                  countryCode: resolveCountryCode(
+                                    team.teamName,
+                                  ),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        team.teamName,
+                                        style: TextStyle(
+                                          color: textColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        isQualified ? 'Qualifie' : 'Elimine',
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              '${team.played}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: textColor, fontSize: 12),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              '${team.goalsDiff > 0 ? '+' : ''}${team.goalsDiff}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: team.goalsDiff > 0
+                                    ? const Color(0xFF2ECC71)
+                                    : team.goalsDiff < 0
+                                    ? const Color(0xFFE74C3C)
+                                    : textColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text(
+                              '${team.points}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFE7C16A),
+                                fontWeight: FontWeight.w900,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _dot(const Color(0xFF2ECC71)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Qualifie (Top $qualifiedThirds)',
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    _dot(const Color(0xFFE74C3C)),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Elimine',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _hdr({
+    required int flex,
+    required String text,
+    required Color textColor,
+    TextAlign align = TextAlign.center,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: align,
+        style: TextStyle(
+          color: textColor.withValues(alpha: 0.5),
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _dot(Color color) => Container(
+    width: 8,
+    height: 8,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
+}
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ PREMIUM 2026 WIDGETS â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 /// Entrance animation wrapper – fade + slide up
 class _AnimatedEntrance extends StatefulWidget {
@@ -2421,7 +2851,7 @@ class _TournamentHero2026 extends StatelessWidget {
             child: Image.network(
               'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=60',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, _, _) => Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -2702,7 +3132,7 @@ class _NewsCard2026 extends StatelessWidget {
                 Image.network(
                   item['img'],
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -3720,6 +4150,48 @@ class _ListBottomSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class PulsingLiveDot extends StatefulWidget {
+  const PulsingLiveDot({super.key});
+
+  @override
+  State<PulsingLiveDot> createState() => _PulsingLiveDotState();
+}
+
+class _PulsingLiveDotState extends State<PulsingLiveDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _controller,
+      child: Container(
+        width: 6,
+        height: 6,
+        decoration: const BoxDecoration(
+          color: Colors.redAccent,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }

@@ -108,7 +108,7 @@ void _handleForegroundMessage(RemoteMessage message) {
   refreshStreamController.add(null);
 }
 
-// Point d'entrÃ©e pour l'Overlay (le mini-widget flottant)
+// Point d'entrée pour l'Overlay (le mini-widget flottant)
 @pragma("vm:entry-point")
 void overlayMain() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -120,8 +120,33 @@ void overlayMain() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(onStateChange: _onStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    super.dispose();
+  }
+
+  void _onStateChanged(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      AdMobService.showAppOpenAdIfAvailable();
+    }
+  }
 
   ThemeData _buildLightTheme() {
     const seed = AppColors.primary;

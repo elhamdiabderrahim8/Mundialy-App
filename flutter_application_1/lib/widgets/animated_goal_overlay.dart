@@ -22,10 +22,10 @@ class AnimatedGoalOverlay extends StatefulWidget {
   final VoidCallback onDismiss;
 
   const AnimatedGoalOverlay({
-    Key? key,
+    super.key,
     required this.payload,
     required this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedGoalOverlay> createState() => _AnimatedGoalOverlayState();

@@ -6,80 +6,83 @@ import 'ad_units.dart';
 class AdMobService {
   const AdMobService._();
 
-  static InterstitialAd? _interstitialAd;
-  static bool _isLoadingInterstitial = false;
-  static int _navigationActionsSinceAd = 0;
-  static DateTime? _lastInterstitialShownAt;
+  static AppOpenAd? _appOpenAd;
+  static bool _isShowingAd = false;
+  static bool _isAppOpenAdLoaded = false;
+  static DateTime? _appOpenLoadTime;
 
   static Future<void> initialize() async {
     if (!AdUnits.isSupported) return;
 
     try {
       await MobileAds.instance.initialize();
-      await _loadInterstitial();
+      await loadAppOpenAd();
+      await showAppOpenAdIfAvailable();
     } catch (error, stackTrace) {
       debugPrint('AdMob init failed: $error');
       debugPrintStack(stackTrace: stackTrace);
     }
   }
 
-  static Future<void> maybeShowInterstitialAfterNavigation() async {
-    if (!AdUnits.isSupported || AdUnits.interstitial.isEmpty) return;
+  static Future<void> loadAppOpenAd() async {
+    if (!AdUnits.isSupported || AdUnits.appOpen.isEmpty) return;
 
-    _navigationActionsSinceAd++;
-    final lastShown = _lastInterstitialShownAt;
-    final isCoolingDown =
-        lastShown != null &&
-        DateTime.now().difference(lastShown) < const Duration(seconds: 90);
-
-    if (_navigationActionsSinceAd < 3 || isCoolingDown) {
-      if (_interstitialAd == null) await _loadInterstitial();
-      return;
-    }
-
-    final ad = _interstitialAd;
-    if (ad == null) {
-      await _loadInterstitial();
-      return;
-    }
-
-    _interstitialAd = null;
-    _navigationActionsSinceAd = 0;
-    _lastInterstitialShownAt = DateTime.now();
-
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _loadInterstitial();
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        debugPrint('Interstitial failed to show: $error');
-        ad.dispose();
-        _loadInterstitial();
-      },
-    );
-
-    await ad.show();
-  }
-
-  static Future<void> _loadInterstitial() async {
-    if (_isLoadingInterstitial || _interstitialAd != null) return;
-    if (!AdUnits.isSupported || AdUnits.interstitial.isEmpty) return;
-
-    _isLoadingInterstitial = true;
-    await InterstitialAd.load(
-      adUnitId: AdUnits.interstitial,
+    await AppOpenAd.load(
+      adUnitId: AdUnits.appOpen,
       request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
+      adLoadCallback: AppOpenAdLoadCallback(
         onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _isLoadingInterstitial = false;
+          _appOpenAd = ad;
+          _isAppOpenAdLoaded = true;
+          _appOpenLoadTime = DateTime.now();
+          debugPrint('AppOpenAd loaded successfully');
         },
         onAdFailedToLoad: (error) {
-          debugPrint('Interstitial failed to load: $error');
-          _isLoadingInterstitial = false;
+          debugPrint('AppOpenAd failed to load: $error');
+          _isAppOpenAdLoaded = false;
         },
       ),
     );
+  }
+
+  static Future<void> showAppOpenAdIfAvailable() async {
+    if (!AdUnits.isSupported) return;
+    if (_appOpenAd == null || !_isAppOpenAdLoaded || _isShowingAd) {
+      loadAppOpenAd();
+      return;
+    }
+
+    // Ad expires after 4 hours as per AdMob guidelines
+    if (_appOpenLoadTime != null &&
+        DateTime.now().difference(_appOpenLoadTime!) >
+            const Duration(hours: 4)) {
+      _appOpenAd?.dispose();
+      _appOpenAd = null;
+      _isAppOpenAdLoaded = false;
+      loadAppOpenAd();
+      return;
+    }
+
+    _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        _isShowingAd = true;
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        debugPrint('AppOpenAd failed to show: $error');
+        _isShowingAd = false;
+        ad.dispose();
+        _appOpenAd = null;
+        _isAppOpenAdLoaded = false;
+      },
+      onAdDismissedFullScreenContent: (ad) {
+        _isShowingAd = false;
+        ad.dispose();
+        _appOpenAd = null;
+        _isAppOpenAdLoaded = false;
+        loadAppOpenAd(); // Load the next one
+      },
+    );
+
+    await _appOpenAd!.show();
   }
 }

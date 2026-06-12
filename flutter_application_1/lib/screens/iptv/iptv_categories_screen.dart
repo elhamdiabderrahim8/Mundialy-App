@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/iptv_service.dart';
+import '../../widgets/loading_skeletons.dart';
 import 'iptv_channels_screen.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
@@ -243,21 +244,7 @@ class _IptvCategoriesScreenState extends State<IptvCategoriesScreen> {
                 // Content
                 Expanded(
                   child: _isLoading
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const CircularProgressIndicator(color: _kGold),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Chargement des catégories...',
-                                style: TextStyle(
-                                  color: textColor.withValues(alpha: 0.4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
+                      ? IptvCategoryGridSkeleton(isDark: isDark)
                       : _filteredCategories.isEmpty
                       ? Center(
                           child: Column(

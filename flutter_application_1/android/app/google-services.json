@@ -1,51 +1,13 @@
 {
   "project_info": {
-    "project_number": "244211951859",
-    "project_id": "mundialy-3e52b",
-    "storage_bucket": "mundialy-3e52b.firebasestorage.app"
+    "project_number": "578043250451",
+    "project_id": "mundiali",
+    "storage_bucket": "mundiali.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:244211951859:android:76874b274d657070adaf86",
-        "android_client_info": {
-          "package_name": "com.example.flutter_application_1"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:244211951859:android:8244abcf53e810cdadaf86",
-        "android_client_info": {
-          "package_name": "com.mundialy.app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:244211951859:android:8244abcf53e810cdadaf86",
+        "mobilesdk_app_id": "1:578043250451:android:e8a7f88eddde04e9c57ce6",
         "android_client_info": {
           "package_name": "com.mundialy.football"
         }
@@ -53,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg"
+          "current_key": "AIzaSyC8tivOuvf2RJMaATEFx8KGWBQ5pa9CKmA"
         }
       ],
       "services": {

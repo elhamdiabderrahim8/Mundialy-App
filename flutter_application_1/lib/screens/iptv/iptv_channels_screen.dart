@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../services/iptv_service.dart';
+import '../../widgets/loading_skeletons.dart';
 import 'iptv_player_screen.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
@@ -178,21 +179,7 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                 // Content
                 Expanded(
                   child: _isLoading
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const CircularProgressIndicator(color: _kGold),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Chargement des chaînes...',
-                                style: TextStyle(
-                                  color: textColor.withValues(alpha: 0.4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
+                      ? IptvChannelListSkeleton(isDark: isDark)
                       : _filteredChannels.isEmpty
                       ? Center(
                           child: Column(
@@ -288,14 +275,14 @@ class _IptvChannelsScreenState extends State<IptvChannelsScreen> {
                                               ? CachedNetworkImage(
                                                   imageUrl: logo,
                                                   fit: BoxFit.contain,
-                                                  placeholder: (_, __) => Icon(
+                                                  placeholder: (_, _) => Icon(
                                                     Icons.tv_rounded,
                                                     color: _kGold.withValues(
                                                       alpha: 0.3,
                                                     ),
                                                     size: 24,
                                                   ),
-                                                  errorWidget: (_, __, ___) =>
+                                                  errorWidget: (_, _, _) =>
                                                       Icon(
                                                         Icons.tv_rounded,
                                                         color: _kGold

@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 
 enum StandingQualification { qualified, inContention, eliminated }
 
-StandingQualification standingQualification(int rank, {int year = 2026}) {
+StandingQualification standingQualification(
+  int rank, {
+  int year = 2026,
+  bool? isQualified,
+  bool? toQualify,
+}) {
+  if (isQualified == true) return StandingQualification.qualified;
+  if (toQualify == false) return StandingQualification.eliminated;
+
   if (year == 2026) {
     if (rank <= 2) return StandingQualification.qualified;
     if (rank == 3) return StandingQualification.inContention;

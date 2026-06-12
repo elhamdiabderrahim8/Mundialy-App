@@ -86,7 +86,7 @@ void openPlayerProfile(
           shirtNumber: shirtNumber,
           photoUrl:
               photoUrl ??
-              'https://api.sofascore.app/api/v1/player/$effectiveId/image',
+              'https://imagecache.365scores.com/image/upload/f_auto,q_auto,w_120,h_120,c_limit/Athletes/$effectiveId',
           nationality: teamName ?? '',
           nationalityCode: resolvedCode,
           ageLabel: '',

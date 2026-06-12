@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 
 void main() {
   final jsonString = '''
@@ -48,7 +47,7 @@ void main() {
   final score = json['score'] ?? {};
   final penalty = score['penalty'] ?? {};
   final status = fixture['status'] ?? {};
-  
+
   print("homeTeam: ${home['name']}");
   print("scoreHome: ${goals['home']}");
 }

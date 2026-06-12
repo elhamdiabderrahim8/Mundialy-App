@@ -20,7 +20,7 @@ class MundialyLogo extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(
+            errorBuilder: (_, _, _) => Icon(
               Icons.live_tv_rounded,
               size: size,
               color: isDark ? const Color(0xFFE7C16A) : const Color(0xFF16324A),

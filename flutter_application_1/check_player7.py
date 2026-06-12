@@ -1,0 +1,10 @@
+import json
+import urllib.request
+
+url = "https://webws.365scores.com/web/athletes/?appTypeId=5&langId=1&athletes=771"
+req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+try:
+    data = json.loads(urllib.request.urlopen(req).read())
+    print("athlete 0:", data['athletes'][0])
+except Exception as e:
+    print(e)

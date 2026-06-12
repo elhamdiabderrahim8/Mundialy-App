@@ -5,6 +5,7 @@ import '../models/standings.dart';
 import '../models/team_player.dart';
 import '../models/team_profile.dart';
 
+import '../widgets/loading_skeletons.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'match_details_screen.dart';
 
@@ -66,7 +67,7 @@ class _TeamDetailsScreenState extends State<TeamDetailsScreen> {
       backgroundColor: const Color(0xFF0E1A24),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: kTeamGold))
+            ? const TeamDetailsSkeleton()
             : SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                 child: Column(

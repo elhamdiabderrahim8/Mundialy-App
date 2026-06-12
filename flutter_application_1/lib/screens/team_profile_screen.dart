@@ -9,6 +9,7 @@ import '../utils/country_flags.dart';
 import '../utils/standing_status.dart';
 import '../utils/team_resolver.dart';
 import '../widgets/nation_flag_badge.dart';
+import '../widgets/loading_skeletons.dart';
 import 'match_details_screen.dart';
 import '../utils/player_navigation.dart';
 
@@ -103,10 +104,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     final bgColor = isDark ? const Color(0xFF0E1A24) : const Color(0xFFF7F2E8);
 
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: bgColor,
-        body: const Center(child: CircularProgressIndicator(color: _gold)),
-      );
+      return TeamProfileSkeleton(isDark: isDark);
     }
 
     return Scaffold(
@@ -282,18 +280,25 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  coach.photoUrl ?? '',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 60,
-                    height: 60,
-                    color: _gold.withValues(alpha: 0.1),
-                    child: const Icon(Icons.person, color: _gold),
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE7C16A), Color(0xFFC8973A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    _initials(coach.name),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
               ),
@@ -372,11 +377,21 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                 ),
                 child: Text(
                   standingStatusLabel(
-                    standingQualification(row.rank, year: widget.year),
+                    standingQualification(
+                      row.rank,
+                      year: widget.year,
+                      isQualified: row.isQualified,
+                      toQualify: row.toQualify,
+                    ),
                   ),
                   style: TextStyle(
                     color: standingStatusColor(
-                      standingQualification(row.rank, year: widget.year),
+                      standingQualification(
+                        row.rank,
+                        year: widget.year,
+                        isQualified: row.isQualified,
+                        toQualify: row.toQualify,
+                      ),
                     ),
                     fontWeight: FontWeight.w800,
                     fontSize: 11,
@@ -601,6 +616,14 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
         letterSpacing: 1.1,
       ),
     );
+  }
+
+  static String _initials(String name) {
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
+    return '${parts[0].substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
   }
 
   String _positionGroup(String position) {
@@ -887,6 +910,16 @@ class _PlayerRow extends StatelessWidget {
   final TeamPlayer player;
   final bool isDark;
 
+  String _initials(String name) {
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) {
+      return parts[0].substring(0, 1).toUpperCase();
+    }
+    return '${parts[0].substring(0, 1)}${parts.last.substring(0, 1)}'
+        .toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : const Color(0xFF16324A);
@@ -903,20 +936,28 @@ class _PlayerRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              player.photoUrl ?? '',
-              width: 44,
-              height: 44,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 44,
-                height: 44,
-                color: _TeamProfileScreenState._gold.withValues(alpha: 0.1),
-                child: const Icon(
-                  Icons.person,
-                  color: _TeamProfileScreenState._gold,
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1D2D3B), Color(0xFF0E1A24)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: const Color(0xFFE7C16A).withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                _initials(player.name),
+                style: const TextStyle(
+                  color: Color(0xFFE7C16A),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
             ),
