@@ -454,7 +454,7 @@ class MatchDetails {
           capacity: '',
           city: fixture['venue']?['city']?.toString() ?? 'City',
         ),
-        startTime: fixture['date']?.toString() ?? '',
+        startTime: _formatDateTimeString(fixture['date']?.toString() ?? ''),
       ),
       stats: _parseStats(json['statistics'], false),
       homeLineup: TeamLineup.fromApi(
@@ -595,6 +595,20 @@ class MatchDetails {
           if (astTarget != null) astTarget.assists++;
         }
       }
+    }
+  }
+
+  static String _formatDateTimeString(String raw) {
+    if (raw.isEmpty) return '';
+    try {
+      String st = raw;
+      if (!st.endsWith('Z') && !st.contains('+') && !st.contains('-')) {
+        st += 'Z';
+      }
+      final dt = DateTime.parse(st).toLocal();
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return raw;
     }
   }
 }

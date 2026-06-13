@@ -107,9 +107,11 @@ class Scores365Service {
     DateTime dt = DateTime.now();
     if (g['startTime'] != null) {
       String st = g['startTime'].toString();
+      // On s'assure que la chaîne est traitée comme UTC si elle n'a pas de fuseau
       if (!st.endsWith('Z') && !st.contains('+') && !st.contains('-')) {
-        st += 'Z'; // Force UTC interpretation if no timezone is provided
+        st += 'Z';
       }
+      // .toLocal() convertit AUTOMATIQUEMENT vers le fuseau horaire du téléphone (Belgique, Australie, etc.)
       dt = DateTime.parse(st).toLocal();
     }
 

@@ -21,6 +21,7 @@ import '../widgets/in_app_notification.dart';
 import '../widgets/animated_goal_overlay.dart';
 import '../utils/app_globals.dart';
 import 'scores365_service.dart';
+import 'scorer_calculation_service.dart';
 
 class _CacheEntry {
   final dynamic data;
@@ -353,6 +354,10 @@ class ApiService {
         final data = _parseMatchesResponse(raw);
         TeamResolver.indexMatches(data);
         _setCache(cacheKey, data);
+        
+        // Déclencher l'algorithme des buteurs même pour 2022 si besoin
+        ScorerCalculationService.runAggregator(data);
+
         return data;
       } else {
         // 2026 : appel DIRECT à 365Scores
@@ -360,6 +365,10 @@ class ApiService {
         if (data.isNotEmpty) {
           TeamResolver.indexMatches(data);
           _setCache(cacheKey, data);
+          
+          // Déclencher l'algorithme des buteurs en arrière-plan
+          ScorerCalculationService.runAggregator(data);
+
           return data;
         }
         debugPrint('fetchMatches: 365Scores direct returned no fixtures');
@@ -547,11 +556,14 @@ class ApiService {
   static Future<List<TopScorer>> fetchTopScorers({int? year}) async {
     final season = year ?? 2022;
     final cacheKey = 'topscorers_$season';
+    
+    // Pour l'onglet buteurs, on veut voir les résultats de notre algorithme
+    // le plus vite possible, donc on réduit la durée du cache
     final cached = _getCache<List<TopScorer>>(
       cacheKey,
-      ttlMinutes: season == 2022 ? 1440 : 10,
+      ttlMinutes: 1, // Cache très court pour voir les mises à jour
     );
-    if (cached != null) return cached;
+    if (cached != null && cached.isNotEmpty) return cached;
 
     try {
       List<TopScorer> scorers;
@@ -573,15 +585,27 @@ class ApiService {
             )
             .toList();
       } else {
-        // 2026 : appel DIRECT à 365Scores
-        scorers = await Scores365Service.fetchTopScorers(Scores365Service.wcCompetitionId);
+        // 2026 : On utilise d'abord l'algorithme local pour valider le calcul "éternel"
+        scorers = await ScorerCalculationService.getStoredScorers();
+
+        // Si l'algorithme local n'a encore rien (premier lancement), on essaie l'API
+        if (scorers.isEmpty) {
+          scorers = await Scores365Service.fetchTopScorers(
+            Scores365Service.wcCompetitionId,
+          );
+        }
+
         // Rank them
         for (int i = 0; i < scorers.length; i++) {
           scorers[i].rank = i + 1;
         }
       }
 
-      _setCache(cacheKey, scorers);
+      // Ne pas mettre en cache une liste vide pour permettre un rafraîchissement rapide
+      if (scorers.isNotEmpty) {
+        _setCache(cacheKey, scorers);
+      }
+
       return scorers;
     } catch (e) {
       debugPrint('❌ fetchTopScorers Error: $e');

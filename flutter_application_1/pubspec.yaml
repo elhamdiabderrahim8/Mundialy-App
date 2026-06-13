@@ -39,6 +39,7 @@ flutter:
     - assets/data/matches_2022.json
     - assets/data/standings_2022.json
     - assets/data/topscorers_2022.json
+    - assets/data/topscorers_2026_init.json
     - assets/logo.png
     - assets/mundialy_logo.png
     - assets/trophy_watermark.png

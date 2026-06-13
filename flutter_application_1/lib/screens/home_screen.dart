@@ -26,6 +26,7 @@ import '../widgets/fade_slide_entrance.dart';
 import '../utils/app_routes.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
+import '../services/scorer_calculation_service.dart';
 
 /// --- CONSTANTES ÉLITE ---
 const Color _kGold = Color(0xFFE7C16A);
@@ -66,6 +67,24 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('ðŸ”„ FCM déclenche un rafraîchissement brusque !');
       _loadInitialData();
     });
+
+    // Écouter le service de calcul des buteurs
+    ScorerCalculationService.progressNotifier.addListener(_onScorersUpdated);
+  }
+
+  void _onScorersUpdated() {
+    if (_selectedTab == 4 && mounted) {
+      _refreshScorersOnly();
+    }
+  }
+
+  Future<void> _refreshScorersOnly() async {
+    final list = await ApiService.fetchTopScorers(year: _selectedYear);
+    if (mounted) {
+      setState(() {
+        _topScorers = list;
+      });
+    }
   }
 
   @override
@@ -1056,52 +1075,97 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTopScorersView(Color textColor) {
     if (_topScorers.isEmpty) {
-      return const _EmptyState(msg: 'Aucun buteur disponible.');
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _kGold.withValues(alpha: 0.1),
+                  border: Border.all(color: _kGold.withValues(alpha: 0.2), width: 2),
+                ),
+                child: Center(
+                  child: Icon(Icons.auto_awesome_rounded, size: 60, color: _kGold),
+                ),
+              ).animateInfiniteGlow(),
+              const SizedBox(height: 32),
+              Text(
+                'MUNDIALY INTELLIGENCE',
+                style: TextStyle(
+                  color: _kGold,
+                  letterSpacing: 4,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: 200,
+                child: LinearProgressIndicator(
+                  backgroundColor: _kGold.withValues(alpha: 0.05),
+                  color: _kGold,
+                  minHeight: 2,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Analyse des flux de match en temps réel...\nExtraction des buteurs d\'élite.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.5),
+                  fontSize: 12,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: _topScorers.length,
-      itemBuilder: (context, i) {
-        final scorer = _topScorers[i];
-        return ListTile(
-          onTap: scorer.playerId > 0
-              ? () => openPlayerProfile(
-                  context,
-                  playerId: scorer.playerId,
-                  playerName: scorer.playerName,
-                  teamName: scorer.teamName,
-                  teamCode: resolveCountryCode(scorer.teamName),
-                  season: _selectedYear,
-                )
-              : null,
-          leading: CircleAvatar(
-            backgroundColor: _kGold.withValues(alpha: 0.16),
-            child: Text(
-              '${scorer.rank}',
-              style: const TextStyle(
-                color: _kGold,
-                fontWeight: FontWeight.w900,
+
+    return RefreshIndicator(
+      onRefresh: _loadInitialData,
+      color: _kGold,
+      child: CustomScrollView(
+        slivers: [
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) {
+                  final scorer = _topScorers[i];
+                  final bool isTop3 = i < 3;
+                  
+                  return _PremiumScorerTile(
+                    scorer: scorer,
+                    rank: i + 1,
+                    isTop3: isTop3,
+                    textColor: textColor,
+                    onTap: () => openPlayerProfile(
+                      context,
+                      playerId: scorer.playerId,
+                      playerName: scorer.playerName,
+                      teamName: scorer.teamName,
+                      teamCode: resolveCountryCode(scorer.teamName),
+                      season: _selectedYear,
+                    ),
+                  );
+                },
+                childCount: _topScorers.length,
               ),
             ),
           ),
-          title: Text(
-            scorer.playerName,
-            style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Text(
-            scorer.teamName,
-            style: TextStyle(
-              color: textColor.withValues(alpha: 0.5),
-              fontSize: 12,
-            ),
-          ),
-          trailing: Text(
-            '${scorer.goals} G',
-            style: const TextStyle(color: _kGold, fontWeight: FontWeight.bold),
-          ),
-        );
-      },
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
     );
   }
 
@@ -4424,11 +4488,195 @@ class _ListBottomSheet extends StatelessWidget {
   }
 }
 
+class _PremiumScorerTile extends StatelessWidget {
+  final TopScorer scorer;
+  final int rank;
+  final bool isTop3;
+  final Color textColor;
+  final VoidCallback onTap;
+
+  const _PremiumScorerTile({
+    required this.scorer,
+    required this.rank,
+    required this.isTop3,
+    required this.textColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isTop3 
+            ? _kGold.withValues(alpha: isDark ? 0.08 : 0.12)
+            : (isDark ? _kCardDark : Colors.white),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isTop3 ? _kGold.withValues(alpha: 0.5) : textColor.withValues(alpha: 0.05),
+          width: isTop3 ? 1.5 : 1,
+        ),
+        boxShadow: isTop3 ? [
+          BoxShadow(
+            color: _kGold.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ] : [],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                // Rang avec décoration
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    '#$rank',
+                    style: TextStyle(
+                      color: isTop3 ? _kGold : textColor.withValues(alpha: 0.4),
+                      fontWeight: FontWeight.w900,
+                      fontSize: isTop3 ? 18 : 14,
+                    ),
+                  ),
+                ),
+                // Avatar / Initiale
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: isTop3 
+                          ? [_kGold, const Color(0xFFD4A843)]
+                          : [textColor.withValues(alpha: 0.1), textColor.withValues(alpha: 0.05)],
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      scorer.playerName.substring(0, 1).toUpperCase(),
+                      style: TextStyle(
+                        color: isTop3 ? Colors.black : textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Nom et Équipe
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        scorer.playerName,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Row(
+                        children: [
+                          NationFlagBadge(
+                            countryCode: resolveCountryCode(scorer.teamName),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            scorer.teamName,
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.5),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Buts
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isTop3 ? _kGold : textColor.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${scorer.goals} G',
+                    style: TextStyle(
+                      color: isTop3 ? Colors.black : _kGold,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PulsingLiveDot extends StatefulWidget {
   const PulsingLiveDot({super.key});
 
   @override
   State<PulsingLiveDot> createState() => _PulsingLiveDotState();
+}
+
+extension _GlowExtension on Widget {
+  Widget animateInfiniteGlow() => _InfiniteGlow(child: this);
+}
+
+class _InfiniteGlow extends StatefulWidget {
+  final Widget child;
+  const _InfiniteGlow({required this.child});
+  @override
+  State<_InfiniteGlow> createState() => _InfiniteGlowState();
+}
+
+class _InfiniteGlowState extends State<_InfiniteGlow> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
+  }
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (c, child) => Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: _kGold.withValues(alpha: 0.15 * _ctrl.value),
+              blurRadius: 20 + (20 * _ctrl.value),
+              spreadRadius: 5 * _ctrl.value,
+            )
+          ],
+        ),
+        child: child,
+      ),
+      child: widget.child,
+    );
+  }
 }
 
 class _PulsingLiveDotState extends State<PulsingLiveDot>

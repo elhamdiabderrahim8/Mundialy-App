@@ -1,0 +1,62 @@
+[
+    {
+        "rang": 1,
+        "joueur": "Folarin Balogun",
+        "equipe": "États-Unis",
+        "buts": 2
+    },
+    {
+        "rang": 2,
+        "joueur": "Hwang In-beom",
+        "equipe": "Corée du Sud",
+        "buts": 1
+    },
+    {
+        "rang": 3,
+        "joueur": "Gio Reyna",
+        "equipe": "États-Unis",
+        "buts": 1
+    },
+    {
+        "rang": 4,
+        "joueur": "Cyle Larin",
+        "equipe": "Canada",
+        "buts": 1
+    },
+    {
+        "rang": 5,
+        "joueur": "Oh Hyeon-gyu",
+        "equipe": "Corée du Sud",
+        "buts": 1
+    },
+    {
+        "rang": 6,
+        "joueur": "Maurício",
+        "equipe": "Paraguay",
+        "buts": 1
+    },
+    {
+        "rang": 7,
+        "joueur": "Jovo Lukić",
+        "equipe": "Bosnie-Herzégovine",
+        "buts": 1
+    },
+    {
+        "rang": 8,
+        "joueur": "Raúl Jiménez",
+        "equipe": "Mexique",
+        "buts": 1
+    },
+    {
+        "rang": 9,
+        "joueur": "Julián Quiñones",
+        "equipe": "Mexique",
+        "buts": 1
+    },
+    {
+        "rang": 10,
+        "joueur": "Ladislav Krejčí",
+        "equipe": "République Tchèque",
+        "buts": 1
+    }
+]

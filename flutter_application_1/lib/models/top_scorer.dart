@@ -7,6 +7,8 @@ class TopScorer {
   final int goals;
   final int matches;
   final int assists;
+  final int yellowCards;
+  final int redCards;
   final int? jerseyNum;
 
   TopScorer({
@@ -18,6 +20,8 @@ class TopScorer {
     required this.goals,
     required this.matches,
     required this.assists,
+    this.yellowCards = 0,
+    this.redCards = 0,
     this.jerseyNum,
   });
 
@@ -68,6 +72,8 @@ class TopScorer {
         goals: json['goals'] ?? 0,
         matches: json['played'] ?? 0,
         assists: json['assists'] ?? 0,
+        yellowCards: json['yellowCards'] ?? 0,
+        redCards: json['redCards'] ?? 0,
       );
     }
   }

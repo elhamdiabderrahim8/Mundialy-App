@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../widgets/nation_flag_badge.dart';
 import '../widgets/loading_skeletons.dart';
 import '../utils/country_flags.dart';
+import '../models/top_scorer.dart';
 
 const _kGold = Color(0xFFE7C16A);
 
@@ -244,9 +245,88 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                     position,
                   ),
           ),
+          if (widget.entity is TopScorer)
+            SliverToBoxAdapter(
+              child: _buildEternalStats(widget.entity as TopScorer, isDark, cardColor, textColor),
+            ),
           const SliverToBoxAdapter(child: SizedBox(height: 50)),
         ],
       ),
+    );
+  }
+
+  Widget _buildEternalStats(TopScorer scorer, bool isDark, Color cardColor, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(
+              'PERFORMANCES CUMULÉES',
+              style: TextStyle(
+                color: _kGold,
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: _kGold.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _StatItem(label: 'Buts', value: '${scorer.goals}', icon: '⚽'),
+                _StatItem(label: 'Passes', value: '${scorer.assists}', icon: '🅰️'),
+                _StatItem(label: 'Jaunes', value: '${scorer.yellowCards}', icon: '🟨'),
+                _StatItem(label: 'Rouges', value: '${scorer.redCards}', icon: '🟥'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _StatItem({required String label, required String value, required String icon}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      children: [
+        Text(icon, style: const TextStyle(fontSize: 20)),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF16324A),
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black45,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 
