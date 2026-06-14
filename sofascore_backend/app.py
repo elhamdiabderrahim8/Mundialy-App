@@ -51,6 +51,14 @@ SCORES365_END_DATE = "19/07/2026"
 _SERVER_MATCH_STATES = {}
 _SERVER_PROCESSED_EVENTS = set()
 
+# État du dernier fetch pour le diagnostic
+_LAST_POLLING_STATUS = {
+    "last_check": "Jamais",
+    "status": "Initialisation",
+    "games_found": 0,
+    "api_response": "Aucune"
+}
+
 DATA_DIR = "data"
 WC2022_DIR = os.path.join(DATA_DIR, "wc2022")
 WC2026_DIR = os.path.join(DATA_DIR, "wc2026")
@@ -1486,23 +1494,34 @@ def server_live_polling():
     while True:
         try:
             # 1. Fetch Today's Games (Live + Scheduled)
-            print(f"📡 [Server Polling] Heartbeat - Checking games at {datetime.datetime.now()}...")
+            now_str = datetime.datetime.now().strftime("%H:%M:%S")
+            print(f"📡 [Server Polling] Heartbeat - Checking games at {now_str}...")
+
             data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID})
 
+            _LAST_POLLING_STATUS["last_check"] = now_str
+
             if not data:
-                print("❌ [Server Polling] API returned NULL or 403 Forbidden. Check proxies/headers.")
+                print("❌ [Server Polling] API returned NULL or 403 Forbidden.")
+                _LAST_POLLING_STATUS["status"] = "ERREUR 403 / NULL"
+                _LAST_POLLING_STATUS["api_response"] = "ÉCHEC"
                 time.sleep(60)
                 continue
 
+            _LAST_POLLING_STATUS["status"] = "OK"
+            _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
+
             if 'games' not in data:
                 print("⚠️ [Server Polling] No games list found in response.")
+                _LAST_POLLING_STATUS["games_found"] = 0
                 time.sleep(30)
                 continue
 
             games = data['games']
+            _LAST_POLLING_STATUS["games_found"] = len(games)
             print(f"✅ [Server Polling] Successfully fetched {len(games)} games from API.")
 
-            for g in games:
+            now = datetime.datetime.now(datetime.timezone.utc)
                 game_id = str(g['id'])
                 status_group = g.get('statusGroup')
                 home = g.get('homeCompetitor', {})
