@@ -51,6 +51,25 @@ SCORES365_END_DATE = "19/07/2026"
 _SERVER_MATCH_STATES = {}
 _SERVER_PROCESSED_EVENTS = set()
 
+# Fichier de statut pour la communication entre processus (Gunicorn)
+STATUS_FILE = os.path.join(DATA_DIR, "polling_status.json")
+
+def _update_status(status_dict):
+    """Écrit le statut dans un fichier pour qu'il soit partagé entre tous les workers Gunicorn."""
+    try:
+        with open(STATUS_FILE, "w") as f:
+            json.dump(status_dict, f)
+    except: pass
+
+def _get_status():
+    """Lit le statut depuis le fichier partagé."""
+    if os.path.exists(STATUS_FILE):
+        try:
+            with open(STATUS_FILE, "r") as f:
+                return json.load(f)
+        except: pass
+    return {"last_check": "Jamais", "status": "Initialisation", "games_found": 0, "api_response": "Aucune"}
+
 # État du dernier fetch pour le diagnostic
 _LAST_POLLING_STATUS = {
     "last_check": "Jamais",
@@ -1446,58 +1465,57 @@ def send_push_notification():
 
 @app.route('/api/debug/polling')
 def get_polling_status():
-    """Endpoint de diagnostic pour vérifier l'état du scanner de scores."""
+    """Endpoint de diagnostic lisant le fichier de statut partagé."""
+    status = _get_status()
     return jsonify({
         "server_time": datetime.datetime.now().strftime("%H:%M:%S"),
-        "polling_status": _LAST_POLLING_STATUS,
+        "polling_status": status,
         "active_matches_monitored": list(_SERVER_MATCH_STATES.keys()),
         "processed_events_count": len(_SERVER_PROCESSED_EVENTS)
     }), 200
 
 def server_live_polling():
     """
-    Background task that polls matches from 365Scores (using the Miracle Method)
-    and pushes major events.
+    Background task avec persistance sur fichier pour communication inter-processus.
     """
-    print("🚀 [Server Polling] Starting Miracle Scanner (365Scores + urllib)...")
-    _LAST_POLLING_STATUS["status"] = "Démarrage du Thread"
+    print("🚀 [Server Polling] Starting Miracle Scanner (File-Based)...")
+    status = {"last_check": "Démarrage", "status": "Lancement du thread", "games_found": 0, "api_response": "Attente"}
+    _update_status(status)
 
     while True:
         try:
             now_str = datetime.datetime.now().strftime("%H:%M:%S")
-            _LAST_POLLING_STATUS["last_check"] = now_str
-            _LAST_POLLING_STATUS["status"] = "🌍 Appel API 365Scores..."
+            status["last_check"] = now_str
+            status["status"] = "🌍 Appel API 365Scores..."
+            _update_status(status)
 
-            # Utilisation de la nouvelle fonction fetch_365_json (urllib)
-            # Utilisation de la nouvelle fonction fetch_365_json (urllib)
             data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID}, base_timeout=8)
 
             if data is None:
-                print(f"❌ [Server Polling] ÉCHEC à {now_str} (403 ou Timeout)")
-                _LAST_POLLING_STATUS["status"] = "⚠️ API Bloquée ou Timeout"
-                _LAST_POLLING_STATUS["api_response"] = "ÉCHEC"
+                status["status"] = "⚠️ Bloqué ou Timeout"
+                status["api_response"] = "ÉCHEC"
+                _update_status(status)
                 time.sleep(60)
                 continue
 
-            _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
-            _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
-
+            status["api_response"] = "SUCCÈS"
             if 'games' not in data:
-                _LAST_POLLING_STATUS["games_found"] = 0
-                _LAST_POLLING_STATUS["status"] = "😴 Aucun match aujourd'hui"
+                status["games_found"] = 0
+                status["status"] = "😴 Aucun match aujourd'hui"
+                _update_status(status)
                 time.sleep(30)
                 continue
 
             games = data['games']
-            _LAST_POLLING_STATUS["games_found"] = len(games)
-            _LAST_POLLING_STATUS["status"] = f"✅ Surveillance ({len(games)} matchs)"
+            status["games_found"] = len(games)
+            status["status"] = f"✅ Surveillance ({len(games)} matchs)"
+            _update_status(status)
 
             now = datetime.datetime.now(datetime.timezone.utc)
             for g in games:
                 game_id = str(g['id'])
                 status_group = g.get('statusGroup')
-                home = g.get('homeCompetitor', {})
-                away = g.get('awayCompetitor', {})
+                home, away = g.get('homeCompetitor', {}), g.get('awayCompetitor', {})
                 h_name, a_name = home.get('name', 'Home'), away.get('name', 'Away')
                 h_score, a_score = home.get('score', 0), away.get('score', 0)
 
@@ -1511,7 +1529,7 @@ def server_live_polling():
                 state = _SERVER_MATCH_STATES[game_id]
 
                 # --- 1. RAPPEL 30 MIN ---
-                if status_group == 1 and not state["reminded_30m"]:
+                if status_group == 1 and not state.get("reminded_30m"):
                     start_time_str = g.get('startTime', '')
                     if start_time_str:
                         try:
@@ -1522,14 +1540,14 @@ def server_live_polling():
                         except: pass
 
                 # --- 2. DÉBUT MATCH ---
-                if status_group == 3 and not state["started_notified"]:
+                if status_group == 3 and not state.get("started_notified"):
                     _send_server_push("⏱ DÉBUT DU MATCH", f"Le match commence : {h_name} vs {a_name}", {"type": "start", "gameId": game_id})
                     state["started_notified"] = True
 
                 # --- 3. BUTS ---
                 if status_group == 3:
                     new_score = f"{h_score}-{a_score}"
-                    if new_score != state["score"]:
+                    if new_score != state.get("score"):
                         game_data = fetch_365_json("game/", {"gameId": game_id})
                         p_name = ""
                         if game_data and 'game' in game_data:
@@ -1543,12 +1561,12 @@ def server_live_polling():
 
                 # --- 4. MI-TEMPS ---
                 status_text = (g.get('statusText') or g.get('shortStatusText') or "").upper()
-                if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text) and not state["ht_notified"]:
+                if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text) and not state.get("ht_notified"):
                     _send_server_push("⏱ MI-TEMPS", f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}", {"type": "ht", "gameId": game_id})
                     state["ht_notified"] = True
 
                 # --- 5. FIN DU MATCH ---
-                if status_group == 4 and not state["ft_notified"]:
+                if status_group == 4 and not state.get("ft_notified"):
                     _send_server_push("🏁 FIN DU MATCH", f"Score final : {h_name} {h_score} - {a_score} {a_name}", {"type": "ft", "gameId": game_id})
                     state["ft_notified"] = True
 
@@ -1614,13 +1632,17 @@ def _send_server_push(title, body, extra_data):
         print(f"❌ [Premium Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
-# --- DÉMARRAGE AUTOMATIQUE (FORCE THREADING) ---
-# On utilise un délai de 2 secondes pour laisser Flask s'initialiser
+# --- DÉMARRAGE AUTOMATIQUE ---
+# On sort de toute fonction pour forcer l'exécution globale au chargement
+print("🚀 [System] Initializing Global Scorer Engine...")
+
 def delayed_start():
-    time.sleep(2)
-    print("🚀 [System] Starting Scorer Engine...")
+    print("⏳ [System] Waiting for Flask to stabilize (5s)...")
+    time.sleep(5)
+    print("🚀 [System] Starting Scorer Loop now.")
     server_live_polling()
 
+# Lancement immédiat du thread
 threading.Thread(target=delayed_start, daemon=True).start()
 
 if __name__ == '__main__':
