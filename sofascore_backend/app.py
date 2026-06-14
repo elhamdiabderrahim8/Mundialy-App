@@ -89,6 +89,11 @@ def fetch_json_fast(url, retries=3, base_timeout=10):
     """
     MIRACLE FETCH: Utilise urllib (comme pour les news) pour contourner Cloudflare sur Render.
     """
+    import ssl
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
@@ -97,9 +102,10 @@ def fetch_json_fast(url, retries=3, base_timeout=10):
     for attempt in range(retries):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=base_timeout) as response:
+            with urllib.request.urlopen(req, timeout=base_timeout, context=ctx) as response:
                 if response.status == 200:
-                    return json.loads(response.read().decode('utf-8'))
+                    raw_data = response.read().decode('utf-8')
+                    return json.loads(raw_data)
         except Exception as e:
             print(f"⚠️ Erreur fetch_json_fast (tentative {attempt+1}): {e}")
             time.sleep(2 ** attempt)
@@ -112,6 +118,11 @@ def fetch_365_json(path, params=None, retries=3, base_timeout=12):
     """
     MIRACLE FETCH 365: Utilise urllib pour garantir la compatibilité Render.
     """
+    import ssl
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     params = params or {}
     defaults = {
         "appTypeId": SCORES365_APP_TYPE_ID,
@@ -132,9 +143,10 @@ def fetch_365_json(path, params=None, retries=3, base_timeout=12):
     for attempt in range(retries):
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=base_timeout) as response:
+            with urllib.request.urlopen(req, timeout=base_timeout, context=ctx) as response:
                 if response.status == 200:
-                    return json.loads(response.read().decode('utf-8'))
+                    raw_data = response.read().decode('utf-8')
+                    return json.loads(raw_data)
         except Exception as e:
             print(f"⚠️ Erreur fetch_365_json (tentative {attempt+1}): {e}")
             time.sleep(2 ** attempt)
@@ -1457,15 +1469,17 @@ def server_live_polling():
             _LAST_POLLING_STATUS["status"] = "🌍 Appel API 365Scores..."
 
             # Utilisation de la nouvelle fonction fetch_365_json (urllib)
+            # Utilisation de la nouvelle fonction fetch_365_json (urllib)
             data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID}, base_timeout=8)
 
-            if not data:
+            if data is None:
                 print(f"❌ [Server Polling] ÉCHEC à {now_str} (403 ou Timeout)")
                 _LAST_POLLING_STATUS["status"] = "⚠️ API Bloquée ou Timeout"
                 _LAST_POLLING_STATUS["api_response"] = "ÉCHEC"
                 time.sleep(60)
                 continue
 
+            _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
             _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
 
             if 'games' not in data:
@@ -1600,16 +1614,6 @@ def _send_server_push(title, body, extra_data):
         print(f"❌ [Premium Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
-# 1. On lance le thread de surveillance IMMÉDIATEMENT (priorité haute)
-polling_thread = threading.Thread(target=server_live_polling, daemon=True)
-polling_thread.start()
-print("🚀 [System] Scorer engine started in background thread.")
-
-# 2. On initialise les données 2022 ensuite (tâche lourde qui peut prendre du temps)
-# On le fait dans un thread séparé pour ne pas bloquer le démarrage de Flask
-init_thread = threading.Thread(target=initialize_wc2022_data, daemon=True)
-init_thread.start()
-
 if __name__ == '__main__':
     # Ce bloc n'est utilisé que pour le développement local
     app.run(host='0.0.0.0', port=10000, debug=False)

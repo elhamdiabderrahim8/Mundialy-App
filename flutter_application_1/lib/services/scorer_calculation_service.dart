@@ -97,21 +97,52 @@ class ScorerCalculationService {
   }
 
   static void _accumulateStats(Map<String, dynamic> player, MatchEvent event) {
-    if (event.icon == MatchEventIcon.yellowCard) player['yellowCards'] = (player['yellowCards'] ?? 0) + 1;
-    if (event.icon == MatchEventIcon.redCard) player['redCards'] = (player['redCards'] ?? 0) + 1;
-    // On pourrait estimer les minutes via la présence dans le match, mais ici on se concentre sur les actions directes
+    if (event.icon == MatchEventIcon.yellowCard) {
+      player['yellowCards'] = (player['yellowCards'] ?? 0) + 1;
+    }
+    if (event.icon == MatchEventIcon.redCard) {
+      player['redCards'] = (player['redCards'] ?? 0) + 1;
+    }
   }
 
   static void _processSecondaryEvents(Map<String, dynamic> map, MatchEvent event, String matchId, List<String> ledger) {
-    // Logique similaire pour les passes décisives et les cartons sans but
+    final String team = event.teamName;
+    
+    // 1. Capture des passes décisives
     if (event.assistant != null && event.assistant!.isNotEmpty) {
       final sig = '${matchId}_ast_${event.minute}_${event.assistant!.trim().toLowerCase()}';
       if (!ledger.contains(sig)) {
-        final key = _findMatchingPlayerKey(map, event.assistant!, event.teamName);
+        final key = _findMatchingPlayerKey(map, event.assistant!, team);
         if (!map.containsKey(key)) {
-           map[key] = {'name': event.assistant, 'team': event.teamName, 'goals':0, 'assists':1, 'id': event.assistantId ?? 0, 'yellowCards':0, 'redCards':0};
+           map[key] = {'name': event.assistant, 'team': team, 'goals': 0, 'assists': 1, 'id': event.assistantId ?? 0, 'yellowCards': 0, 'redCards': 0};
         } else {
            map[key]['assists'] = (map[key]['assists'] ?? 0) + 1;
+        }
+        ledger.add(sig);
+      }
+    }
+
+    // 2. Capture des cartons (même sans but)
+    if (event.icon == MatchEventIcon.yellowCard || event.icon == MatchEventIcon.redCard) {
+      final isRed = event.icon == MatchEventIcon.redCard;
+      final typeStr = isRed ? 'red' : 'yellow';
+      final sig = '${matchId}_card_${typeStr}_${event.minute}_${event.scorerName.trim().toLowerCase()}';
+      
+      if (!ledger.contains(sig)) {
+        final key = _findMatchingPlayerKey(map, event.scorerName, team);
+        if (!map.containsKey(key)) {
+           map[key] = {
+             'name': event.scorerName, 'team': team, 'goals': 0, 'assists': 0, 
+             'id': event.playerId ?? 0, 
+             'yellowCards': isRed ? 0 : 1, 
+             'redCards': isRed ? 1 : 0
+           };
+        } else {
+           if (isRed) {
+             map[key]['redCards'] = (map[key]['redCards'] ?? 0) + 1;
+           } else {
+             map[key]['yellowCards'] = (map[key]['yellowCards'] ?? 0) + 1;
+           }
         }
         ledger.add(sig);
       }
