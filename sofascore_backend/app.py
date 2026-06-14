@@ -1522,6 +1522,7 @@ def server_live_polling():
             print(f"✅ [Server Polling] Successfully fetched {len(games)} games from API.")
 
             now = datetime.datetime.now(datetime.timezone.utc)
+            for g in games:
                 game_id = str(g['id'])
                 status_group = g.get('statusGroup')
                 home = g.get('homeCompetitor', {})
