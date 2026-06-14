@@ -47,6 +47,10 @@ SCORES365_TIMEZONE = os.environ.get("SCORES365_TIMEZONE", "Europe/Paris")
 SCORES365_START_DATE = "11/06/2026"
 SCORES365_END_DATE = "19/07/2026"
 
+# Global state for server-side polling
+_SERVER_MATCH_STATES = {}
+_SERVER_PROCESSED_EVENTS = set()
+
 DATA_DIR = "data"
 WC2022_DIR = os.path.join(DATA_DIR, "wc2022")
 WC2026_DIR = os.path.join(DATA_DIR, "wc2026")
@@ -1459,6 +1463,155 @@ def send_push_notification():
         print("❌ FCM Broadcast Error:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
+def server_live_polling():
+    """
+    Background task that polls matches from 365Scores and pushes major events:
+    - 30 minutes before kickoff
+    - Match Start
+    - Goals
+    - Half-time
+    - Full-time
+    """
+    print("🚀 [Server Polling] Starting advanced background scanner...")
+    while True:
+        try:
+            # 1. Fetch Today's Games (Live + Scheduled)
+            data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID})
+            if not data or 'games' not in data:
+                time.sleep(30)
+                continue
+
+            now = datetime.datetime.now(datetime.timezone.utc)
+            games = data['games']
+
+            for g in games:
+                game_id = str(g['id'])
+                status_group = g.get('statusGroup')
+                home = g.get('homeCompetitor', {})
+                away = g.get('awayCompetitor', {})
+                h_name = home.get('name', 'Home')
+                a_name = away.get('name', 'Away')
+                h_score = home.get('score', 0)
+                a_score = away.get('score', 0)
+
+                # Initialize state if new
+                if game_id not in _SERVER_MATCH_STATES:
+                    _SERVER_MATCH_STATES[game_id] = {
+                        "score": f"{h_score}-{a_score}",
+                        "status": status_group,
+                        "reminded_30m": False,
+                        "started_notified": False,
+                        "ht_notified": False,
+                        "ft_notified": False
+                    }
+
+                # Ensure it's a dict (in case it was string from previous implementation)
+                if isinstance(_SERVER_MATCH_STATES[game_id], str):
+                    _SERVER_MATCH_STATES[game_id] = {
+                        "score": _SERVER_MATCH_STATES[game_id],
+                        "status": status_group,
+                        "reminded_30m": False,
+                        "started_notified": False,
+                        "ht_notified": False,
+                        "ft_notified": False
+                    }
+
+                state = _SERVER_MATCH_STATES[game_id]
+
+                # --- 1. REMINDER (30 mins before) ---
+                if status_group == 1 and not state["reminded_30m"]:
+                    start_time_str = g.get('startTime', '')
+                    if start_time_str:
+                        try:
+                            # Parse ISO time
+                            st = start_time_str.replace('Z', '+00:00')
+                            kickoff = datetime.datetime.fromisoformat(st)
+                            delta = kickoff - now
+                            if 0 < delta.total_seconds() <= 1800: # 30 mins
+                                title = "⚽ PROCHAIN MATCH"
+                                body = f"Coup d'envoi dans 30 minutes : {h_name} vs {a_name}"
+                                _send_server_push(title, body, {"type": "reminder", "gameId": game_id})
+                                state["reminded_30m"] = True
+                        except: pass
+
+                # --- 2. MATCH START ---
+                if status_group == 3 and not state["started_notified"]:
+                    title = "⏱ DÉBUT DU MATCH"
+                    body = f"Le match vient de commencer : {h_name} vs {a_name}"
+                    _send_server_push(title, body, {"type": "start", "gameId": game_id})
+                    state["started_notified"] = True
+
+                # --- 3. GOALS (only if live) ---
+                if status_group == 3:
+                    new_score = f"{h_score}-{a_score}"
+                    if new_score != state["score"]:
+                        # Extract scorer if possible
+                        game_data = fetch_365_json("game/", {"gameId": game_id})
+                        p_name = ""
+                        if game_data and 'game' in game_data:
+                            events = game_data['game'].get('events', [])
+                            for ev in reversed(events):
+                                if ev.get('eventType', {}).get('id') == 1:
+                                    p_name = ev.get('playerName', '')
+                                    break
+
+                        title = "⚽ BUT !!!"
+                        body = f"{h_name} {h_score} - {a_score} {a_name}"
+                        if p_name: body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}"
+
+                        _send_server_push(title, body, {
+                            "type": "goal",
+                            "homeTeamName": h_name, "awayTeamName": a_name,
+                            "homeScore": str(h_score), "awayScore": str(a_score)
+                        })
+                        state["score"] = new_score
+
+                # --- 4. HALF-TIME ---
+                status_text = (g.get('statusText') or g.get('shortStatusText') or "").upper()
+                is_ht = "MI-TEMPS" in status_text or "HT" in status_text
+                if status_group == 3 and is_ht and not state["ht_notified"]:
+                    title = "⏱ MI-TEMPS"
+                    body = f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}"
+                    _send_server_push(title, body, {"type": "ht", "gameId": game_id})
+                    state["ht_notified"] = True
+
+                # --- 5. FULL-TIME ---
+                if status_group == 4 and not state["ft_notified"]:
+                    title = "🏁 FIN DU MATCH"
+                    body = f"Score final : {h_name} {h_score} - {a_score} {a_name}"
+                    _send_server_push(title, body, {"type": "ft", "gameId": game_id})
+                    state["ft_notified"] = True
+
+        except Exception as e:
+            print(f"⚠️ [Server Polling] Error: {e}")
+
+        # Poll every 30 seconds
+        time.sleep(30)
+
+def _send_server_push(title, body, extra_data):
+    """Internal helper to send Firebase messages from the background thread."""
+    try:
+        # Convert all extra data to strings
+        fcm_data = {str(k): str(v) for k, v in extra_data.items()}
+        fcm_data["title"] = title
+        fcm_data["message"] = body
+
+        message = messaging.Message(
+            notification=messaging.Notification(title=title, body=body),
+            data=fcm_data,
+            topic='live_matches',
+            android=messaging.AndroidConfig(priority='high')
+        )
+        messaging.send(message)
+        print(f"🔥 [Server Push] Sent: {title} - {body}")
+    except Exception as e:
+        print(f"❌ [Server Push] Error: {e}")
+
 if __name__ == '__main__':
     initialize_wc2022_data()
-    app.run(host='0.0.0.0', port=5000, debug=False)
+
+    # Start the background thread for server-side polling
+    polling_thread = threading.Thread(target=server_live_polling, daemon=True)
+    polling_thread.start()
+
+    app.run(host='0.0.0.0', port=10000, debug=False)

@@ -44,6 +44,27 @@ void main() async {
   unawaited(_initializeStartupServices());
 }
 
+class _GlobalLiveScanner {
+  static Timer? _timer;
+  
+  static void start() {
+    _timer?.cancel();
+    // Scan global toutes les 20 secondes, léger et asynchrone
+    _timer = Timer.periodic(const Duration(seconds: 20), (timer) async {
+      try {
+        // Appelle le service de détection existant sans bloquer l'UI
+        await ApiService.fetchLiveMatches();
+      } catch (_) {
+        // Échec silencieux (pas de réseau, etc.)
+      }
+    });
+  }
+
+  static void stop() {
+    _timer?.cancel();
+  }
+}
+
 Future<void> _initializeStartupServices() async {
   try {
     await ApiService.initNotifications();
@@ -157,10 +178,13 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _listener = AppLifecycleListener(onStateChange: _onStateChanged);
+    // Lance le scanner global dès l'ouverture de l'app
+    _GlobalLiveScanner.start();
   }
 
   @override
   void dispose() {
+    _GlobalLiveScanner.stop();
     _listener.dispose();
     super.dispose();
   }
@@ -168,6 +192,9 @@ class _MyAppState extends State<MyApp> {
   void _onStateChanged(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       AdMobService.showAppOpenAdIfAvailable();
+      _GlobalLiveScanner.start();
+    } else if (state == AppLifecycleState.paused) {
+      _GlobalLiveScanner.stop();
     }
   }
 
