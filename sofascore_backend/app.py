@@ -1463,6 +1463,16 @@ def send_push_notification():
         print("❌ FCM Broadcast Error:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/debug/polling')
+def get_polling_status():
+    """Endpoint de diagnostic pour vérifier l'état du scanner de scores."""
+    return jsonify({
+        "server_time": datetime.datetime.now().strftime("%H:%M:%S"),
+        "polling_status": _LAST_POLLING_STATUS,
+        "active_matches_monitored": list(_SERVER_MATCH_STATES.keys()),
+        "processed_events_count": len(_SERVER_PROCESSED_EVENTS)
+    }), 200
+
 def server_live_polling():
     """
     Background task that polls matches from 365Scores and pushes major events:
@@ -1476,13 +1486,21 @@ def server_live_polling():
     while True:
         try:
             # 1. Fetch Today's Games (Live + Scheduled)
+            print(f"📡 [Server Polling] Heartbeat - Checking games at {datetime.datetime.now()}...")
             data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID})
-            if not data or 'games' not in data:
+
+            if not data:
+                print("❌ [Server Polling] API returned NULL or 403 Forbidden. Check proxies/headers.")
+                time.sleep(60)
+                continue
+
+            if 'games' not in data:
+                print("⚠️ [Server Polling] No games list found in response.")
                 time.sleep(30)
                 continue
 
-            now = datetime.datetime.now(datetime.timezone.utc)
             games = data['games']
+            print(f"✅ [Server Polling] Successfully fetched {len(games)} games from API.")
 
             for g in games:
                 game_id = str(g['id'])
@@ -1589,23 +1607,60 @@ def server_live_polling():
         time.sleep(30)
 
 def _send_server_push(title, body, extra_data):
-    """Internal helper to send Firebase messages from the background thread."""
+    """
+    Internal helper to send Premium Firebase messages with images and specialized grouping.
+    We respect privacy and legal constraints by using high-quality atmosphere images instead of people.
+    """
     try:
         # Convert all extra data to strings
         fcm_data = {str(k): str(v) for k, v in extra_data.items()}
         fcm_data["title"] = title
         fcm_data["message"] = body
 
+        # --- Premium Visual Logic (Non-human images) ---
+        # Generic branding image
+        image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80"
+
+        event_type = extra_data.get('type', '')
+        if event_type == 'goal':
+            # Visual of a soccer net/ball for goals
+            image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=600&q=80"
+        elif event_type == 'reminder':
+            # Visual of stadium lights for countdowns
+            image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80"
+
         message = messaging.Message(
-            notification=messaging.Notification(title=title, body=body),
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+                image=image_url
+            ),
             data=fcm_data,
             topic='live_matches',
-            android=messaging.AndroidConfig(priority='high')
+            android=messaging.AndroidConfig(
+                priority='high',
+                notification=messaging.AndroidNotification(
+                    sound='default',
+                    click_action='FLUTTER_NOTIFICATION_CLICK',
+                    channel_id='mundialy_live_alerts_v2',
+                    color='#E7C16A', # Premium Gold brand color
+                    tag=extra_data.get('gameId', 'global') # Grouping: updates same notification per match
+                )
+            ),
+            apns=messaging.APNSConfig(
+                payload=messaging.APNSPayload(
+                    aps=messaging.Aps(
+                        sound='default',
+                        content_available=True,
+                        category='PREMIUM_ALERT'
+                    )
+                )
+            )
         )
-        messaging.send(message)
-        print(f"🔥 [Server Push] Sent: {title} - {body}")
+        response = messaging.send(message)
+        print(f"🔥 [Premium Push] Sent: {title} - {body}")
     except Exception as e:
-        print(f"❌ [Server Push] Error: {e}")
+        print(f"❌ [Premium Push] Error: {e}")
 
 if __name__ == '__main__':
     initialize_wc2022_data()
