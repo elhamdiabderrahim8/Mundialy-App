@@ -1543,12 +1543,6 @@ def server_live_polling():
 
         time.sleep(30)
 
-        except Exception as e:
-            print(f"⚠️ [Server Polling] Error: {e}")
-
-        # Poll every 30 seconds
-        time.sleep(30)
-
 def _send_server_push(title, body, extra_data):
     """
     Internal helper to send Premium Firebase messages with images and specialized grouping.
