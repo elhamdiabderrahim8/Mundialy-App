@@ -1412,34 +1412,51 @@ def send_push_notification():
     away_team = data.get('awayTeamName', '')
     home_score = data.get('homeScore', '')
     away_score = data.get('awayScore', '')
-    
+    title = data.get('title', '')
+
     match_key = f"{home_team}-{away_team}"
-    score_key = f"{home_score}-{away_score}"
+    # Including title in the key ensures red cards or VAR don't get blocked by the score deduplicator
+    score_key = f"{home_score}-{away_score}-{title}"
     
     current_time = time.time()
     
     if match_key in _last_broadcasts:
-        last_score, last_time = _last_broadcasts[match_key]
-        # Ignore if the same score was broadcasted less than 5 minutes ago
-        if last_score == score_key and (current_time - last_time) < 300:
-            return jsonify({"success": True, "message": "Already broadcasted recently"}), 200
+        last_event_key, last_time = _last_broadcasts[match_key]
+        # Ignore if the exact same event was broadcasted recently (avoid duplicates)
+        if last_event_key == score_key and (current_time - last_time) < 180:
+            return jsonify({"success": True, "message": "Duplicate event ignored"}), 200
             
     # Save the new state
     _last_broadcasts[match_key] = (score_key, current_time)
     
-    # We don't need homeScore and awayScore in FCM payload necessarily, but we can leave them
-    # We must convert all data values to strings for FCM
-    fcm_data = {str(k): str(v) for k, v in data.items()}
+    # Use title and message from data for the system notification
+    title = data.get('title', 'Mundialy Live')
+    body = data.get('message', 'Événement en direct')
     
     try:
         message = messaging.Message(
+            notification=messaging.Notification(title=title, body=body),
             data=fcm_data,
             topic=topic,
+            android=messaging.AndroidConfig(
+                priority='high',
+                notification=messaging.AndroidNotification(
+                    sound='default',
+                    click_action='FLUTTER_NOTIFICATION_CLICK'
+                )
+            ),
+            apns=messaging.APNSConfig(
+                headers={'apns-priority': '10'},
+                payload=messaging.APNSPayload(
+                    aps=messaging.Aps(sound='default', content_available=True)
+                )
+            )
         )
         response = messaging.send(message)
+        print(f"✅ FCM Broadcast Success: {title} to {topic}")
         return jsonify({"success": True, "message_id": response})
     except Exception as e:
-        print("FCM Error:", e)
+        print("❌ FCM Broadcast Error:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':

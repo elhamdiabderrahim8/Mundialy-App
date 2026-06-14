@@ -302,11 +302,14 @@ class ApiService {
 
     // 3. Crowdsourcing Firebase Push Notification
     // L'application prévient le backend pour qu'il envoie un push global FCM aux app fermées
-    if (isGoal) {
+    // On envoie les BUTS, mais aussi les CARTONS ROUGES, VAR, MI-TEMPS et FIN DE MATCH
+    final bool shouldBroadcast = isGoal || title.contains('ROUGE') || title.contains('VAR') || title.contains('TEMPS') || title.contains('MATCH');
+
+    if (shouldBroadcast) {
       try {
         final payload = {
           "topic": "live_matches",
-          "type": "goal",
+          "type": isGoal ? "goal" : "event",
           "title": title,
           "message": body,
           "homeTeamName": m.homeTeam,
@@ -327,7 +330,7 @@ class ApiService {
             )
             .timeout(const Duration(seconds: 5));
       } catch (e) {
-        debugPrint('⚠️ Erreur en signalant le but au serveur: $e');
+        debugPrint('⚠️ Erreur en signalant l\'événement au serveur: $e');
       }
     }
   }
