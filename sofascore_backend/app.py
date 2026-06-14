@@ -85,59 +85,33 @@ _SOFA_HEADERS = {
     'Accept-Language': 'fr-FR,fr;q=0.9',
 }
 
-def fetch_json_fast(url, retries=4, base_timeout=10):
-    """Fetch JSON from SofaScore API avec retry + rotation de profil et domaine."""
-    last_error = None
+def fetch_json_fast(url, retries=3, base_timeout=10):
+    """
+    MIRACLE FETCH: Utilise urllib (comme pour les news) pour contourner Cloudflare sur Render.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "fr-FR,fr;q=0.9",
+    }
     for attempt in range(retries):
-        profile = _PROFILES[attempt % len(_PROFILES)]
-        timeout = base_timeout + attempt * 5
-
-        # Rotation du domaine pour tromper le WAF
-        target_url = url
-        headers = _SOFA_HEADERS.copy()
-        headers["User-Agent"] = profile["ua"]
-
-        if attempt % 2 == 1:
-            target_url = target_url.replace("api.sofascore.com", "api.sofascore.app")
-            headers["Origin"] = "https://www.sofascore.app"
-            headers["Referer"] = "https://www.sofascore.app/"
-        else:
-            headers["Origin"] = "https://www.sofascore.com"
-            headers["Referer"] = "https://www.sofascore.com/"
-
         try:
-            r = cffi_requests.get(
-                target_url,
-                headers=headers,
-                impersonate=profile["impersonate"],
-                timeout=timeout
-            )
-            if r.status_code == 200:
-                return r.json()
-            elif r.status_code == 429:
-                wait_time = 2 ** attempt
-                print(f"[Rate Limited] Attente {wait_time}s avant retry...")
-                time.sleep(wait_time)
-            elif r.status_code in [403, 451]:
-                print(f"[Bloqué] Status {r.status_code} pour {target_url} (profil: {profile['impersonate']})")
-                time.sleep(1)
-            else:
-                print(f"[HTTP {r.status_code}] {target_url}")
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=base_timeout) as response:
+                if response.status == 200:
+                    return json.loads(response.read().decode('utf-8'))
         except Exception as e:
-            last_error = e
-            wait_time = 2 ** attempt
-            print(f"[Tentative {attempt+1}/{retries}] Erreur: {e} — retry dans {wait_time}s")
-            time.sleep(wait_time)
-            
-    if last_error:
-        print(f"Error fetching JSON: {last_error}")
+            print(f"⚠️ Erreur fetch_json_fast (tentative {attempt+1}): {e}")
+            time.sleep(2 ** attempt)
     return None
 
 def fetch_json(url):
     return fetch_json_fast(url)
 
 def fetch_365_json(path, params=None, retries=3, base_timeout=12):
-    """Fetch JSON from 365Scores with small retry/backoff."""
+    """
+    MIRACLE FETCH 365: Utilise urllib pour garantir la compatibilité Render.
+    """
     params = params or {}
     defaults = {
         "appTypeId": SCORES365_APP_TYPE_ID,
@@ -147,36 +121,23 @@ def fetch_365_json(path, params=None, retries=3, base_timeout=12):
     query = defaults | params
     qs = urllib.parse.urlencode(query)
     url = f"{SCORES365_BASE_URL}/{path.lstrip('/')}?{qs}"
+
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
         "Origin": "https://www.365scores.com",
         "Referer": "https://www.365scores.com/",
     }
-    last_error = None
+
     for attempt in range(retries):
-        profile = _PROFILES[attempt % len(_PROFILES)]
         try:
-            r = cffi_requests.get(
-                url,
-                headers=headers,
-                impersonate=profile["impersonate"],
-                timeout=base_timeout + attempt * 4
-            )
-            if r.status_code == 200:
-                return r.json()
-            elif r.status_code == 429:
-                time.sleep(2 ** attempt)
-            else:
-                print(f"[365Scores HTTP {r.status_code}] {url}")
-                time.sleep(1)
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=base_timeout) as response:
+                if response.status == 200:
+                    return json.loads(response.read().decode('utf-8'))
         except Exception as e:
-            last_error = e
+            print(f"⚠️ Erreur fetch_365_json (tentative {attempt+1}): {e}")
             time.sleep(2 ** attempt)
-            
-    if last_error:
-        print(f"Error fetching 365 JSON: {last_error}")
     return None
 
 def _safe_int(value, default=0):
@@ -1483,47 +1444,39 @@ def get_polling_status():
 
 def server_live_polling():
     """
-    Background task that polls matches from 365Scores and pushes major events:
-    - 30 minutes before kickoff
-    - Match Start
-    - Goals
-    - Half-time
-    - Full-time
+    Background task that polls matches from 365Scores (using the Miracle Method)
+    and pushes major events.
     """
-    print("🚀 [Server Polling] Starting advanced background scanner...")
+    print("🚀 [Server Polling] Starting Miracle Scanner (365Scores + urllib)...")
     _LAST_POLLING_STATUS["status"] = "Démarrage du Thread"
 
     while True:
         try:
-            # On marque l'activité immédiatement au début de la boucle
             now_str = datetime.datetime.now().strftime("%H:%M:%S")
             _LAST_POLLING_STATUS["last_check"] = now_str
-            _LAST_POLLING_STATUS["status"] = "En cours d'appel API..."
+            _LAST_POLLING_STATUS["status"] = "🌍 Appel API 365Scores..."
 
-            # 1. Fetch Today's Games (Live + Scheduled)
-            print(f"📡 [Server Polling] Heartbeat - Checking games at {now_str}...")
-
-            data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID})
+            # Utilisation de la nouvelle fonction fetch_365_json (urllib)
+            data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID}, base_timeout=8)
 
             if not data:
-                print("❌ [Server Polling] API returned NULL or 403 Forbidden.")
-                _LAST_POLLING_STATUS["status"] = "ERREUR 403 / NULL"
+                print(f"❌ [Server Polling] ÉCHEC à {now_str} (403 ou Timeout)")
+                _LAST_POLLING_STATUS["status"] = "⚠️ API Bloquée ou Timeout"
                 _LAST_POLLING_STATUS["api_response"] = "ÉCHEC"
                 time.sleep(60)
                 continue
 
-            _LAST_POLLING_STATUS["status"] = "OK"
             _LAST_POLLING_STATUS["api_response"] = "SUCCÈS"
 
             if 'games' not in data:
-                print("⚠️ [Server Polling] No games list found in response.")
                 _LAST_POLLING_STATUS["games_found"] = 0
+                _LAST_POLLING_STATUS["status"] = "😴 Aucun match aujourd'hui"
                 time.sleep(30)
                 continue
 
             games = data['games']
             _LAST_POLLING_STATUS["games_found"] = len(games)
-            print(f"✅ [Server Polling] Successfully fetched {len(games)} games from API.")
+            _LAST_POLLING_STATUS["status"] = f"✅ Surveillance ({len(games)} matchs)"
 
             now = datetime.datetime.now(datetime.timezone.utc)
             for g in games:
@@ -1531,98 +1484,64 @@ def server_live_polling():
                 status_group = g.get('statusGroup')
                 home = g.get('homeCompetitor', {})
                 away = g.get('awayCompetitor', {})
-                h_name = home.get('name', 'Home')
-                a_name = away.get('name', 'Away')
-                h_score = home.get('score', 0)
-                a_score = away.get('score', 0)
+                h_name, a_name = home.get('name', 'Home'), away.get('name', 'Away')
+                h_score, a_score = home.get('score', 0), away.get('score', 0)
 
-                # Initialize state if new
                 if game_id not in _SERVER_MATCH_STATES:
-                    _SERVER_MATCH_STATES[game_id] = {
-                        "score": f"{h_score}-{a_score}",
-                        "status": status_group,
-                        "reminded_30m": False,
-                        "started_notified": False,
-                        "ht_notified": False,
-                        "ft_notified": False
-                    }
+                    _SERVER_MATCH_STATES[game_id] = {"score": f"{h_score}-{a_score}", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False}
 
-                # Ensure it's a dict (in case it was string from previous implementation)
+                # Correction du format d'état si nécessaire
                 if isinstance(_SERVER_MATCH_STATES[game_id], str):
-                    _SERVER_MATCH_STATES[game_id] = {
-                        "score": _SERVER_MATCH_STATES[game_id],
-                        "status": status_group,
-                        "reminded_30m": False,
-                        "started_notified": False,
-                        "ht_notified": False,
-                        "ft_notified": False
-                    }
+                    _SERVER_MATCH_STATES[game_id] = {"score": _SERVER_MATCH_STATES[game_id], "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False}
 
                 state = _SERVER_MATCH_STATES[game_id]
 
-                # --- 1. REMINDER (30 mins before) ---
+                # --- 1. RAPPEL 30 MIN ---
                 if status_group == 1 and not state["reminded_30m"]:
                     start_time_str = g.get('startTime', '')
                     if start_time_str:
                         try:
-                            # Parse ISO time
-                            st = start_time_str.replace('Z', '+00:00')
-                            kickoff = datetime.datetime.fromisoformat(st)
-                            delta = kickoff - now
-                            if 0 < delta.total_seconds() <= 1800: # 30 mins
-                                title = "⚽ PROCHAIN MATCH"
-                                body = f"Coup d'envoi dans 30 minutes : {h_name} vs {a_name}"
-                                _send_server_push(title, body, {"type": "reminder", "gameId": game_id})
+                            kickoff = datetime.datetime.fromisoformat(start_time_str.replace('Z', '+00:00'))
+                            if 0 < (kickoff - now).total_seconds() <= 1800:
+                                _send_server_push("⚽ PROCHAIN MATCH", f"Coup d'envoi dans 30 min : {h_name} vs {a_name}", {"type": "reminder", "gameId": game_id})
                                 state["reminded_30m"] = True
                         except: pass
 
-                # --- 2. MATCH START ---
+                # --- 2. DÉBUT MATCH ---
                 if status_group == 3 and not state["started_notified"]:
-                    title = "⏱ DÉBUT DU MATCH"
-                    body = f"Le match vient de commencer : {h_name} vs {a_name}"
-                    _send_server_push(title, body, {"type": "start", "gameId": game_id})
+                    _send_server_push("⏱ DÉBUT DU MATCH", f"Le match commence : {h_name} vs {a_name}", {"type": "start", "gameId": game_id})
                     state["started_notified"] = True
 
-                # --- 3. GOALS (only if live) ---
+                # --- 3. BUTS ---
                 if status_group == 3:
                     new_score = f"{h_score}-{a_score}"
                     if new_score != state["score"]:
-                        # Extract scorer if possible
                         game_data = fetch_365_json("game/", {"gameId": game_id})
                         p_name = ""
                         if game_data and 'game' in game_data:
-                            events = game_data['game'].get('events', [])
-                            for ev in reversed(events):
+                            for ev in reversed(game_data['game'].get('events', [])):
                                 if ev.get('eventType', {}).get('id') == 1:
                                     p_name = ev.get('playerName', '')
                                     break
-
-                        title = "⚽ BUT !!!"
-                        body = f"{h_name} {h_score} - {a_score} {a_name}"
-                        if p_name: body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}"
-
-                        _send_server_push(title, body, {
-                            "type": "goal",
-                            "homeTeamName": h_name, "awayTeamName": a_name,
-                            "homeScore": str(h_score), "awayScore": str(a_score)
-                        })
+                        body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}" if p_name else f"BUT !!! {h_name} {h_score} - {a_score} {a_name}"
+                        _send_server_push("⚽ BUT !!!", body, {"type": "goal", "homeTeamName": h_name, "awayTeamName": a_name, "homeScore": str(h_score), "awayScore": str(a_score), "gameId": game_id})
                         state["score"] = new_score
 
-                # --- 4. HALF-TIME ---
+                # --- 4. MI-TEMPS ---
                 status_text = (g.get('statusText') or g.get('shortStatusText') or "").upper()
-                is_ht = "MI-TEMPS" in status_text or "HT" in status_text
-                if status_group == 3 and is_ht and not state["ht_notified"]:
-                    title = "⏱ MI-TEMPS"
-                    body = f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}"
-                    _send_server_push(title, body, {"type": "ht", "gameId": game_id})
+                if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text) and not state["ht_notified"]:
+                    _send_server_push("⏱ MI-TEMPS", f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}", {"type": "ht", "gameId": game_id})
                     state["ht_notified"] = True
 
-                # --- 5. FULL-TIME ---
+                # --- 5. FIN DU MATCH ---
                 if status_group == 4 and not state["ft_notified"]:
-                    title = "🏁 FIN DU MATCH"
-                    body = f"Score final : {h_name} {h_score} - {a_score} {a_name}"
-                    _send_server_push(title, body, {"type": "ft", "gameId": game_id})
+                    _send_server_push("🏁 FIN DU MATCH", f"Score final : {h_name} {h_score} - {a_score} {a_name}", {"type": "ft", "gameId": game_id})
                     state["ft_notified"] = True
+
+        except Exception as e:
+            print(f"⚠️ [Server Polling] Erreur : {e}")
+
+        time.sleep(30)
 
         except Exception as e:
             print(f"⚠️ [Server Polling] Error: {e}")
