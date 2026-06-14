@@ -1682,11 +1682,15 @@ def _send_server_push(title, body, extra_data):
     except Exception as e:
         print(f"❌ [Premium Push] Error: {e}")
 
+# --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
+# On initialise les données 2022 au chargement du module
+initialize_wc2022_data()
+
+# On lance le thread de surveillance immédiatement pour qu'il tourne sur Render
+polling_thread = threading.Thread(target=server_live_polling, daemon=True)
+polling_thread.start()
+print("🚀 [System] Scorer engine started in background thread.")
+
 if __name__ == '__main__':
-    initialize_wc2022_data()
-
-    # Start the background thread for server-side polling
-    polling_thread = threading.Thread(target=server_live_polling, daemon=True)
-    polling_thread.start()
-
+    # Ce bloc n'est utilisé que pour le développement local
     app.run(host='0.0.0.0', port=10000, debug=False)
