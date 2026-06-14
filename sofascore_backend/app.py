@@ -1614,6 +1614,15 @@ def _send_server_push(title, body, extra_data):
         print(f"❌ [Premium Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
+# --- DÉMARRAGE AUTOMATIQUE (FORCE THREADING) ---
+# On utilise un délai de 2 secondes pour laisser Flask s'initialiser
+def delayed_start():
+    time.sleep(2)
+    print("🚀 [System] Starting Scorer Engine...")
+    server_live_polling()
+
+threading.Thread(target=delayed_start, daemon=True).start()
+
 if __name__ == '__main__':
     # Ce bloc n'est utilisé que pour le développement local
     app.run(host='0.0.0.0', port=10000, debug=False)
