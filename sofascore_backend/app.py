@@ -1491,15 +1491,19 @@ def server_live_polling():
     - Full-time
     """
     print("🚀 [Server Polling] Starting advanced background scanner...")
+    _LAST_POLLING_STATUS["status"] = "Démarrage du Thread"
+
     while True:
         try:
-            # 1. Fetch Today's Games (Live + Scheduled)
+            # On marque l'activité immédiatement au début de la boucle
             now_str = datetime.datetime.now().strftime("%H:%M:%S")
+            _LAST_POLLING_STATUS["last_check"] = now_str
+            _LAST_POLLING_STATUS["status"] = "En cours d'appel API..."
+
+            # 1. Fetch Today's Games (Live + Scheduled)
             print(f"📡 [Server Polling] Heartbeat - Checking games at {now_str}...")
 
             data = fetch_365_json("games/current/", {"competitions": SCORES365_COMPETITION_ID})
-
-            _LAST_POLLING_STATUS["last_check"] = now_str
 
             if not data:
                 print("❌ [Server Polling] API returned NULL or 403 Forbidden.")
@@ -1683,13 +1687,15 @@ def _send_server_push(title, body, extra_data):
         print(f"❌ [Premium Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
-# On initialise les données 2022 au chargement du module
-initialize_wc2022_data()
-
-# On lance le thread de surveillance immédiatement pour qu'il tourne sur Render
+# 1. On lance le thread de surveillance IMMÉDIATEMENT (priorité haute)
 polling_thread = threading.Thread(target=server_live_polling, daemon=True)
 polling_thread.start()
 print("🚀 [System] Scorer engine started in background thread.")
+
+# 2. On initialise les données 2022 ensuite (tâche lourde qui peut prendre du temps)
+# On le fait dans un thread séparé pour ne pas bloquer le démarrage de Flask
+init_thread = threading.Thread(target=initialize_wc2022_data, daemon=True)
+init_thread.start()
 
 if __name__ == '__main__':
     # Ce bloc n'est utilisé que pour le développement local
