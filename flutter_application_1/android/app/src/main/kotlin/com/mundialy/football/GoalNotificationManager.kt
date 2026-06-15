@@ -3,7 +3,7 @@ package com.mundialy.football
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.Color
+import android.graphics.*
 import android.os.*
 import android.view.View
 import android.widget.RemoteViews
@@ -22,12 +22,17 @@ class GoalNotificationManager(private val context: Context) {
 
         val rootViews = RemoteViews(context.packageName, R.layout.notification_goal_container)
         
-        // Phase 1 Letters
-        val letters = arrayOf(R.id.letter_g, R.id.letter_o, R.id.letter_a, R.id.letter_l, R.id.exclamation)
-        letters.forEach { rootViews.setViewVisibility(it, View.INVISIBLE) }
-        
-        // Ensure Phase 1 is displayed first
+        // Phase 1 Preparation
+        val letterIds = arrayOf(R.id.img_g, R.id.img_o, R.id.img_a, R.id.img_l)
+        letterIds.forEach { rootViews.setViewVisibility(it, View.INVISIBLE) }
+        rootViews.setViewVisibility(R.id.exclamation, View.INVISIBLE)
         rootViews.setDisplayedChild(R.id.goal_view_flipper, 0)
+
+        val scoringTeam = payload["scoringTeam"] as? String
+        val homeData = payload["homeTeam"] as? Map<*, *>
+        val awayData = payload["awayTeam"] as? Map<*, *>
+        val scoringCountryCode = if (scoringTeam == "home") 
+            homeData?.get("countryCode")?.toString() else awayData?.get("countryCode")?.toString()
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
@@ -39,36 +44,50 @@ class GoalNotificationManager(private val context: Context) {
             .setOnlyAlertOnce(true)
             .setAutoCancel(true)
 
-        val scoringTeam = payload["scoringTeam"] as? String
-        val homeData = payload["homeTeam"] as? Map<*, *>
-        val awayData = payload["awayTeam"] as? Map<*, *>
-        
-        val scoringCountryCode = if (scoringTeam == "home") 
-            homeData?.get("countryCode")?.toString() else awayData?.get("countryCode")?.toString()
-
+        // 1. Generation des lettres "Flag-Text"
         if (scoringCountryCode != null) {
-            FlagRepository.loadFlag(
-                context, scoringCountryCode, R.id.bg_flag_blur, 
-                rootViews, builder.build(), notificationId,
-                size = "w160", isBlurred = true
-            )
+            val flagUrl = "https://flagcdn.com/w160/${scoringCountryCode.lowercase()}.png"
+            
+            val fallbackHandler = Handler(Looper.getMainLooper())
+            var hasStarted = false
+
+            // Securite : Si le flag ne charge pas en 2.5s, on lance quand meme avec des couleurs
+            val fallbackRunnable = Runnable {
+                if (!hasStarted) {
+                    hasStarted = true
+                    animateLetters(rootViews, builder)
+                }
+            }
+            fallbackHandler.postDelayed(fallbackRunnable, 2500)
+
+            // On charge le drapeau en Bitmap pour creer les lettres
+            Thread {
+                try {
+                    val flagBitmap = Glide.with(context).asBitmap().load(flagUrl).submit().get()
+                    val letters = arrayOf("G", "O", "A", "L")
+                    
+                    Handler(Looper.getMainLooper()).post {
+                        if (!hasStarted) {
+                            hasStarted = true
+                            fallbackHandler.removeCallbacks(fallbackRunnable)
+                            letters.forEachIndexed { i, letter ->
+                                val letterBitmap = createFlagLetterBitmap(letter, flagBitmap)
+                                rootViews.setImageViewBitmap(letterIds[i], letterBitmap)
+                            }
+                            animateLetters(rootViews, builder)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Handler(Looper.getMainLooper()).post { fallbackRunnable.run() }
+                }
+            }.start()
+        } else {
+            animateLetters(rootViews, builder)
         }
 
-        val handler = Handler(Looper.getMainLooper())
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        
-        // Phase 1 Animation
-        letters.forEachIndexed { index, viewId ->
-            handler.postDelayed({
-                rootViews.setViewVisibility(viewId, View.VISIBLE)
-                vibrate(vibrator, 80)
-                notificationManager.notify(notificationId, builder.build())
-            }, 220L * index)
-        }
-
-        // Phase 2 Transition
-        handler.postDelayed({
-            updatePhase2Data(rootViews, payload)
+        // Transition to Phase 2 after 2.5s
+        Handler(Looper.getMainLooper()).postDelayed({
+            updatePhase2UI(rootViews, payload)
             rootViews.setDisplayedChild(R.id.goal_view_flipper, 1)
             
             val notification = builder.build()
@@ -85,10 +104,54 @@ class GoalNotificationManager(private val context: Context) {
                 Glide.with(context).asBitmap().load(awayLogo).transform(FlagRepository.DiamondTransformation())
                     .into(NotificationTarget(context, R.id.logo_away, rootViews, notification, notificationId))
             }
-        }, 2500)
+        }, 2800)
     }
 
-    private fun updatePhase2Data(rootViews: RemoteViews, payload: Map<String, Any?>) {
+    private fun createFlagLetterBitmap(letter: String, flag: Bitmap): Bitmap {
+        val width = 120
+        val height = 160
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint.textSize = 140f
+        paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        paint.textAlign = Paint.Align.CENTER
+        
+        // 1. Draw Text Mask
+        canvas.drawText(letter, width / 2f, height * 0.8f, paint)
+        
+        // 2. Composite with Flag using PorterDuff
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        val flagRect = Rect(0, 0, flag.width, flag.height)
+        val destRect = Rect(0, 0, width, height)
+        canvas.drawBitmap(flag, flagRect, destRect, paint)
+        
+        // 3. Add a slight white stroke for professional look
+        paint.xfermode = null
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+        paint.color = Color.WHITE
+        canvas.drawText(letter, width / 2f, height * 0.8f, paint)
+        
+        return bitmap
+    }
+
+    private fun animateLetters(rootViews: RemoteViews, builder: NotificationCompat.Builder) {
+        val ids = arrayOf(R.id.img_g, R.id.img_o, R.id.img_a, R.id.img_l, R.id.exclamation)
+        val handler = Handler(Looper.getMainLooper())
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        
+        ids.forEachIndexed { index, viewId ->
+            handler.postDelayed({
+                rootViews.setViewVisibility(viewId, View.VISIBLE)
+                vibrate(vibrator, 70)
+                notificationManager.notify(notificationId, builder.build())
+            }, 220L * index)
+        }
+    }
+
+    private fun updatePhase2UI(rootViews: RemoteViews, payload: Map<String, Any?>) {
         val home = payload["homeTeam"] as? Map<*, *>
         val away = payload["awayTeam"] as? Map<*, *>
         val scoringTeam = payload["scoringTeam"] as? String
@@ -102,17 +165,13 @@ class GoalNotificationManager(private val context: Context) {
         rootViews.setTextViewText(R.id.score_home_text, hScore)
         rootViews.setTextViewText(R.id.score_away_text, aScore)
         
-        // Style new score
         val highlightColor = Color.parseColor("#FF3333")
-        val defaultColor = Color.parseColor("#FFD700")
+        val defaultColor = Color.parseColor("#E7C16A")
         rootViews.setTextColor(R.id.score_home_text, if (scoringTeam == "home") highlightColor else defaultColor)
         rootViews.setTextColor(R.id.score_away_text, if (scoringTeam == "away") highlightColor else defaultColor)
 
-        rootViews.setTextViewText(R.id.scorer_name, "⚽ " + (payload["scorer"]?.toString() ?: ""))
+        rootViews.setTextViewText(R.id.scorer_name, "⚽ " + (payload["scorer"]?.toString() ?: "But Scored"))
         rootViews.setTextViewText(R.id.goal_minute, (payload["minute"]?.toString() ?: "") + "'")
-        
-        val isPenalty = payload["isPenalty"]?.toString()?.toBoolean() ?: false
-        rootViews.setViewVisibility(R.id.penalty_badge, if (isPenalty) View.VISIBLE else View.GONE)
     }
 
     private fun vibrate(vibrator: Vibrator, duration: Long) {
@@ -128,7 +187,7 @@ class GoalNotificationManager(private val context: Context) {
             val channel = NotificationChannel(channelId, "Live Goals", NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Animated goal alerts"
                 enableVibration(true)
-                vibrationPattern = longArrayOf(0, 80, 40, 80)
+                setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, null)
             }
             notificationManager.createNotificationChannel(channel)
         }

@@ -1400,23 +1400,23 @@ def send_push_notification():
         
     topic = data.pop('topic')
     
-    # --- Deduplication Logic ---
-    home_team = data.get('homeTeamName', '')
-    away_team = data.get('awayTeamName', '')
-    home_score = data.get('homeScore', '')
-    away_score = data.get('awayScore', '')
+    # --- Deduplication Logic (Compatible Senior UI) ---
+    # On cherche les noms des equipes soit à la racine, soit dans l'objet homeTeam/awayTeam
+    home_team = data.get('homeTeamName') or (data.get('homeTeam', {}).get('name') if isinstance(data.get('homeTeam'), dict) else '')
+    away_team = data.get('awayTeamName') or (data.get('awayTeam', {}).get('name') if isinstance(data.get('awayTeam'), dict) else '')
+    home_score = data.get('homeScore') or (data.get('homeTeam', {}).get('score') if isinstance(data.get('homeTeam'), dict) else '')
+    away_score = data.get('awayScore') or (data.get('awayTeam', {}).get('score') if isinstance(data.get('awayTeam'), dict) else '')
     title = data.get('title', '')
 
     match_key = f"{home_team}-{away_team}"
-    # Including title in the key ensures red cards or VAR don't get blocked by the score deduplicator
     score_key = f"{home_score}-{away_score}-{title}"
     
     current_time = time.time()
     
     if match_key in _last_broadcasts:
         last_event_key, last_time = _last_broadcasts[match_key]
-        # Ignore if the exact same event was broadcasted recently (avoid duplicates)
         if last_event_key == score_key and (current_time - last_time) < 180:
+            print(f"🚫 [Deduplicator] Ignored duplicate: {match_key} ({score_key})")
             return jsonify({"success": True, "message": "Duplicate event ignored"}), 200
             
     # Save the new state
@@ -1570,7 +1570,12 @@ def server_live_polling():
                 # --- 3. BUTS ---
                 if status_group == 3:
                     new_score = f"{h_score}-{a_score}"
-                    if new_score != state.get("score"):
+                    old_score_str = state.get("score", "0-0")
+                    if new_score != old_score_str:
+                        # Determiner qui a marque
+                        old_h, old_a = map(int, old_score_str.split('-'))
+                        scoring_side = "home" if h_score > old_h else "away"
+
                         game_data = fetch_365_json("game/", {"gameId": game_id})
                         p_name = ""
                         if game_data and 'game' in game_data:
@@ -1578,8 +1583,20 @@ def server_live_polling():
                                 if ev.get('eventType', {}).get('id') == 1:
                                     p_name = ev.get('playerName', '')
                                     break
+
                         body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}" if p_name else f"BUT !!! {h_name} {h_score} - {a_score} {a_name}"
-                        _send_server_push("⚽ BUT !!!", body, {"type": "goal", "homeTeamName": h_name, "awayTeamName": a_name, "homeScore": str(h_score), "awayScore": str(a_score), "gameId": game_id})
+
+                        # Envoi avec le nouveau format Senior UI
+                        _send_server_push("⚽ BUT !!!", body, {
+                            "type": "GOAL",
+                            "scoring_team": scoring_side,
+                            "homeTeamName": h_name,
+                            "awayTeamName": a_name,
+                            "homeScore": str(h_score),
+                            "awayScore": str(a_score),
+                            "scorer": p_name or "Buteur",
+                            "gameId": game_id
+                        })
                         state["score"] = new_score
 
                 # --- 4. MI-TEMPS ---
@@ -1603,58 +1620,55 @@ def _send_server_push(title, body, extra_data):
     Internal helper to send Ultra-Premium Firebase messages.
     """
     try:
-        # On prépare le payload structuré pour le nouveau moteur Android
-        # On essaie de deviner le code pays à partir du nom ou de l'ID pour flagcdn
         h_name = extra_data.get('homeTeamName', 'Home')
         a_name = extra_data.get('awayTeamName', 'Away')
 
-        # Mapping rapide pour les tests (à enrichir ou automatiser via l'ID équipe)
+        # Mapping ISO pour les matchs automatiques
         def get_iso(name):
-            iso_map = {"France": "fr", "Brazil": "br", "Argentina": "ar", "Morocco": "ma", "Spain": "es"}
-            return iso_map.get(name, "un") # "un" pour United Nations / Generic
+            iso_map = {
+                "France": "fr", "Brazil": "br", "Argentina": "ar", "Morocco": "ma", "Spain": "es",
+                "Germany": "de", "Japan": "jp", "Portugal": "pt", "Tunisia": "tn", "Sweden": "se"
+            }
+            return iso_map.get(name, "un")
 
-        fcm_payload = {
+        # Payload structuré pour le moteur Senior UI (Kotlin)
+        fcm_payload_obj = {
             "type": "GOAL",
-            "scoringTeam": "home" if extra_data.get('scoring_team') == 'home' else "away",
+            "scoringTeam": extra_data.get('scoring_team', 'home'),
+            "title": title,
+            "message": body,
             "homeTeam": {
                 "name": h_name,
-                "logoUrl": f"https://api.sofascore.app/api/v1/team/{extra_data.get('home_id', '0')}/image",
+                "score": str(extra_data.get('homeScore', '0')),
                 "countryCode": get_iso(h_name),
-                "score": str(extra_data.get('homeScore', '0'))
+                "logoUrl": f"https://flagcdn.com/w160/{get_iso(h_name)}.png"
             },
             "awayTeam": {
                 "name": a_name,
-                "logoUrl": f"https://api.sofascore.app/api/v1/team/{extra_data.get('away_id', '0')}/image",
+                "score": str(extra_data.get('awayScore', '0')),
                 "countryCode": get_iso(a_name),
-                "score": str(extra_data.get('awayScore', '0'))
+                "logoUrl": f"https://flagcdn.com/w160/{get_iso(a_name)}.png"
             },
             "scorer": extra_data.get('scorer', 'Joueur'),
             "minute": str(extra_data.get('minute', '0')),
-            "isPenalty": "true" if extra_data.get('is_penalty') else "false"
+            "isPenalty": "true" if "PENALTY" in title.upper() else "false"
         }
 
-        # Pour la compatibilité avec les anciennes versions, on garde aussi le titre/message
+        # Sérialisation pour FCM (Data-only)
+        fcm_data = {str(k): json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in fcm_payload_obj.items()}
+
         message = messaging.Message(
-            notification=messaging.Notification(
-                title=title,
-                body=body,
-                image="https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
-            ),
-            data=fcm_payload,
+            data=fcm_data,
             topic='live_matches',
             android=messaging.AndroidConfig(
                 priority='high',
-                notification=messaging.AndroidNotification(
-                    sound='goal_whistle',
-                    channel_id='mundialy_live_alerts_v2',
-                    color='#E7C16A'
-                )
+                ttl=3600
             )
         )
         messaging.send(message)
-        print(f"🔥 [Ultra-Premium Push] Sent GOAL animation for {h_name} vs {a_name}")
+        print(f"🔥 [Auto-Polling Push] Sent Senior UI Goal for {h_name} vs {a_name}")
     except Exception as e:
-        print(f"❌ [Ultra-Premium Push] Error: {e}")
+        print(f"❌ [Auto-Polling Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
 # --- DÉMARRAGE AUTOMATIQUE ---

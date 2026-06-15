@@ -309,14 +309,25 @@ class ApiService {
       try {
         final payload = {
           "topic": "live_matches",
-          "type": isGoal ? "goal" : "event",
+          "type": isGoal ? "GOAL" : "EVENT",
           "title": title,
           "message": body,
-          "homeTeamName": m.homeTeam,
-          "awayTeamName": m.awayTeam,
-          "homeScore": m.scoreHome,
-          "awayScore": m.scoreAway,
+          "scoringTeam": homeScored == true ? "home" : "away",
+          "homeTeam": {
+            "name": m.homeTeam,
+            "score": m.scoreHome ?? 0,
+            "countryCode": m.homeCode.toLowerCase(),
+            "logoUrl": "https://flagcdn.com/w160/${m.homeCode.toLowerCase()}.png"
+          },
+          "awayTeam": {
+            "name": m.awayTeam,
+            "score": m.scoreAway ?? 0,
+            "countryCode": m.awayCode.toLowerCase(),
+            "logoUrl": "https://flagcdn.com/w160/${m.awayCode.toLowerCase()}.png"
+          },
+          "scorer": "", 
           "minute": m.matchMinute,
+          "isPenalty": title.contains('PENALTY') || body.contains('PENALTY'),
         };
 
         await http
