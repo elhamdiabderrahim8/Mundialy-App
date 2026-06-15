@@ -1,4 +1,4 @@
-package com.mundialy.app
+package com.mundialy.football
 
 import io.flutter.embedding.android.FlutterActivity
 

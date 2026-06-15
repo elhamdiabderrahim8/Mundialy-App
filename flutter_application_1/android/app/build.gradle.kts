@@ -13,7 +13,7 @@ plugins {
 // Removed unused properties logic
 
 android {
-    namespace = "com.mundialy.app"
+    namespace = "com.mundialy.football"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

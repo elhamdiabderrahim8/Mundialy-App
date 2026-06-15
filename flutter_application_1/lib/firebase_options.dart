@@ -41,48 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAM1VPs5RwXUvaP4KWAGbWzQqLkrKzkgVs',
-    appId: '1:244211951859:web:08f7d9d7ba2e3c17adaf86',
-    messagingSenderId: '244211951859',
-    projectId: 'mundialy-3e52b',
-    authDomain: 'mundialy-3e52b.firebaseapp.com',
-    storageBucket: 'mundialy-3e52b.firebasestorage.app',
-    measurementId: 'G-V6YPQYL8Q3',
+    apiKey: 'AIzaSyAkfl5brFKzMufhuVcClgA86a4ewF_0l6I',
+    appId: '1:578043250451:web:c30f6d26db0e93a5c57ce6',
+    messagingSenderId: '578043250451',
+    projectId: 'mundiali',
+    authDomain: 'mundiali.firebaseapp.com',
+    storageBucket: 'mundiali.firebasestorage.app',
+    measurementId: 'G-N97HYHJ9TK',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDfSFat1ofRk7ZW7Ju1P_WK8KsHWwxN5wg',
-    appId: '1:244211951859:android:8244abcf53e810cdadaf86',
-    messagingSenderId: '244211951859',
-    projectId: 'mundialy-3e52b',
-    storageBucket: 'mundialy-3e52b.firebasestorage.app',
+    apiKey: 'AIzaSyC8tivOuvf2RJMaATEFx8KGWBQ5pa9CKmA',
+    appId: '1:578043250451:android:e8a7f88eddde04e9c57ce6',
+    messagingSenderId: '578043250451',
+    projectId: 'mundiali',
+    storageBucket: 'mundiali.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAj0Uir2Cm8BnSc6ofD4d_uR5gVlvaD1YI',
-    appId: '1:244211951859:ios:d2aaca7faeb4cadbadaf86',
-    messagingSenderId: '244211951859',
-    projectId: 'mundialy-3e52b',
-    storageBucket: 'mundialy-3e52b.firebasestorage.app',
+    apiKey: 'AIzaSyCIXz67DxP1SxGNRtF0pUHSPO4jg95vRjg',
+    appId: '1:578043250451:ios:0efbd428477ce042c57ce6',
+    messagingSenderId: '578043250451',
+    projectId: 'mundiali',
+    storageBucket: 'mundiali.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplication1',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAj0Uir2Cm8BnSc6ofD4d_uR5gVlvaD1YI',
-    appId: '1:244211951859:ios:d2aaca7faeb4cadbadaf86',
-    messagingSenderId: '244211951859',
-    projectId: 'mundialy-3e52b',
-    storageBucket: 'mundialy-3e52b.firebasestorage.app',
+    apiKey: 'AIzaSyCIXz67DxP1SxGNRtF0pUHSPO4jg95vRjg',
+    appId: '1:578043250451:ios:0efbd428477ce042c57ce6',
+    messagingSenderId: '578043250451',
+    projectId: 'mundiali',
+    storageBucket: 'mundiali.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplication1',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAM1VPs5RwXUvaP4KWAGbWzQqLkrKzkgVs',
-    appId: '1:244211951859:web:8b3932d34d28fc00adaf86',
-    messagingSenderId: '244211951859',
-    projectId: 'mundialy-3e52b',
-    authDomain: 'mundialy-3e52b.firebaseapp.com',
-    storageBucket: 'mundialy-3e52b.firebasestorage.app',
-    measurementId: 'G-3CKCZ0DNT1',
+    apiKey: 'AIzaSyAkfl5brFKzMufhuVcClgA86a4ewF_0l6I',
+    appId: '1:578043250451:web:9a5fc4ff18040a72c57ce6',
+    messagingSenderId: '578043250451',
+    projectId: 'mundiali',
+    authDomain: 'mundiali.firebaseapp.com',
+    storageBucket: 'mundiali.firebasestorage.app',
+    measurementId: 'G-V2EMPV1SL4',
   );
 }

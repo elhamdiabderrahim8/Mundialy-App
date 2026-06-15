@@ -1426,12 +1426,21 @@ def send_push_notification():
     title = data.get('title', 'Mundialy Live')
     body = data.get('message', 'Événement en direct')
     
+    # Image Premium par défaut (Stade)
+    image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=600&q=80"
+    if data.get('type') == 'reminder':
+        image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80"
+
     # Construction des données FCM à partir de data
     fcm_data = {str(k): str(v) for k, v in data.items()}
 
     try:
         message = messaging.Message(
-            notification=messaging.Notification(title=title, body=body),
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+                image=image_url
+            ),
             data=fcm_data,
             topic=topic,
             android=messaging.AndroidConfig(
@@ -1439,14 +1448,17 @@ def send_push_notification():
                 notification=messaging.AndroidNotification(
                     sound='default',
                     click_action='FLUTTER_NOTIFICATION_CLICK',
-                    channel_id='mundialy_live_alerts_v2', # Forcer le canal pour Android
-                    icon='stock_ticker_update',
-                    color='#E7C16A' # Couleur Premium Or
+                    channel_id='mundialy_live_alerts_v2',
+                    color='#E7C16A' # Or Mundialy
                 )
             ),
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
-                    aps=messaging.Aps(sound='default', content_available=True)
+                    aps=messaging.Aps(
+                        sound='default',
+                        content_available=True,
+                        mutable_content=True
+                    )
                 )
             )
         )
