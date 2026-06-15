@@ -1599,17 +1599,17 @@ def _send_server_push(title, body, extra_data):
         fcm_data["title"] = title
         fcm_data["message"] = body
 
-    # Image Premium Haute Qualité (ratio 2:1 pour éviter les barres noires)
-    # On utilise des visuels épurés et artistiques
-    image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&h=500&q=80"
+        # Image Premium Haute Qualité (ratio 2:1 pour éviter les barres noires)
+        # On utilise des visuels épurés et artistiques
+        image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&h=500&q=80"
 
-    event_type = extra_data.get('type', '')
-    if event_type == 'goal':
-        # Visuel dynamique de but (plus élégant)
-        image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
-    elif event_type == 'reminder':
-        # Visuel de stade au crépuscule (ambiance premium)
-        image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&h=500&q=80"
+        event_type = extra_data.get('type', '')
+        if event_type == 'goal':
+            # Visuel dynamique de but (plus élégant)
+            image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
+        elif event_type == 'reminder':
+            # Visuel de stade au crépuscule (ambiance premium)
+            image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&h=500&q=80"
 
         message = messaging.Message(
             notification=messaging.Notification(
