@@ -1459,10 +1459,15 @@ def send_push_notification():
 def get_polling_status():
     """Endpoint de diagnostic lisant le fichier de statut partagé."""
     status = _get_status()
+    # On fusionne la mémoire locale et le statut du fichier
+    monitored = list(_SERVER_MATCH_STATES.keys())
+    if not monitored and "monitored_ids" in status:
+        monitored = status["monitored_ids"]
+
     return jsonify({
         "server_time": datetime.datetime.now().strftime("%H:%M:%S"),
         "polling_status": status,
-        "active_matches_monitored": list(_SERVER_MATCH_STATES.keys()),
+        "active_matches_monitored": monitored,
         "processed_events_count": len(_SERVER_PROCESSED_EVENTS)
     }), 200
 
@@ -1501,6 +1506,7 @@ def server_live_polling():
             games = data['games']
             status["games_found"] = len(games)
             status["status"] = f"✅ Surveillance ({len(games)} matchs)"
+            status["monitored_ids"] = [str(g['id']) for g in games[:10]] # On stocke les 10 premiers IDs pour preuve
             _update_status(status)
 
             now = datetime.datetime.now(datetime.timezone.utc)
