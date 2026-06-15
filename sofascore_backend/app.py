@@ -1426,10 +1426,10 @@ def send_push_notification():
     title = data.get('title', 'Mundialy Live')
     body = data.get('message', 'Événement en direct')
     
-    # Image Premium par défaut (Stade)
-    image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=600&q=80"
-    if data.get('type') == 'reminder':
-        image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80"
+    # Image Premium (Ratio 2:1 pour un affichage plein écran élégant)
+    image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&h=500&q=80"
+    if data.get('type') == 'goal':
+        image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
 
     # Construction des données FCM à partir de data
     fcm_data = {str(k): str(v) for k, v in data.items()}
@@ -1449,7 +1449,8 @@ def send_push_notification():
                     sound='default',
                     click_action='FLUTTER_NOTIFICATION_CLICK',
                     channel_id='mundialy_live_alerts_v2',
-                    color='#E7C16A' # Or Mundialy
+                    color='#E7C16A',
+                    tag=data.get('homeTeamName', 'match_update') # Regroupe par match pour éviter l'empilement
                 )
             ),
             apns=messaging.APNSConfig(
@@ -1598,17 +1599,17 @@ def _send_server_push(title, body, extra_data):
         fcm_data["title"] = title
         fcm_data["message"] = body
 
-        # --- Premium Visual Logic (Non-human images) ---
-        # Generic branding image
-        image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=600&q=80"
+    # Image Premium Haute Qualité (ratio 2:1 pour éviter les barres noires)
+    # On utilise des visuels épurés et artistiques
+    image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&h=500&q=80"
 
-        event_type = extra_data.get('type', '')
-        if event_type == 'goal':
-            # Visual of a soccer net/ball for goals
-            image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=600&q=80"
-        elif event_type == 'reminder':
-            # Visual of stadium lights for countdowns
-            image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80"
+    event_type = extra_data.get('type', '')
+    if event_type == 'goal':
+        # Visuel dynamique de but (plus élégant)
+        image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
+    elif event_type == 'reminder':
+        # Visuel de stade au crépuscule (ambiance premium)
+        image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&h=500&q=80"
 
         message = messaging.Message(
             notification=messaging.Notification(
