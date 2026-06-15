@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAkfl5brFKzMufhuVcClgA86a4ewF_0l6I',
+    apiKey: String.fromEnvironment('FB_W_KEY', defaultValue: 'AIzaSyAkfl5brFKzMufhuVcClgA86a4ewF_0l6I'),
     appId: '1:578043250451:web:c30f6d26db0e93a5c57ce6',
     messagingSenderId: '578043250451',
     projectId: 'mundiali',
@@ -51,14 +51,14 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC8tivOuvf2RJMaATEFx8KGWBQ5pa9CKmA',
+    apiKey: String.fromEnvironment('FB_A_KEY', defaultValue: 'AIzaSyC8tivOuvf2RJMaATEFx8KGWBQ5pa9CKmA'),
     appId: '1:578043250451:android:e8a7f88eddde04e9c57ce6',
     messagingSenderId: '578043250451',
     projectId: 'mundiali',
     storageBucket: 'mundiali.firebasestorage.app',
   );
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCIXz67DxP1SxGNRtF0pUHSPO4jg95vRjg',
+    apiKey: String.fromEnvironment('FB_I_KEY', defaultValue: 'AIzaSyCIXz67DxP1SxGNRtF0pUHSPO4jg95vRjg'),
     appId: '1:578043250451:ios:0efbd428477ce042c57ce6',
     messagingSenderId: '578043250451',
     projectId: 'mundiali',
