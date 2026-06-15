@@ -51,6 +51,10 @@ SCORES365_END_DATE = "19/07/2026"
 _SERVER_MATCH_STATES = {}
 _SERVER_PROCESSED_EVENTS = set()
 
+DATA_DIR = "data"
+WC2022_DIR = os.path.join(DATA_DIR, "wc2022")
+WC2026_DIR = os.path.join(DATA_DIR, "wc2026")
+
 # Fichier de statut pour la communication entre processus (Gunicorn)
 STATUS_FILE = os.path.join(DATA_DIR, "polling_status.json")
 
@@ -77,10 +81,6 @@ _LAST_POLLING_STATUS = {
     "games_found": 0,
     "api_response": "Aucune"
 }
-
-DATA_DIR = "data"
-WC2022_DIR = os.path.join(DATA_DIR, "wc2022")
-WC2026_DIR = os.path.join(DATA_DIR, "wc2026")
 
 # Création automatique des répertoires pour le stockage local (Cache)
 for d in [DATA_DIR, WC2022_DIR, WC2026_DIR]:
@@ -1227,9 +1227,6 @@ def get_team_statistics(team_id):
         with open(cache_path, 'r', encoding='utf-8') as f:
             return jsonify(json.load(f))
     
-    # Ensure driver is always defined for the finally block below
-    driver = None
-
     try:
         url = f"{SOFA_BASE_URL}/team/{team_id}/statistics/unique-tournament/{UT_ID}/season/{s_id}/all"
         data = fetch_json(url)
@@ -1240,8 +1237,6 @@ def get_team_statistics(team_id):
         return jsonify({"error": "Profil d'équipe indisponible"}), 404
     except Exception as e:
         return jsonify({"error": "Erreur serveur", "details": str(e)}), 500
-    finally:
-        if driver: driver.quit()
 
 # ---- ROUTE : MEILLEURS BUTEURS (TOP SCORERS) ----
 @app.route('/api/topscorers', methods=['GET'])
@@ -1299,45 +1294,39 @@ def get_venues():
     season = request.args.get('season', '2022')
     if season == '2022':
         return get_wc2022_resource("venues")
-    driver = None
     try:
-        driver = init_selenium_driver()
-        data = fetch_json(driver, f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/venues")
+        url = f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/venues"
+        data = fetch_json_fast(url)
         return jsonify({"response": data}) if data else jsonify({"response": []})
-    except:
+    except Exception as e:
+        print(f"Error fetching venues 2026: {e}")
         return jsonify({"response": []})
-    finally:
-        if driver: driver.quit()
 
 @app.route('/api/cuptree', methods=['GET'])
 def get_cuptree():
     season = request.args.get('season', '2022')
     if season == '2022':
         return get_wc2022_resource("cuptree")
-    driver = None
     try:
-        driver = init_selenium_driver()
-        data = fetch_json(driver, f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/cuptrees")
+        url = f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/cuptrees"
+        data = fetch_json_fast(url)
         return jsonify({"response": data}) if data else jsonify({"response": []})
-    except:
+    except Exception as e:
+        print(f"Error fetching cuptree 2026: {e}")
         return jsonify({"response": []})
-    finally:
-        if driver: driver.quit()
 
 @app.route('/api/info', methods=['GET'])
 def get_info():
     season = request.args.get('season', '2022')
     if season == '2022':
         return get_wc2022_resource("info")
-    driver = None
     try:
-        driver = init_selenium_driver()
-        data = fetch_json(driver, f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/info")
+        url = f"{SOFA_BASE_URL}/unique-tournament/{UT_ID}/season/{S_ID_2026}/info"
+        data = fetch_json_fast(url)
         return jsonify({"response": data}) if data else jsonify({"response": {}})
-    except:
+    except Exception as e:
+        print(f"Error fetching info 2026: {e}")
         return jsonify({"response": {}})
-    finally:
-        if driver: driver.quit()
 
 @app.route('/api/worldcup/news', methods=['GET'])
 def get_news():
@@ -1437,6 +1426,9 @@ def send_push_notification():
     title = data.get('title', 'Mundialy Live')
     body = data.get('message', 'Événement en direct')
     
+    # Construction des données FCM à partir de data
+    fcm_data = {str(k): str(v) for k, v in data.items()}
+
     try:
         message = messaging.Message(
             notification=messaging.Notification(title=title, body=body),
