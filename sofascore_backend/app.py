@@ -1445,12 +1445,15 @@ def send_push_notification():
             topic=topic,
             android=messaging.AndroidConfig(
                 priority='high',
+                ttl=3600,
                 notification=messaging.AndroidNotification(
-                    sound='default',
+                    sound='goal_sound',
                     click_action='FLUTTER_NOTIFICATION_CLICK',
                     channel_id='mundialy_live_alerts_v2',
-                    color='#E7C16A',
-                    tag=data.get('homeTeamName', 'match_update') # Regroupe par match pour éviter l'empilement
+                    color='#E7C16A', # Or Mundialy
+                    tag=data.get('homeTeamName', 'match_update'),
+                    notification_priority='PRIORITY_MAX',
+                    default_vibrate_timings=True
                 )
             ),
             apns=messaging.APNSConfig(
@@ -1590,59 +1593,61 @@ def server_live_polling():
 
 def _send_server_push(title, body, extra_data):
     """
-    Internal helper to send Premium Firebase messages with images and specialized grouping.
-    We respect privacy and legal constraints by using high-quality atmosphere images instead of people.
+    Internal helper to send Ultra-Premium Firebase messages.
     """
     try:
-        # Convert all extra data to strings
-        fcm_data = {str(k): str(v) for k, v in extra_data.items()}
-        fcm_data["title"] = title
-        fcm_data["message"] = body
+        # On prépare le payload structuré pour le nouveau moteur Android
+        # On essaie de deviner le code pays à partir du nom ou de l'ID pour flagcdn
+        h_name = extra_data.get('homeTeamName', 'Home')
+        a_name = extra_data.get('awayTeamName', 'Away')
 
-        # Image Premium Haute Qualité (ratio 2:1 pour éviter les barres noires)
-        # On utilise des visuels épurés et artistiques
-        image_url = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1000&h=500&q=80"
+        # Mapping rapide pour les tests (à enrichir ou automatiser via l'ID équipe)
+        def get_iso(name):
+            iso_map = {"France": "fr", "Brazil": "br", "Argentina": "ar", "Morocco": "ma", "Spain": "es"}
+            return iso_map.get(name, "un") # "un" pour United Nations / Generic
 
-        event_type = extra_data.get('type', '')
-        if event_type == 'goal':
-            # Visuel dynamique de but (plus élégant)
-            image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
-        elif event_type == 'reminder':
-            # Visuel de stade au crépuscule (ambiance premium)
-            image_url = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1000&h=500&q=80"
+        fcm_payload = {
+            "type": "GOAL",
+            "scoringTeam": "home" if extra_data.get('scoring_team') == 'home' else "away",
+            "homeTeam": {
+                "name": h_name,
+                "logoUrl": f"https://api.sofascore.app/api/v1/team/{extra_data.get('home_id', '0')}/image",
+                "countryCode": get_iso(h_name),
+                "score": str(extra_data.get('homeScore', '0'))
+            },
+            "awayTeam": {
+                "name": a_name,
+                "logoUrl": f"https://api.sofascore.app/api/v1/team/{extra_data.get('away_id', '0')}/image",
+                "countryCode": get_iso(a_name),
+                "score": str(extra_data.get('awayScore', '0'))
+            },
+            "scorer": extra_data.get('scorer', 'Joueur'),
+            "minute": str(extra_data.get('minute', '0')),
+            "isPenalty": "true" if extra_data.get('is_penalty') else "false"
+        }
 
+        # Pour la compatibilité avec les anciennes versions, on garde aussi le titre/message
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
                 body=body,
-                image=image_url
+                image="https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
             ),
-            data=fcm_data,
+            data=fcm_payload,
             topic='live_matches',
             android=messaging.AndroidConfig(
                 priority='high',
                 notification=messaging.AndroidNotification(
-                    sound='default',
-                    click_action='FLUTTER_NOTIFICATION_CLICK',
+                    sound='goal_whistle',
                     channel_id='mundialy_live_alerts_v2',
-                    color='#E7C16A', # Premium Gold brand color
-                    tag=extra_data.get('gameId', 'global') # Grouping: updates same notification per match
-                )
-            ),
-            apns=messaging.APNSConfig(
-                payload=messaging.APNSPayload(
-                    aps=messaging.Aps(
-                        sound='default',
-                        content_available=True,
-                        category='PREMIUM_ALERT'
-                    )
+                    color='#E7C16A'
                 )
             )
         )
-        response = messaging.send(message)
-        print(f"🔥 [Premium Push] Sent: {title} - {body}")
+        messaging.send(message)
+        print(f"🔥 [Ultra-Premium Push] Sent GOAL animation for {h_name} vs {a_name}")
     except Exception as e:
-        print(f"❌ [Premium Push] Error: {e}")
+        print(f"❌ [Ultra-Premium Push] Error: {e}")
 
 # --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
 # --- DÉMARRAGE AUTOMATIQUE ---
