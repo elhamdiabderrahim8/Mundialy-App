@@ -1438,11 +1438,13 @@ def send_push_notification():
                 priority='high',
                 notification=messaging.AndroidNotification(
                     sound='default',
-                    click_action='FLUTTER_NOTIFICATION_CLICK'
+                    click_action='FLUTTER_NOTIFICATION_CLICK',
+                    channel_id='mundialy_live_alerts_v2', # Forcer le canal pour Android
+                    icon='stock_ticker_update',
+                    color='#E7C16A' # Couleur Premium Or
                 )
             ),
             apns=messaging.APNSConfig(
-                headers={'apns-priority': '10'},
                 payload=messaging.APNSPayload(
                     aps=messaging.Aps(sound='default', content_available=True)
                 )
