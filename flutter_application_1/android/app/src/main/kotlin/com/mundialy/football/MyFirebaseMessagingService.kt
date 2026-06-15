@@ -15,7 +15,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         
         Log.d("FCM", "Received message type: $type")
 
-        if (type == "GOAL") {
+        if (type?.equals("GOAL", ignoreCase = true) == true) {
             val payload = parsePayload(data)
             GoalNotificationManager(this).showGoalNotification(payload)
         }
