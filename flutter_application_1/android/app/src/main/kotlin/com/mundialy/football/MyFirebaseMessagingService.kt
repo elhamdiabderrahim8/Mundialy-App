@@ -8,26 +8,32 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        val data = remoteMessage.data
-        val manager = GoalNotificationManager(applicationContext)
+        val fcmData = remoteMessage.data
+        val manager = GoalNotificationManager(this)
         
-        if (data["type"] == "GOAL") {
+        val msgType: String? = fcmData["type"]
+        
+        if (msgType == "GOAL") {
             val payload = mutableMapOf<String, Any?>()
-            payload.putAll(data)
+            payload.putAll(fcmData)
             manager.showGoalNotification(payload)
-        } else if (data["type"] == "MATCH_START") {
+        } else if (msgType == "MATCH_START") {
             val payload = mutableMapOf<String, Any?>()
-            payload.putAll(data)
+            payload.putAll(fcmData)
             manager.showMatchStartNotification(payload)
-        } else if (data["type"] == "HALF_TIME") {
+        } else if (typeMatches(msgType, "HALF_TIME")) {
             val payload = mutableMapOf<String, Any?>()
-            payload.putAll(data)
+            payload.putAll(fcmData)
             manager.showHalfTimeNotification(payload)
-        } else if (data["type"] == "FULL_TIME") {
+        } else if (typeMatches(msgType, "FULL_TIME")) {
             val payload = mutableMapOf<String, Any?>()
-            payload.putAll(data)
+            payload.putAll(fcmData)
             manager.showFullTimeNotification(payload)
         }
+    }
+
+    private fun typeMatches(type: String?, target: String): Boolean {
+        return type != null && type.equals(target, ignoreCase = true)
     }
 
     override fun onNewToken(token: String) {

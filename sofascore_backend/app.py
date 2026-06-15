@@ -1452,7 +1452,6 @@ def send_push_notification():
                     channel_id='mundialy_live_alerts_v2',
                     color='#E7C16A', # Or Mundialy
                     tag=data.get('homeTeamName', 'match_update'),
-                    notification_priority='PRIORITY_MAX',
                     default_vibrate_timings=True
                 )
             ),

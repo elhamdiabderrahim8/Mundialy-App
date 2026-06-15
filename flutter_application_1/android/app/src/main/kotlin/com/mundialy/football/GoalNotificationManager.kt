@@ -3,8 +3,7 @@ package com.mundialy.football
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Color
+import android.graphics.*
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -30,7 +29,6 @@ class GoalNotificationManager(private val context: Context) {
         val scoringCountryCode = if (scoringTeam == "home") 
             homeData?.get("countryCode")?.toString() else awayData?.get("countryCode")?.toString()
 
-        // PHASE 1 : GOAL Animation
         val phase1Views = RemoteViews(context.packageName, R.layout.notification_goal_phase1)
         
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
@@ -46,7 +44,6 @@ class GoalNotificationManager(private val context: Context) {
         val notification = notificationBuilder.build()
         notificationManager.notify(notificationId, notification)
 
-        // Charger le drapeau en fond (Phase 1) via FlagRepository (centralise les LOGS)
         if (scoringCountryCode != null) {
             FlagRepository.loadFlagIntoNotification(
                 context, scoringCountryCode, R.id.bg_flag_blur, 
@@ -55,7 +52,6 @@ class GoalNotificationManager(private val context: Context) {
             )
         }
 
-        // Animation des lettres (Simulée par Handler)
         val handler = Handler(Looper.getMainLooper())
         val letters = arrayOf(R.id.letter_g, R.id.letter_o, R.id.letter_a, R.id.letter_l, R.id.exclamation)
         
@@ -66,18 +62,126 @@ class GoalNotificationManager(private val context: Context) {
             }, 220L * (index + 1))
         }
 
-        // TRANSITION PHASE 2 (Après 2.5s)
         handler.postDelayed({
             showPhase2(payload, notificationBuilder)
         }, 2500)
     }
 
     fun showMatchStartNotification(payload: Map<String, Any?>) {
-        // ... (code existant)
+        createChannel()
+        
+        val home = payload["homeTeam"] as? Map<*, *>
+        val away = payload["awayTeam"] as? Map<*, *>
+        
+        val startViews = RemoteViews(context.packageName, R.layout.notification_match_start)
+        
+        startViews.setTextViewText(R.id.name_home_start, home?.get("name")?.toString() ?: "HOME")
+        startViews.setTextViewText(R.id.name_away_start, away?.get("name")?.toString() ?: "AWAY")
+        
+        val comp = payload["competition"]?.toString() ?: "World Cup"
+        val time = payload["kickoffTime"]?.toString() ?: "Now"
+        startViews.setTextViewText(R.id.match_info_footer, "$comp  •  $time")
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setCustomHeadsUpContentView(startViews)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setVibrate(longArrayOf(0, 200, 100, 200))
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+
+        val notification = builder.build()
+        notificationManager.notify(notificationId, notification)
+
+        val homeIso = home?.get("countryCode")?.toString() ?: "un"
+        val awayIso = away?.get("countryCode")?.toString() ?: "un"
+        
+        FlagRepository.loadFlagIntoNotification(context, homeIso, R.id.flag_left_bg, startViews, notification, notificationId)
+        FlagRepository.loadFlagIntoNotification(context, awayIso, R.id.flag_right_bg, startViews, notification, notificationId)
+
+        val homeLogo = home?.get("logoUrl")?.toString()
+        val awayLogo = away?.get("logoUrl")?.toString()
+        
+        if (homeLogo != null) {
+            Glide.with(context).asBitmap().load(homeLogo).transform(FlagRepository.DiamondTransformation())
+                .into(NotificationTarget(context, R.id.logo_home_start, startViews, notification, notificationId))
+        }
+        if (awayLogo != null) {
+            Glide.with(context).asBitmap().load(awayLogo).transform(FlagRepository.DiamondTransformation())
+                .into(NotificationTarget(context, R.id.logo_away_start, startViews, notification, notificationId))
+        }
+
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            startViews.setViewVisibility(R.id.live_pill, View.VISIBLE)
+            startViews.setViewVisibility(R.id.home_container, View.VISIBLE)
+            startViews.setViewVisibility(R.id.away_container, View.VISIBLE)
+            startViews.setViewVisibility(R.id.vs_text, View.VISIBLE)
+            startViews.setViewVisibility(R.id.match_info_footer, View.VISIBLE)
+            notificationManager.notify(notificationId, builder.build())
+        }, 1500)
     }
 
     fun showHalfTimeNotification(payload: Map<String, Any?>) {
-        // ... (existant)
+        createChannel()
+        
+        val home = payload["homeTeam"] as? Map<*, *>
+        val away = payload["awayTeam"] as? Map<*, *>
+        val scorers = payload["scorers"] as? List<Map<String, Any?>> ?: emptyList()
+        
+        val htViews = RemoteViews(context.packageName, R.layout.notification_half_time)
+        
+        val hScore = home?.get("score")?.toString() ?: "0"
+        val aScore = away?.get("score")?.toString() ?: "0"
+        htViews.setTextViewText(R.id.ht_score_text, "$hScore - $aScore")
+        
+        val summaryText = scorers.take(2).joinToString("\n") { 
+            "⚽ ${it["name"]} — ${it["team"]} ${it["minute"]}'"
+        }
+        htViews.setTextViewText(R.id.ht_scorers_summary, summaryText)
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setCustomHeadsUpContentView(htViews)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setVibrate(longArrayOf(0, 150, 50, 150))
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
+
+        val notification = builder.build()
+        notificationManager.notify(notificationId, notification)
+
+        val scoringIso = if (hScore.toInt() > 0) home?.get("countryCode")?.toString()
+                        else if (aScore.toInt() > 0) away?.get("countryCode")?.toString()
+                        else home?.get("countryCode")?.toString()
+        
+        FlagRepository.loadFlagIntoNotification(
+            context, scoringIso ?: "un", R.id.ht_bg_flag, 
+            htViews, notification, notificationId, 
+            isBlurred = true, darkenOpacity = 0.55f
+        )
+
+        val homeLogo = home?.get("logoUrl")?.toString()
+        val awayLogo = away?.get("logoUrl")?.toString()
+        if (homeLogo != null) {
+            Glide.with(context).asBitmap().load(homeLogo).transform(FlagRepository.DiamondTransformation())
+                .into(NotificationTarget(context, R.id.ht_logo_home, htViews, notification, notificationId))
+        }
+        if (awayLogo != null) {
+            Glide.with(context).asBitmap().load(awayLogo).transform(FlagRepository.DiamondTransformation())
+                .into(NotificationTarget(context, R.id.ht_logo_away, htViews, notification, notificationId))
+        }
+
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            htViews.setViewVisibility(R.id.ht_badge, View.VISIBLE)
+            htViews.setViewVisibility(R.id.ht_score_row, View.VISIBLE)
+            htViews.setViewVisibility(R.id.ht_subtitle, View.VISIBLE)
+            htViews.setViewVisibility(R.id.ht_scorers_summary, View.VISIBLE)
+            notificationManager.notify(notificationId, builder.build())
+        }, 800)
     }
 
     fun showFullTimeNotification(payload: Map<String, Any?>) {
@@ -93,7 +197,6 @@ class GoalNotificationManager(private val context: Context) {
         val aScore = away?.get("score")?.toString() ?: "0"
         ftViews.setTextViewText(R.id.ft_score_text, "$hScore - $aScore")
         
-        // Winner/Loser Styling
         ftViews.setTextViewText(R.id.ft_name_home, home?.get("name")?.toString() ?: "")
         ftViews.setTextViewText(R.id.ft_name_away, away?.get("name")?.toString() ?: "")
         
@@ -126,7 +229,6 @@ class GoalNotificationManager(private val context: Context) {
         val notification = builder.build()
         notificationManager.notify(notificationId, notification)
 
-        // Background Logic
         val hIso = home?.get("countryCode")?.toString() ?: "un"
         val aIso = away?.get("countryCode")?.toString() ?: "un"
 
@@ -138,7 +240,6 @@ class GoalNotificationManager(private val context: Context) {
             val winIso = if (winner == "home") hIso else aIso
             FlagRepository.loadFlagIntoNotification(context, winIso, R.id.ft_bg_flag_left, ftViews, notification, notificationId, isBlurred = true, darkenOpacity = 0.45f)
             
-            // Extraction de couleur pour confettis
             val flagUrl = "https://flagcdn.com/w160/${winIso.lowercase()}.png"
             Glide.with(context).asBitmap().load(flagUrl).into(object : com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
                 override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
@@ -153,7 +254,6 @@ class GoalNotificationManager(private val context: Context) {
             })
         }
 
-        // Logos
         val homeLogo = home?.get("logoUrl")?.toString()
         val awayLogo = away?.get("logoUrl")?.toString()
         if (homeLogo != null) {
@@ -165,7 +265,6 @@ class GoalNotificationManager(private val context: Context) {
                 .into(NotificationTarget(context, R.id.ft_logo_away, ftViews, notification, notificationId))
         }
 
-        // Animation FT Badge
         Handler(Looper.getMainLooper()).postDelayed({
             ftViews.setViewVisibility(R.id.ft_badge, View.VISIBLE)
             notificationManager.notify(notificationId, builder.build())
@@ -212,7 +311,6 @@ class GoalNotificationManager(private val context: Context) {
         val notification = builder.build()
         notificationManager.notify(notificationId, notification)
 
-        // Logos en Phase 2 (Style Diamond)
         val homeLogo = home?.get("logoUrl")?.toString()
         val awayLogo = away?.get("logoUrl")?.toString()
         
