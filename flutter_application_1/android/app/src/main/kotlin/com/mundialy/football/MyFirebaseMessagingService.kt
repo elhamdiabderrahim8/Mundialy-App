@@ -1,42 +1,55 @@
 package com.mundialy.football
 
+import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import org.json.JSONObject
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
+        
+        val data = remoteMessage.data
+        val type = data["type"]
+        
+        Log.d("FCM", "Received message type: $type")
 
-        val fcmData = remoteMessage.data
-        val manager = GoalNotificationManager(this)
-        
-        val msgType: String? = fcmData["type"]
-        
-        if (msgType == "GOAL") {
-            val payload = mutableMapOf<String, Any?>()
-            payload.putAll(fcmData)
-            manager.showGoalNotification(payload)
-        } else if (msgType == "MATCH_START") {
-            val payload = mutableMapOf<String, Any?>()
-            payload.putAll(fcmData)
-            manager.showMatchStartNotification(payload)
-        } else if (typeMatches(msgType, "HALF_TIME")) {
-            val payload = mutableMapOf<String, Any?>()
-            payload.putAll(fcmData)
-            manager.showHalfTimeNotification(payload)
-        } else if (typeMatches(msgType, "FULL_TIME")) {
-            val payload = mutableMapOf<String, Any?>()
-            payload.putAll(fcmData)
-            manager.showFullTimeNotification(payload)
+        if (type == "GOAL") {
+            val payload = parsePayload(data)
+            GoalNotificationManager(this).showGoalNotification(payload)
         }
     }
 
-    private fun typeMatches(type: String?, target: String): Boolean {
-        return type != null && type.equals(target, ignoreCase = true)
+    private fun parsePayload(data: Map<String, String>): Map<String, Any?> {
+        val result = mutableMapOf<String, Any?>()
+        data.forEach { (key, value) ->
+            if (value.startsWith("{") || value.startsWith("[")) {
+                try {
+                    result[key] = jsonToMap(JSONObject(value))
+                } catch (e: Exception) {
+                    result[key] = value
+                }
+            } else {
+                result[key] = value
+            }
+        }
+        return result
     }
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
+    private fun jsonToMap(json: JSONObject): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        val keys = json.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            var value = json.get(key)
+            if (value is JSONObject) {
+                value = jsonToMap(value)
+            } else if (value == JSONObject.NULL) {
+                value = null
+            }
+            map[key] = value
+        }
+        return map
     }
 }

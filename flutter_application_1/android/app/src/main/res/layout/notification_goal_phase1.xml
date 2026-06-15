@@ -4,7 +4,7 @@
     android:layout_height="128dp"
     android:background="#0D0D1A">
 
-    <!-- Drapeau flouté en fond -->
+    <!-- Blurred Background Flag -->
     <ImageView
         android:id="@+id/bg_flag_blur"
         android:layout_width="match_parent"
@@ -12,6 +12,7 @@
         android:scaleType="centerCrop"
         android:alpha="0.4" />
 
+    <!-- GOAL! Letters -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -23,9 +24,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="G"
-            android:textColor="#E7C16A"
-            android:textSize="48sp"
+            android:textColor="#FFD700"
+            android:textSize="54sp"
             android:textStyle="bold"
+            android:includeFontPadding="false"
             android:visibility="invisible" />
 
         <TextView
@@ -33,9 +35,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="O"
-            android:textColor="#E7C16A"
-            android:textSize="48sp"
+            android:textColor="#FFD700"
+            android:textSize="54sp"
             android:textStyle="bold"
+            android:includeFontPadding="false"
             android:visibility="invisible" />
 
         <TextView
@@ -43,9 +46,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="A"
-            android:textColor="#E7C16A"
-            android:textSize="48sp"
+            android:textColor="#FFD700"
+            android:textSize="54sp"
             android:textStyle="bold"
+            android:includeFontPadding="false"
             android:visibility="invisible" />
 
         <TextView
@@ -53,19 +57,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="L"
-            android:textColor="#E7C16A"
-            android:textSize="48sp"
+            android:textColor="#FFD700"
+            android:textSize="54sp"
             android:textStyle="bold"
+            android:includeFontPadding="false"
             android:visibility="invisible" />
 
         <TextView
             android:id="@+id/exclamation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:text="!"
             android:textColor="#FFFFFF"
-            android:textSize="48sp"
+            android:textSize="54sp"
             android:textStyle="bold"
+            android:includeFontPadding="false"
             android:visibility="invisible" />
     </LinearLayout>
 </FrameLayout>

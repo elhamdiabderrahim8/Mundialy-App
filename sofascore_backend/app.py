@@ -1431,16 +1431,24 @@ def send_push_notification():
     if data.get('type') == 'goal':
         image_url = "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=1000&h=500&q=80"
 
-    # Construction des données FCM à partir de data
-    fcm_data = {str(k): str(v) for k, v in data.items()}
+    # Construction des données FCM à partir de data (sérialisation JSON pour les objets complexes)
+    fcm_data = {str(k): json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in data.items()}
 
     try:
-        message = messaging.Message(
-            notification=messaging.Notification(
+        # Pour le design "Senior UI", on n'envoie PAS l'objet 'notification' si c'est un GOAL
+        # Cela force Android à appeler onMessageReceived (Kotlin) même en arrière-plan.
+        is_custom_ui = data.get('type') in ['GOAL', 'MATCH_START', 'HALF_TIME', 'FULL_TIME']
+
+        notification_obj = None
+        if not is_custom_ui:
+            notification_obj = messaging.Notification(
                 title=title,
                 body=body,
                 image=image_url
-            ),
+            )
+
+        message = messaging.Message(
+            notification=notification_obj,
             data=fcm_data,
             topic=topic,
             android=messaging.AndroidConfig(
@@ -1450,10 +1458,10 @@ def send_push_notification():
                     sound='goal_sound',
                     click_action='FLUTTER_NOTIFICATION_CLICK',
                     channel_id='mundialy_live_alerts_v2',
-                    color='#E7C16A', # Or Mundialy
+                    color='#E7C16A',
                     tag=data.get('homeTeamName', 'match_update'),
                     default_vibrate_timings=True
-                )
+                ) if not is_custom_ui else None
             ),
             apns=messaging.APNSConfig(
                 payload=messaging.APNSPayload(
@@ -1466,7 +1474,7 @@ def send_push_notification():
             )
         )
         response = messaging.send(message)
-        print(f"✅ FCM Broadcast Success: {title} to {topic}")
+        print(f"✅ FCM Broadcast Success: {title} to {topic} (Custom UI: {is_custom_ui})")
         return jsonify({"success": True, "message_id": response})
     except Exception as e:
         print("❌ FCM Broadcast Error:", e)
