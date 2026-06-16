@@ -1540,7 +1540,8 @@ def server_live_polling():
                 status_group = g.get('statusGroup')
                 home, away = g.get('homeCompetitor', {}), g.get('awayCompetitor', {})
                 h_name, a_name = home.get('name', 'Home'), away.get('name', 'Away')
-                h_score, a_score = home.get('score', 0), away.get('score', 0)
+                h_score = int(home.get('score', 0)) if home.get('score') is not None else 0
+                a_score = int(away.get('score', 0)) if away.get('score') is not None else 0
 
                 if game_id not in _SERVER_MATCH_STATES:
                     _SERVER_MATCH_STATES[game_id] = {"score": f"{h_score}-{a_score}", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False}
@@ -1606,7 +1607,7 @@ def server_live_polling():
 
                 # --- 4. MI-TEMPS ---
                 status_text = (g.get('statusText') or g.get('shortStatusText') or "").upper()
-                if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text) and not state.get("ht_notified"):
+                if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text or "HALFTIME" in status_text) and not state.get("ht_notified"):
                     game_data = fetch_365_json("game/", {"gameId": game_id})
                     scorers = []
                     if game_data and 'game' in game_data:
