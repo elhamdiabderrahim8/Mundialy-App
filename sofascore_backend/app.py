@@ -1544,7 +1544,7 @@ def server_live_polling():
                 a_score = int(away.get('score', 0)) if away.get('score') is not None else 0
 
                 if game_id not in _SERVER_MATCH_STATES:
-                    _SERVER_MATCH_STATES[game_id] = {"score": f"{h_score}-{a_score}", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False}
+                    _SERVER_MATCH_STATES[game_id] = {"score": f"{h_score}-{a_score}", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False, "second_half_notified": False}
 
                 # Correction du format d'état si nécessaire
                 if isinstance(_SERVER_MATCH_STATES[game_id], str):
@@ -1628,6 +1628,16 @@ def server_live_polling():
                         "gameId": game_id
                     })
                     state["ht_notified"] = True
+
+                # --- 4.5 DEUXIÈME MI-TEMPS ---
+                if status_group == 3 and ("SECOND HALF" in status_text or "2ND HALF" in status_text) and not state.get("second_half_notified"):
+                    _send_server_push("⏱ REPRISE", f"La 2ème mi-temps commence : {h_name} vs {a_name}", {
+                        "type": "start", 
+                        "gameId": game_id,
+                        "homeTeamName": h_name,
+                        "awayTeamName": a_name
+                    })
+                    state["second_half_notified"] = True
 
                 # --- 5. FIN DU MATCH ---
                 if status_group == 4 and not state.get("ft_notified"):
