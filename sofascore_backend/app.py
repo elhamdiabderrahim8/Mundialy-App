@@ -1649,6 +1649,13 @@ def server_live_polling():
 
         time.sleep(30)
 
+def get_iso(name):
+    iso_map = {
+        "France": "fr", "Francia": "fr", "Brazil": "br", "Argentina": "ar", "Morocco": "ma", "Spain": "es", "España": "es",
+        "Germany": "de", "Japan": "jp", "Portugal": "pt", "Tunisia": "tn", "Sweden": "se", "Suecia": "se", "Senegal": "sn"
+    }
+    return iso_map.get(name, "un")
+
 def _send_server_push(title, body, extra_data):
     """
     Internal helper to send Ultra-Premium Firebase messages.
@@ -1661,14 +1668,6 @@ def _send_server_push(title, body, extra_data):
         # Resolve scores
         h_score = extra_data.get('homeScore') or (extra_data.get('homeTeam', {}).get('score') if isinstance(extra_data.get('homeTeam'), dict) else '0')
         a_score = extra_data.get('awayScore') or (extra_data.get('awayTeam', {}).get('score') if isinstance(extra_data.get('awayTeam'), dict) else '0')
-
-        # Mapping ISO pour les matchs automatiques
-        def get_iso(name):
-            iso_map = {
-                "France": "fr", "Brazil": "br", "Argentina": "ar", "Morocco": "ma", "Spain": "es",
-                "Germany": "de", "Japan": "jp", "Portugal": "pt", "Tunisia": "tn", "Sweden": "se"
-            }
-            return iso_map.get(name, "un")
 
         raw_type = extra_data.get('type', 'GOAL')
         msg_type = raw_type
