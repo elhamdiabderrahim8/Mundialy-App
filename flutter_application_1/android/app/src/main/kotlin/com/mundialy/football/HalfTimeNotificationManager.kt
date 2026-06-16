@@ -51,6 +51,8 @@ object HalfTimeNotificationManager {
                 .get()
 
             withContext(Dispatchers.Main) {
+                val badgeText = data["badge"] ?: "MI-TEMPS"
+
                 val views = RemoteViews(context.packageName, R.layout.notification_half_time)
                 views.setImageViewBitmap(R.id.iv_home_logo, homeLogo)
                 views.setImageViewBitmap(R.id.iv_away_logo, awayLogo)
@@ -58,6 +60,7 @@ object HalfTimeNotificationManager {
                 views.setTextViewText(R.id.tv_away_name, awayTeamName)
                 views.setTextViewText(R.id.tv_score_home, homeScore)
                 views.setTextViewText(R.id.tv_score_away, awayScore)
+                views.setTextViewText(R.id.tv_ht_badge, badgeText)
                 
                 if (topScorer != null && topScorer.isNotBlank()) {
                     views.setTextViewText(R.id.tv_top_scorer, topScorer)
