@@ -1564,7 +1564,12 @@ def server_live_polling():
 
                 # --- 2. DÉBUT MATCH ---
                 if status_group == 3 and not state.get("started_notified"):
-                    _send_server_push("⏱ DÉBUT DU MATCH", f"Le match commence : {h_name} vs {a_name}", {"type": "start", "gameId": game_id})
+                    _send_server_push("⏱ DÉBUT DU MATCH", f"Le match commence : {h_name} vs {a_name}", {
+                        "type": "start", 
+                        "gameId": game_id,
+                        "homeTeamName": h_name,
+                        "awayTeamName": a_name
+                    })
                     state["started_notified"] = True
 
                 # --- 3. BUTS ---
