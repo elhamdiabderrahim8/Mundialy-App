@@ -20,9 +20,10 @@
             android:id="@+id/ft_bg_flag_right"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0"
+            android:layout_weight="1"
             android:scaleType="centerCrop"
-            android:alpha="0.55" />
+            android:alpha="0.55"
+            android:visibility="gone" />
     </LinearLayout>
 
     <!-- Confetti Canvas Placeholder (Simulated via overlay) -->
@@ -90,7 +91,6 @@
                 android:id="@+id/ft_score_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="16dp"
                 android:textColor="#FFFFFF"
                 android:textSize="32sp"
                 android:textStyle="bold" />

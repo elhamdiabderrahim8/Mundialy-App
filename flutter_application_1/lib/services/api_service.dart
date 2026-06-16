@@ -301,18 +301,22 @@ class ApiService {
     await _notifications.show(m.id.hashCode, title, body, details);
 
     // 3. Crowdsourcing Firebase Push Notification
-    // L'application prévient le backend pour qu'il envoie un push global FCM aux app fermées
-    // On envoie les BUTS, mais aussi les CARTONS ROUGES, VAR, MI-TEMPS et FIN DE MATCH
     final bool shouldBroadcast = isGoal || title.contains('ROUGE') || title.contains('VAR') || title.contains('TEMPS') || title.contains('MATCH');
 
     if (shouldBroadcast) {
       try {
+        String type = "EVENT";
+        if (isGoal) type = "GOAL";
+        else if (title.contains('TEMPS') || title.contains('HT')) type = "HALF_TIME";
+        else if (title.contains('FIN') || title.contains('FT')) type = "FULL_TIME";
+
         final payload = {
           "topic": "live_matches",
-          "type": isGoal ? "GOAL" : "EVENT",
+          "type": type,
           "title": title,
           "message": body,
           "scoringTeam": homeScored == true ? "home" : "away",
+          "winner": (m.scoreHome ?? 0) > (m.scoreAway ?? 0) ? "home" : ((m.scoreAway ?? 0) > (m.scoreHome ?? 0) ? "away" : "draw"),
           "homeTeam": {
             "name": m.homeTeam,
             "score": m.scoreHome ?? 0,
@@ -327,6 +331,7 @@ class ApiService {
           },
           "scorer": "", 
           "minute": m.matchMinute,
+          "duration": m.matchMinute,
           "isPenalty": title.contains('PENALTY') || body.contains('PENALTY'),
         };
 

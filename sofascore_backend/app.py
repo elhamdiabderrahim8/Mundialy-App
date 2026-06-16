@@ -1602,12 +1602,41 @@ def server_live_polling():
                 # --- 4. MI-TEMPS ---
                 status_text = (g.get('statusText') or g.get('shortStatusText') or "").upper()
                 if status_group == 3 and ("MI-TEMPS" in status_text or "HT" in status_text) and not state.get("ht_notified"):
-                    _send_server_push("⏱ MI-TEMPS", f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}", {"type": "ht", "gameId": game_id})
+                    game_data = fetch_365_json("game/", {"gameId": game_id})
+                    scorers = []
+                    if game_data and 'game' in game_data:
+                        members = _member_index_365(game_data['game'])
+                        for ev in game_data['game'].get('events', []):
+                            if ev.get('eventType', {}).get('id') == 1: # Goal
+                                mid = ev.get('memberId')
+                                team_id = ev.get('competitorId')
+                                team_name = h_name if team_id == home.get('id') else a_name
+                                p_name = members.get(mid, {}).get('name', 'Joueur') if mid else "Joueur"
+                                scorers.append({"name": p_name, "team": team_name, "minute": str(ev.get('gameTime', ''))})
+
+                    _send_server_push("⏱ MI-TEMPS", f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}", {
+                        "type": "HALF_TIME",
+                        "homeTeam": {"name": h_name, "score": str(h_score), "countryCode": get_iso(h_name), "logoUrl": f"https://flagcdn.com/w160/{get_iso(h_name)}.png"},
+                        "awayTeam": {"name": a_name, "score": str(a_score), "countryCode": get_iso(a_name), "logoUrl": f"https://flagcdn.com/w160/{get_iso(a_name)}.png"},
+                        "scorers": scorers[:2],
+                        "gameId": game_id
+                    })
                     state["ht_notified"] = True
 
                 # --- 5. FIN DU MATCH ---
                 if status_group == 4 and not state.get("ft_notified"):
-                    _send_server_push("🏁 FIN DU MATCH", f"Score final : {h_name} {h_score} - {a_score} {a_name}", {"type": "ft", "gameId": game_id})
+                    winner_side = "draw"
+                    if h_score > a_score: winner_side = "home"
+                    elif a_score > h_score: winner_side = "away"
+
+                    _send_server_push("🏁 FIN DU MATCH", f"Score final : {h_name} {h_score} - {a_score} {a_name}", {
+                        "type": "FULL_TIME",
+                        "winner": winner_side,
+                        "duration": status_text,
+                        "homeTeam": {"name": h_name, "score": str(h_score), "countryCode": get_iso(h_name), "logoUrl": f"https://flagcdn.com/w160/{get_iso(h_name)}.png"},
+                        "awayTeam": {"name": a_name, "score": str(a_score), "countryCode": get_iso(a_name), "logoUrl": f"https://flagcdn.com/w160/{get_iso(a_name)}.png"},
+                        "gameId": game_id
+                    })
                     state["ft_notified"] = True
 
         except Exception as e:

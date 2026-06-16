@@ -1,53 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns="http://schemas.android.com/apk/res/android"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="128dp"
     android:background="#0D0D1A">
 
-    <!-- Background Flag -->
     <ImageView
         android:id="@+id/ht_bg_flag"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:alpha="0.45" />
+        android:scaleType="centerCrop" />
 
-    <!-- Dark Overlay -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#8C000000" />
 
-    <!-- Sweep Line (Animation) -->
     <View
         android:id="@+id/ht_sweep_line"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:layout_gravity="center_vertical"
-        android:background="#FF9800" />
+        android:layout_centerInParent="true"
+        android:background="#FF9800"
+        android:visibility="invisible" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:orientation="vertical">
 
-        <!-- HT Badge -->
         <TextView
             android:id="@+id/ht_badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#FF9800"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="2dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
             android:text="HT"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold"
             android:visibility="invisible" />
 
-        <!-- Score Row -->
         <LinearLayout
             android:id="@+id/ht_score_row"
             android:layout_width="match_parent"
@@ -59,24 +56,25 @@
 
             <ImageView
                 android:id="@+id/ht_logo_home"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:scaleType="fitCenter" />
 
             <TextView
                 android:id="@+id/ht_score_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="20dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
                 android:text="0 - 0"
                 android:textColor="#FFFFFF"
-                android:textSize="24sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/ht_logo_away"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:scaleType="fitCenter" />
         </LinearLayout>
 
@@ -87,10 +85,8 @@
             android:text="Half Time"
             android:textColor="#88FFFFFF"
             android:textSize="10sp"
-            android:textAllCaps="true"
             android:visibility="invisible" />
 
-        <!-- Scorers Summary -->
         <TextView
             android:id="@+id/ht_scorers_summary"
             android:layout_width="wrap_content"
@@ -99,9 +95,8 @@
             android:textColor="#E7C16A"
             android:textSize="10sp"
             android:maxLines="2"
-            android:ellipsize="end"
             android:gravity="center"
             android:visibility="invisible" />
 
     </LinearLayout>
-</FrameLayout>
+</RelativeLayout>

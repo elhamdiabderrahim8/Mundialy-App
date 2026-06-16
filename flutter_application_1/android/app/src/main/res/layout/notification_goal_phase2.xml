@@ -2,18 +2,16 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="128dp"
-    android:background="#0D0D1A"
-    android:padding="16dp">
+    android:background="#0D0D1A">
 
-    <!-- Score Section -->
     <LinearLayout
-        android:id="@+id/score_row"
+        android:id="@+id/score_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Home Team -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -28,42 +26,42 @@
                 android:id="@+id/name_home"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#BBBBBB"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:textColor="#99FFFFFF"
+                android:textSize="10sp"
                 android:textAllCaps="true" />
         </LinearLayout>
 
-        <!-- Score Center -->
+        <View android:layout_width="12dp" android:layout_height="1dp" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:paddingHorizontal="20dp">
+            android:orientation="horizontal">
             <TextView
-                android:id="@+id/score_home_text"
+                android:id="@+id/score_home"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#FFD700"
-                android:textSize="36sp"
+                android:textColor="#FFFFFF"
+                android:textSize="38sp"
                 android:textStyle="bold" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" – "
-                android:textColor="#444444"
+                android:textColor="#33FFFFFF"
                 android:textSize="24sp" />
             <TextView
-                android:id="@+id/score_away_text"
+                android:id="@+id/score_away"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#FFD700"
-                android:textSize="36sp"
+                android:textColor="#FFFFFF"
+                android:textSize="38sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Away Team -->
+        <View android:layout_width="12dp" android:layout_height="1dp" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -78,54 +76,49 @@
                 android:id="@+id/name_away"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#BBBBBB"
-                android:textSize="11sp"
-                android:textStyle="bold"
+                android:textColor="#99FFFFFF"
+                android:textSize="10sp"
                 android:textAllCaps="true" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Scorer Section -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/score_row"
+        android:layout_below="@id/score_container"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/scorer_name"
+            android:id="@+id/scorer_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#FFD700"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
+        <View android:layout_width="8dp" android:layout_height="1dp" />
+
         <TextView
-            android:id="@+id/goal_minute"
+            android:id="@+id/minute_pill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:background="#33FFFFFF"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="1dp"
             android:textColor="#FFFFFF"
-            android:textSize="11sp" />
+            android:textSize="10sp" />
+
+        <View android:layout_width="6dp" android:layout_height="1dp" />
 
         <TextView
             android:id="@+id/penalty_badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
             android:background="#FF3333"
-            android:paddingHorizontal="5dp"
-            android:paddingVertical="1dp"
             android:text="PEN"
             android:textColor="#FFFFFF"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textStyle="bold"
             android:visibility="gone" />
     </LinearLayout>
