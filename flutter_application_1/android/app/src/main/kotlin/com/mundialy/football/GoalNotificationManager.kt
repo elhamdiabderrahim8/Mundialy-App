@@ -10,10 +10,7 @@ import android.os.Vibrator
 import android.view.View
 import android.widget.RemoteViews
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.request.RequestOptions
-import jp.wasabeef.glide.transformations.BlurTransformation
-import jp.wasabeef.glide.transformations.ColorFilterTransformation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -47,17 +44,10 @@ object GoalNotificationManager {
             val isPenalty = data["isPenalty"]?.toBoolean() ?: false
 
             val flagUrl = "https://flagcdn.com/w160/${scoringCountryCode}.png"
-            
-            val blurredFlag = Glide.with(context)
+            val flagBitmap = Glide.with(context)
                 .asBitmap()
                 .load(flagUrl)
-                .apply(RequestOptions().transform(
-                    MultiTransformation(
-                        BlurTransformation(12),
-                        ColorFilterTransformation(Color.parseColor("#99000000"))
-                    )
-                ))
-                .submit(800, 200)
+                .submit()
                 .get()
 
             val homeUrl = "https://flagcdn.com/w160/${homeCountryCode}.png"
@@ -76,43 +66,80 @@ object GoalNotificationManager {
                 .submit(120, 120)
                 .get()
 
+            fun createGoalBitmap(textToDraw: String, drawExclaim: Boolean): android.graphics.Bitmap {
+                val width = 800
+                val height = 240
+                val resultBitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(resultBitmap)
+                
+                val textPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    textSize = 180f
+                    typeface = android.graphics.Typeface.create("sans-serif-black", android.graphics.Typeface.NORMAL)
+                    textAlign = android.graphics.Paint.Align.LEFT
+                }
+
+                val goalWidth = textPaint.measureText("GOAL")
+                val exclWidth = textPaint.measureText("!")
+                val totalWidth = goalWidth + exclWidth
+                
+                val startX = (width - totalWidth) / 2
+                val startY = (height / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)
+
+                val goalHeight = textPaint.descent() - textPaint.ascent()
+                if (goalWidth > 0 && goalHeight > 0) {
+                    val scaledFlag = android.graphics.Bitmap.createScaledBitmap(flagBitmap, goalWidth.toInt(), goalHeight.toInt(), true)
+                    val shader = android.graphics.BitmapShader(scaledFlag, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
+                    val matrix = android.graphics.Matrix()
+                    matrix.setTranslate(startX, startY + textPaint.ascent())
+                    shader.setLocalMatrix(matrix)
+                    textPaint.shader = shader
+                }
+
+                canvas.drawText(textToDraw, startX, startY, textPaint)
+
+                if (drawExclaim) {
+                    val exclPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                        textSize = 180f
+                        typeface = android.graphics.Typeface.create("sans-serif-black", android.graphics.Typeface.NORMAL)
+                        textAlign = android.graphics.Paint.Align.LEFT
+                        color = android.graphics.Color.parseColor("#FFD700")
+                    }
+                    canvas.drawText("!", startX + goalWidth, startY, exclPaint)
+                }
+                return resultBitmap
+            }
+
             withContext(Dispatchers.Main) {
                 val pkg = context.packageName
                 val handler = Handler(Looper.getMainLooper())
                 
                 val views1 = RemoteViews(pkg, R.layout.notification_goal_phase1)
-                views1.setImageViewBitmap(R.id.iv_flag_bg, blurredFlag)
-                views1.setFloat(R.id.iv_flag_bg, "setAlpha", 0.35f)
-                views1.setViewVisibility(R.id.tv_letter_g, View.INVISIBLE)
-                views1.setViewVisibility(R.id.tv_letter_o, View.INVISIBLE)
-                views1.setViewVisibility(R.id.tv_letter_a, View.INVISIBLE)
-                views1.setViewVisibility(R.id.tv_letter_l, View.INVISIBLE)
-                views1.setViewVisibility(R.id.tv_exclaim,  View.INVISIBLE)
                 
+                views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("", false))
                 notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
 
                 handler.postDelayed({
-                    views1.setViewVisibility(R.id.tv_letter_g, View.VISIBLE)
+                    views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("G", false))
                     notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
                     vibrate(60)
                 }, 100)
                 handler.postDelayed({
-                    views1.setViewVisibility(R.id.tv_letter_o, View.VISIBLE)
+                    views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("GO", false))
                     notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
                     vibrate(60)
                 }, 320)
                 handler.postDelayed({
-                    views1.setViewVisibility(R.id.tv_letter_a, View.VISIBLE)
+                    views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("GOA", false))
                     notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
                     vibrate(60)
                 }, 540)
                 handler.postDelayed({
-                    views1.setViewVisibility(R.id.tv_letter_l, View.VISIBLE)
+                    views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("GOAL", false))
                     notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
                     vibrate(80)
                 }, 760)
                 handler.postDelayed({
-                    views1.setViewVisibility(R.id.tv_exclaim, View.VISIBLE)
+                    views1.setImageViewBitmap(R.id.iv_goal_text_image, createGoalBitmap("GOAL", true))
                     notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views1, context))
                     vibrate(120)
                 }, 1100)

@@ -4,7 +4,7 @@
     android:layout_height="100dp"
     android:background="#1A1F2E">
 
-    <View 
+    <FrameLayout 
         android:layout_width="match_parent" 
         android:layout_height="2dp" 
         android:background="#FF3C3C" 

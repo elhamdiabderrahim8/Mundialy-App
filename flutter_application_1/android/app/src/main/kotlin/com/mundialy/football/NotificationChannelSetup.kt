@@ -28,11 +28,19 @@ object NotificationChannelSetup {
     }
 
     fun buildNotif(views: RemoteViews, context: Context): Notification {
+        val intent = android.content.Intent(context, MainActivity::class.java).apply {
+            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            context, 0, intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
         return NotificationCompat.Builder(context, "match_channel")
-            // Prompt says R.drawable.ic_football, so using it directly
-            .setSmallIcon(R.drawable.ic_football)
+            .setSmallIcon(R.drawable.ic_notification)
             .setCustomBigContentView(views)
             .setCustomContentView(views)
+            .setContentIntent(pendingIntent)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
