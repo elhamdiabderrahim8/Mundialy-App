@@ -1,139 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="128dp"
-    android:background="#0D0D1A">
+    android:layout_height="100dp"
+    android:background="#1A1F2E">
 
-    <!-- Winner Flag Background or Split -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <View 
+        android:layout_width="match_parent" 
+        android:layout_height="2dp" 
+        android:background="#FF3C3C" 
+        android:layout_gravity="top" />
+
+    <LinearLayout 
+        android:layout_width="match_parent" 
+        android:layout_height="match_parent" 
         android:orientation="horizontal">
-        <ImageView
-            android:id="@+id/ft_bg_flag_left"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scaleType="centerCrop"
-            android:alpha="0.55" />
-        <ImageView
-            android:id="@+id/ft_bg_flag_right"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scaleType="centerCrop"
-            android:alpha="0.55"
-            android:visibility="gone" />
-    </LinearLayout>
 
-    <!-- Confetti Canvas Placeholder (Simulated via overlay) -->
-    <ImageView
-        android:id="@+id/ft_confetti_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop" />
-
-    <!-- Dark Overlay -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#73000000" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <!-- FT Badge -->
-        <TextView
-            android:id="@+id/ft_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#FF3333"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="2dp"
-            android:text="FT"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:visibility="invisible" />
-
-        <!-- Final Score Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:id="@+id/ft_logo_home"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:scaleType="fitCenter" />
-                <TextView
-                    android:id="@+id/ft_name_home"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/ft_score_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="32sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-                <ImageView
-                    android:id="@+id/ft_logo_away"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:scaleType="fitCenter" />
-                <TextView
-                    android:id="@+id/ft_name_away"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
-            </LinearLayout>
+        <LinearLayout 
+            android:layout_width="0dp" 
+            android:layout_height="match_parent" 
+            android:layout_weight="1" 
+            android:orientation="vertical" 
+            android:gravity="center">
+            
+            <ImageView 
+                android:id="@+id/iv_home_logo" 
+                android:layout_width="44dp" 
+                android:layout_height="44dp" />
+            
+            <TextView 
+                android:id="@+id/tv_home_name" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginTop="4dp" 
+                android:textSize="10sp" 
+                android:singleLine="true" 
+                android:ellipsize="end" />
         </LinearLayout>
 
-        <!-- Footer Footer -->
-        <TextView
-            android:id="@+id/ft_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Full Time"
-            android:textColor="#AAAAAA"
-            android:textSize="10sp" />
+        <LinearLayout 
+            android:layout_width="0dp" 
+            android:layout_height="match_parent" 
+            android:layout_weight="1.5" 
+            android:orientation="vertical" 
+            android:gravity="center">
 
-        <!-- MOTM -->
-        <TextView
-            android:id="@+id/ft_motm"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="#E7C16A"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            <TextView 
+                android:id="@+id/tv_ft_badge" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:text="FIN DU MATCH" 
+                android:textColor="#FF6060" 
+                android:textSize="9sp" 
+                android:textStyle="bold" />
+            
+            <LinearLayout 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:orientation="horizontal"
+                android:gravity="center">
+                
+                <TextView 
+                    android:id="@+id/tv_score_home" 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:textSize="32sp" />
+                
+                <TextView 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:layout_marginHorizontal="8dp" 
+                    android:text="-" 
+                    android:textColor="#33FFFFFF" 
+                    android:textSize="24sp" />
+                
+                <TextView 
+                    android:id="@+id/tv_score_away" 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:textSize="32sp" />
+            </LinearLayout>
+            
+            <TextView 
+                android:id="@+id/tv_motm" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:textColor="#E8B84B" 
+                android:textSize="10sp" 
+                android:singleLine="true"
+                android:visibility="gone" />
+        </LinearLayout>
 
+        <LinearLayout 
+            android:layout_width="0dp" 
+            android:layout_height="match_parent" 
+            android:layout_weight="1" 
+            android:orientation="vertical" 
+            android:gravity="center">
+            
+            <ImageView 
+                android:id="@+id/iv_away_logo" 
+                android:layout_width="44dp" 
+                android:layout_height="44dp" />
+            
+            <TextView 
+                android:id="@+id/tv_away_name" 
+                android:layout_width="wrap_content" 
+                android:layout_height="wrap_content" 
+                android:layout_marginTop="4dp" 
+                android:textSize="10sp" 
+                android:singleLine="true" 
+                android:ellipsize="end" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

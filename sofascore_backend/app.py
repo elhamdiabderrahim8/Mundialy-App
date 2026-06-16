@@ -1649,8 +1649,13 @@ def _send_server_push(title, body, extra_data):
     Internal helper to send Ultra-Premium Firebase messages.
     """
     try:
-        h_name = extra_data.get('homeTeamName', 'Home')
-        a_name = extra_data.get('awayTeamName', 'Away')
+        # Resolve team names from nested objects if necessary
+        h_name = extra_data.get('homeTeamName') or (extra_data.get('homeTeam', {}).get('name') if isinstance(extra_data.get('homeTeam'), dict) else 'Home')
+        a_name = extra_data.get('awayTeamName') or (extra_data.get('awayTeam', {}).get('name') if isinstance(extra_data.get('awayTeam'), dict) else 'Away')
+        
+        # Resolve scores
+        h_score = extra_data.get('homeScore') or (extra_data.get('homeTeam', {}).get('score') if isinstance(extra_data.get('homeTeam'), dict) else '0')
+        a_score = extra_data.get('awayScore') or (extra_data.get('awayTeam', {}).get('score') if isinstance(extra_data.get('awayTeam'), dict) else '0')
 
         # Mapping ISO pour les matchs automatiques
         def get_iso(name):
@@ -1660,31 +1665,43 @@ def _send_server_push(title, body, extra_data):
             }
             return iso_map.get(name, "un")
 
-        # Payload structuré pour le moteur Senior UI (Kotlin)
+        raw_type = extra_data.get('type', 'GOAL')
+        msg_type = raw_type
+        if raw_type == "start":
+            msg_type = "MATCH_START"
+        
+        scoring_team = extra_data.get('scoring_team', extra_data.get('scoringTeam', 'home'))
+        scoring_iso = get_iso(h_name) if scoring_team == 'home' else get_iso(a_name)
+
+        # Build flat payload structure expected by Android Native codebase
         fcm_payload_obj = {
-            "type": "GOAL",
-            "scoringTeam": extra_data.get('scoring_team', 'home'),
+            "type": msg_type,
             "title": title,
             "message": body,
-            "homeTeam": {
-                "name": h_name,
-                "score": str(extra_data.get('homeScore', '0')),
-                "countryCode": get_iso(h_name),
-                "logoUrl": f"https://flagcdn.com/w160/{get_iso(h_name)}.png"
-            },
-            "awayTeam": {
-                "name": a_name,
-                "score": str(extra_data.get('awayScore', '0')),
-                "countryCode": get_iso(a_name),
-                "logoUrl": f"https://flagcdn.com/w160/{get_iso(a_name)}.png"
-            },
-            "scorer": extra_data.get('scorer', 'Joueur'),
+            "scoringCountryCode": scoring_iso,
+            "homeCountryCode": get_iso(h_name),
+            "awayCountryCode": get_iso(a_name),
+            "homeTeamName": h_name,
+            "awayTeamName": a_name,
+            "homeScore": str(h_score),
+            "awayScore": str(a_score),
+            "scoringTeam": scoring_team,
+            "scorerName": extra_data.get('scorer', extra_data.get('scorerName', 'Joueur')),
             "minute": str(extra_data.get('minute', '0')),
-            "isPenalty": "true" if "PENALTY" in title.upper() else "false"
+            "isPenalty": "true" if "PENALTY" in title.upper() else "false",
+            "competition": extra_data.get('competition', 'Coupe du Monde'),
+            "motm": extra_data.get('motm', extra_data.get('winner', ''))
         }
+        
+        # topScorer handling for HT
+        if 'scorers' in extra_data and isinstance(extra_data['scorers'], list) and len(extra_data['scorers']) > 0:
+            s = extra_data['scorers'][0]
+            fcm_payload_obj['topScorer'] = f"⚽ {s.get('name', '')} {s.get('minute', '')}' · {s.get('team', '')}"
+        else:
+            fcm_payload_obj['topScorer'] = extra_data.get('topScorer', '')
 
-        # Sérialisation pour FCM (Data-only)
-        fcm_data = {str(k): json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in fcm_payload_obj.items()}
+        # Filter empty and force strings
+        fcm_data = {str(k): str(v) for k, v in fcm_payload_obj.items() if v is not None}
 
         message = messaging.Message(
             data=fcm_data,
@@ -1695,7 +1712,7 @@ def _send_server_push(title, body, extra_data):
             )
         )
         messaging.send(message)
-        print(f"🔥 [Auto-Polling Push] Sent Senior UI Goal for {h_name} vs {a_name}")
+        print(f"🔥 [Auto-Polling Push] Sent Senior UI {msg_type} for {h_name} vs {a_name}")
     except Exception as e:
         print(f"❌ [Auto-Polling Push] Error: {e}")
 

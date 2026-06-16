@@ -1,85 +1,51 @@
 package com.mundialy.football
 
-import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.*
-import android.view.View
 import android.widget.RemoteViews
-import androidx.core.app.NotificationCompat
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.NotificationTarget
+import com.bumptech.glide.request.RequestOptions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object MatchStartNotificationManager {
-    private const val CHANNEL_ID = "mundialy_live_alerts_v3"
-    private const val NOTIFICATION_ID = 1002
+    fun show(context: Context, data: Map<String, String>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val homeCountryCode = data["homeCountryCode"] ?: "un"
+            val awayCountryCode = data["awayCountryCode"] ?: "un"
+            val homeTeamName = data["homeTeamName"] ?: "Home"
+            val awayTeamName = data["awayTeamName"] ?: "Away"
+            val competition = data["competition"] ?: "Competition"
 
-    fun show(context: Context, payload: Map<String, Any?>) {
-        createChannel(context)
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
-        val home = payload["homeTeam"] as? Map<*, *>
-        val away = payload["awayTeam"] as? Map<*, *>
-        
-        val views = RemoteViews(context.packageName, R.layout.notification_match_start)
-        
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setCustomHeadsUpContentView(views) // Force le POP-UP
-            .setCustomContentView(views)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setDefaults(Notification.DEFAULT_ALL)
-            .setVibrate(longArrayOf(0, 200, 100, 200))
-            .setAutoCancel(true)
+            val homeUrl = "https://flagcdn.com/w160/${homeCountryCode}.png"
+            val homeLogo = Glide.with(context)
+                .asBitmap()
+                .load(homeUrl)
+                .apply(RequestOptions().transform(DiamondFlagTransformation()))
+                .submit(120, 120)
+                .get()
 
-        var notification = builder.build()
-        notificationManager.notify(NOTIFICATION_ID, notification)
+            val awayUrl = "https://flagcdn.com/w160/${awayCountryCode}.png"
+            val awayLogo = Glide.with(context)
+                .asBitmap()
+                .load(awayUrl)
+                .apply(RequestOptions().transform(DiamondFlagTransformation()))
+                .submit(120, 120)
+                .get()
 
-        val homeCode = home?.get("countryCode")?.toString() ?: ""
-        val awayCode = away?.get("countryCode")?.toString() ?: ""
-
-        Glide.with(context).asBitmap().load(FlagRepository.getFlagUrl(homeCode))
-            .into(NotificationTarget(context, R.id.flag_home_bg, views, notification, NOTIFICATION_ID))
-        Glide.with(context).asBitmap().load(FlagRepository.getFlagUrl(awayCode))
-            .into(NotificationTarget(context, R.id.flag_away_bg, views, notification, NOTIFICATION_ID))
-
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed({
-            views.setViewVisibility(R.id.pitch_line, View.VISIBLE)
-            notificationManager.notify(NOTIFICATION_ID, notification)
-        }, 800)
-
-        handler.postDelayed({
-            views.setViewVisibility(R.id.live_pill, View.VISIBLE)
-            views.setViewVisibility(R.id.logo_home_start, View.VISIBLE)
-            views.setViewVisibility(R.id.logo_away_start, View.VISIBLE)
-            views.setViewVisibility(R.id.match_teams_text, View.VISIBLE)
-            views.setTextViewText(R.id.match_teams_text, "${home?.get("name")}  VS  ${away?.get("name")}")
-            views.setTextViewText(R.id.match_footer, "${payload["competition"]}  •  ${payload["kickoffTime"]}")
-            
-            notificationManager.notify(NOTIFICATION_ID, notification)
-
-            val diamond = FlagRepository.DiamondTransformation()
-            home?.get("logoUrl")?.toString()?.let { url ->
-                Glide.with(context).asBitmap().load(url).transform(diamond)
-                    .into(NotificationTarget(context, R.id.logo_home_start, views, notification, NOTIFICATION_ID))
+            withContext(Dispatchers.Main) {
+                val views = RemoteViews(context.packageName, R.layout.notification_match_start)
+                views.setImageViewBitmap(R.id.iv_home_logo, homeLogo)
+                views.setImageViewBitmap(R.id.iv_away_logo, awayLogo)
+                views.setTextViewText(R.id.tv_home_name, homeTeamName)
+                views.setTextViewText(R.id.tv_away_name, awayTeamName)
+                views.setTextViewText(R.id.tv_competition, competition)
+                
+                val notifManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notifManager.notify(NotificationChannelSetup.NOTIF_ID, NotificationChannelSetup.buildNotif(views, context))
             }
-            away?.get("logoUrl")?.toString()?.let { url ->
-                Glide.with(context).asBitmap().load(url).transform(diamond)
-                    .into(NotificationTarget(context, R.id.logo_away_start, views, notification, NOTIFICATION_ID))
-            }
-        }, 1500)
-    }
-
-    private fun createChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(CHANNEL_ID, "Match Alerts High", NotificationManager.IMPORTANCE_HIGH).apply {
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-                enableVibration(true)
-            }
-            notificationManager.createNotificationChannel(channel)
         }
     }
 }
