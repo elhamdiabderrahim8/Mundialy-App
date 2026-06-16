@@ -1583,11 +1583,14 @@ def server_live_polling():
                         scoring_side = "home" if h_score > old_h else "away"
 
                         game_data = fetch_365_json("game/", {"gameId": game_id})
-                        p_name = ""
+                        p_name, p_min = "", ""
                         if game_data and 'game' in game_data:
+                            members = _member_index_365(game_data['game'])
                             for ev in reversed(game_data['game'].get('events', [])):
                                 if ev.get('eventType', {}).get('id') == 1:
-                                    p_name = ev.get('playerName', '')
+                                    mid = ev.get('memberId')
+                                    p_name = members.get(mid, {}).get('name', '') if mid else ""
+                                    p_min = str(ev.get('gameTime', '0'))
                                     break
 
                         body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}" if p_name else f"BUT !!! {h_name} {h_score} - {a_score} {a_name}"
@@ -1601,6 +1604,7 @@ def server_live_polling():
                             "homeScore": str(h_score),
                             "awayScore": str(a_score),
                             "scorer": p_name or "Buteur",
+                            "minute": p_min or "0",
                             "gameId": game_id
                         })
                         state["score"] = new_score
