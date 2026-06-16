@@ -10,7 +10,9 @@ void showGoalOverlay(BuildContext context, Map<String, dynamic> payload) {
     builder: (context) => AnimatedGoalOverlay(
       payload: payload,
       onDismiss: () {
-        entry?.remove();
+        if (entry != null && entry!.mounted) {
+          entry!.remove();
+        }
       },
     ),
   );
@@ -66,11 +68,11 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
       duration: const Duration(milliseconds: 600),
     );
 
-    // Staggered "GOAL"
+    // Staggered "GOAL!" (5 items: G, O, A, L, !)
     _letterScales = [];
     _letterFades = [];
-    for (int i = 0; i < 4; i++) {
-      final start = i * 0.15;
+    for (int i = 0; i < 5; i++) {
+      final start = i * 0.12;
       final end = start + 0.3;
       _letterScales.add(
         Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -136,7 +138,7 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
   Future<void> _startAnimationSequence() async {
     // 1. Show GOAL
     await _goalTextController.forward();
-    await Future.delayed(const Duration(milliseconds: 800));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     // 2. Transition to Score
     await _transitionController.forward();
@@ -145,8 +147,10 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
     _scorePulseController.forward();
 
     // 4. Wait and Dismiss
-    await Future.delayed(const Duration(seconds: 4));
-    widget.onDismiss();
+    await Future.delayed(const Duration(seconds: 5));
+    if (mounted) {
+      widget.onDismiss();
+    }
   }
 
   @override
@@ -160,100 +164,91 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
   @override
   Widget build(BuildContext context) {
     if (_isLoadingImage) {
-      return const SizedBox.shrink(); // Wait silently
+      return const SizedBox.shrink();
     }
 
     return Material(
-      color: Colors.transparent,
-      child: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: Container(
-            margin: const EdgeInsets.only(top: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
+      color: Colors.black45,
+      child: Stack(
+        children: [
+          // Dismiss on tap
+          GestureDetector(
+            onTap: widget.onDismiss,
+            child: Container(color: Colors.transparent),
+          ),
+          SafeArea(
+            child: Center(
+              child: AnimatedBuilder(
+                animation: _transitionController,
+                builder: (context, child) {
+                  return Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    constraints: const BoxConstraints(minHeight: 140),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0E1116), // Dark background like image
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          blurRadius: 30,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // GOAL! Layer
+                        Opacity(
+                          opacity: (1.0 - _transitionController.value * 2).clamp(0.0, 1.0),
+                          child: Visibility(
+                            visible: _transitionController.value < 0.6,
+                            child: _buildGoalText(),
+                          ),
+                        ),
+                        // SCORE Layer
+                        Opacity(
+                          opacity: ((_transitionController.value - 0.4) * 2).clamp(0.0, 1.0),
+                          child: Visibility(
+                            visible: _transitionController.value > 0.4,
+                            child: _buildScoreBanner(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: AnimatedBuilder(
-              animation: _transitionController,
-              builder: (context, child) {
-                final isGoalPhase = _transitionController.value < 0.5;
-                if (isGoalPhase) {
-                  return Opacity(
-                    opacity: 1.0 - (_transitionController.value * 2),
-                    child: _buildGoalText(),
-                  );
-                } else {
-                  return Opacity(
-                    opacity: (_transitionController.value - 0.5) * 2,
-                    child: _buildScoreBanner(),
-                  );
-                }
-              },
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildGoalText() {
-    final letters = ['G', 'O', 'A', 'L'];
+    final letters = ['G', 'O', 'A', 'L', '!'];
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(letters.length, (index) {
         return AnimatedBuilder(
           animation: _goalTextController,
           builder: (context, child) {
+            final isExclamation = letters[index] == '!';
+            
+            // For the exclamation mark, we might want a different style or just the dot in yellow
+            // But let's follow the image: the yellow dot
+            
             return FadeTransition(
               opacity: _letterFades[index],
               child: ScaleTransition(
                 scale: _letterScales[index],
-                child: _flagImage != null
-                    ? ShaderMask(
-                        blendMode: BlendMode.srcIn,
-                        shaderCallback: (bounds) {
-                          final matrix = Matrix4.diagonal3Values(
-                            bounds.width / _flagImage!.width,
-                            bounds.height / _flagImage!.height,
-                            1.0,
-                          );
-                          return ImageShader(
-                            _flagImage!,
-                            TileMode.clamp,
-                            TileMode.clamp,
-                            matrix.storage,
-                          );
-                        },
-                        child: Text(
-                          letters[index],
-                          style: const TextStyle(
-                            fontSize: 60,
-                            fontWeight: FontWeight.w900,
-                            height: 1,
-                          ),
-                        ),
-                      )
-                    : Text(
-                        letters[index],
-                        style: const TextStyle(
-                          fontSize: 60,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
-                          height: 1,
-                        ),
-                      ),
+                child: _buildAnimatedLetter(letters[index], isExclamation),
               ),
             );
           },
@@ -262,14 +257,68 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
     );
   }
 
+  Widget _buildAnimatedLetter(String letter, bool isExclamation) {
+    if (isExclamation) {
+      return Text(
+        letter,
+        style: const TextStyle(
+          fontSize: 80,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFFFFD700), // Golden yellow for the !
+          height: 1,
+        ),
+      );
+    }
+
+    if (_flagImage == null) {
+      return Text(
+        letter,
+        style: const TextStyle(
+          fontSize: 80,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+          height: 1,
+        ),
+      );
+    }
+
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) {
+        final matrix = Matrix4.identity();
+        // Scale and shift flag to be visible in each letter
+        final scaleX = bounds.width / _flagImage!.width;
+        final scaleY = bounds.height / _flagImage!.height;
+        matrix.scale(scaleX * 1.5, scaleY * 1.5); 
+        
+        return ImageShader(
+          _flagImage!,
+          TileMode.mirror,
+          TileMode.mirror,
+          matrix.storage,
+        );
+      },
+      child: Text(
+        letter,
+        style: const TextStyle(
+          fontSize: 80,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+    );
+  }
+
   Widget _buildScoreBanner() {
-    final homeTeam = widget.payload['homeTeamName'] ?? 'Home';
-    final awayTeam = widget.payload['awayTeamName'] ?? 'Away';
+    final homeTeam = (widget.payload['homeTeamName'] ?? '').toString().toUpperCase();
+    final awayTeam = (widget.payload['awayTeamName'] ?? '').toString().toUpperCase();
+    final homeCode = widget.payload['homeCode'] ?? '';
+    final awayCode = widget.payload['awayCode'] ?? '';
     final homeScore = widget.payload['homeScore'] ?? '0';
     final awayScore = widget.payload['awayScore'] ?? '0';
-    final scorer = widget.payload['scorerName'] ?? '';
+    final scorer = widget.payload['scorerName'] ?? widget.payload['scorer'] ?? '';
     final minute = widget.payload['minute'] ?? '';
-    final isPenalty = widget.payload['isPenalty'] == 'true';
+    final isPenalty = widget.payload['isPenalty'] == true || widget.payload['isPenalty'] == 'true';
     final scoringTeam = widget.payload['scoringTeam'] ?? '';
 
     final homeScored = scoringTeam == 'home';
@@ -279,91 +328,155 @@ class _AnimatedGoalOverlayState extends State<AnimatedGoalOverlay>
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              homeTeam,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            // Home Team
+            Expanded(
+              child: Column(
+                children: [
+                  NationFlagBadge(countryCode: homeCode, size: 50),
+                  const SizedBox(height: 8),
+                  Text(
+                    homeTeam,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white70,
+                      letterSpacing: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 16),
-            _buildScoreNumber(homeScore, homeScored),
-            const Text(
-              ' - ',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white54,
-              ),
+            
+            // Score Center
+            Column(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildScoreNumber(homeScore, homeScored),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        '-',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white30,
+                        ),
+                      ),
+                    ),
+                    _buildScoreNumber(awayScore, awayScored),
+                  ],
+                ),
+                
+                // Scorer Info
+                if (scorer.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.sports_soccer, color: Colors.white, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        scorer,
+                        style: const TextStyle(
+                          color: Color(0xFFFFD700),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (minute.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white12,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "$minute'",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (isPenalty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                        ),
+                        child: const Text(
+                          "PENALTY",
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
             ),
-            _buildScoreNumber(awayScore, awayScored),
-            const SizedBox(width: 16),
-            Text(
-              awayTeam,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+
+            // Away Team
+            Expanded(
+              child: Column(
+                children: [
+                  NationFlagBadge(countryCode: awayCode, size: 50),
+                  const SizedBox(height: 8),
+                  Text(
+                    awayTeam,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white70,
+                      letterSpacing: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        if (scorer.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.sports_soccer,
-                  color: AppColors.secondary,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  "$scorer ${minute.isNotEmpty ? "$minute'" : ""}${isPenalty ? " (P)" : ""}",
-                  style: const TextStyle(
-                    color: AppColors.secondary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
       ],
     );
   }
 
   Widget _buildScoreNumber(String score, bool didScore) {
-    if (!didScore) {
-      return Text(
-        score,
-        style: const TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      );
-    }
+    final style = TextStyle(
+      fontSize: 48,
+      fontWeight: FontWeight.w900,
+      color: didScore ? const Color(0xFFFF4B4B) : Colors.white70,
+    );
+
+    if (!didScore) return Text(score, style: style);
+
     return AnimatedBuilder(
       animation: _scorePulseController,
       builder: (context, child) {
-        final scale = 1.0 + (_scorePulseController.value * 0.3);
+        final scale = 1.0 + (_scorePulseController.value * 0.2);
         return Transform.scale(
           scale: scale,
-          child: Text(
-            score,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.redAccent,
-            ),
-          ),
+          child: Text(score, style: style),
         );
       },
     );

@@ -1,9 +1,9 @@
 package com.mundialy.football
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.*
 import android.os.*
 import android.view.View
 import android.widget.RemoteViews
@@ -13,7 +13,7 @@ import com.bumptech.glide.request.target.NotificationTarget
 
 object HalfTimeNotificationManager {
 
-    private const val CHANNEL_ID = "mundialy_live_alerts_v2"
+    private const val CHANNEL_ID = "mundialy_live_alerts_v3"
     private const val NOTIFICATION_ID = 1003
 
     fun show(context: Context, payload: Map<String, Any?>) {
@@ -25,7 +25,6 @@ object HalfTimeNotificationManager {
         val scorers = payload["scorers"] as? List<Map<*, *>> ?: emptyList()
         
         val views = RemoteViews(context.packageName, R.layout.notification_half_time)
-        
         views.setTextViewText(R.id.ht_score_text, "${home?.get("score") ?: 0} - ${away?.get("score") ?: 0}")
         views.setTextViewText(R.id.ht_subtitle, "Half Time")
         
@@ -36,23 +35,15 @@ object HalfTimeNotificationManager {
             views.setTextViewText(R.id.ht_scorers_summary, summary)
         }
 
-        val bgCode = if (scorers.isEmpty()) {
-            home?.get("countryCode")?.toString()
-        } else {
-            val lastScorer = scorers.last()
-            val teamName = lastScorer["team"]?.toString()
-            if (teamName == home?.get("name")) home?.get("countryCode")?.toString()
-            else away?.get("countryCode")?.toString()
-        } ?: home?.get("countryCode")?.toString() ?: ""
+        val bgCode = home?.get("countryCode")?.toString() ?: ""
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setCustomHeadsUpContentView(views)
             .setCustomContentView(views)
-            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setDefaults(Notification.DEFAULT_ALL)
             .setVibrate(longArrayOf(0, 150, 50, 150))
-            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
 
         var notification = builder.build()
@@ -76,32 +67,21 @@ object HalfTimeNotificationManager {
 
         val handler = Handler(Looper.getMainLooper())
         handler.postDelayed({
-            views.setViewVisibility(R.id.ht_sweep_line, View.VISIBLE)
-            notificationManager.notify(NOTIFICATION_ID, notification)
-        }, 100)
-
-        handler.postDelayed({
-            views.setViewVisibility(R.id.ht_sweep_line, View.GONE)
             views.setViewVisibility(R.id.ht_badge, View.VISIBLE)
-            views.setFloat(R.id.ht_badge, "setScaleX", 1.15f)
-            views.setFloat(R.id.ht_badge, "setScaleY", 1.15f)
-            notificationManager.notify(NOTIFICATION_ID, notification)
-        }, 800)
-
-        handler.postDelayed({
             views.setViewVisibility(R.id.ht_score_row, View.VISIBLE)
             views.setViewVisibility(R.id.ht_subtitle, View.VISIBLE)
-            if (scorers.isNotEmpty()) {
-                views.setViewVisibility(R.id.ht_scorers_summary, View.VISIBLE)
-            }
+            if (scorers.isNotEmpty()) views.setViewVisibility(R.id.ht_scorers_summary, View.VISIBLE)
             notificationManager.notify(NOTIFICATION_ID, notification)
-        }, 1200)
+        }, 500)
     }
 
     private fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(CHANNEL_ID, "Match Alerts", NotificationManager.IMPORTANCE_HIGH)
+            val channel = NotificationChannel(CHANNEL_ID, "Match Alerts High", NotificationManager.IMPORTANCE_HIGH).apply {
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                enableVibration(true)
+            }
             notificationManager.createNotificationChannel(channel)
         }
     }

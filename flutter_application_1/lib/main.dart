@@ -21,14 +21,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Background message: ${message.notification?.title}");
   
   final type = message.data['type'];
-  if (type == 'goal') {
-    final homeTeam = message.data['homeTeamName'] ?? '';
-    final awayTeam = message.data['awayTeamName'] ?? '';
-    final title = "BUT ! 🔥";
-    final body = "$homeTeam vs $awayTeam";
-    await ApiService.initNotifications();
-    await ApiService.showSystemNotification(title, body);
-  }
+  final isGoal = type == 'goal' || type == 'GOAL';
+
+  final homeTeam = message.data['homeTeamName'] ?? '';
+  final awayTeam = message.data['awayTeamName'] ?? '';
+  final title = message.notification?.title ?? (isGoal ? "BUT ! 🔥" : "Alerte Match");
+  final body = message.notification?.body ?? "$homeTeam vs $awayTeam";
+
+  await ApiService.initNotifications();
+  await ApiService.showSystemNotification(title, body, isGoal: isGoal);
 }
 
 void main() async {
@@ -99,10 +100,11 @@ void _handleForegroundMessage(RemoteMessage message) {
   debugPrint('FCM Foreground Message: ${message.notification?.title}');
 
   final type = message.data['type'];
+  final isGoal = type == 'goal' || type == 'GOAL';
   final context = globalNavigatorKey.currentContext;
 
   if (context != null && context.mounted) {
-    if (type == 'goal') {
+    if (isGoal) {
       showGoalOverlay(context, message.data);
       
       final homeTeam = message.data['homeTeamName'] ?? '';
@@ -117,36 +119,8 @@ void _handleForegroundMessage(RemoteMessage message) {
         "$homeTeam vs $awayTeam",
         isGoal: true,
       );
-    } else {
-      final title = message.notification?.title ?? "Alerte Match";
-      final body = message.notification?.body ?? "";
-      final homeTeam = message.data['homeTeamName'] ?? '';
-      final awayTeam = message.data['awayTeamName'] ?? '';
-      final minute = message.data['minute'] ?? '';
-
-      if (homeTeam.isNotEmpty && awayTeam.isNotEmpty) {
-        InAppNotification.show(
-          context,
-          homeTeam,
-          awayTeam,
-          minute,
-          title,
-          body,
-          isGoal: false,
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '$title - $body',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: AppColors.primary,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
+    } 
+    // Non-goal notifications don't show an in-app banner ("sans visualisation de l'onglet")
   }
 
   refreshStreamController.add(null);

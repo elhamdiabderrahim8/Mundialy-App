@@ -1,5 +1,6 @@
 package com.mundialy.football
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -11,11 +12,13 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.NotificationTarget
 
 object MatchStartNotificationManager {
-    private const val CHANNEL_ID = "mundialy_live_alerts_v2"
-    private const val NOTIFICATION_ID = 1002 // Unique ID for match start
+    private const val CHANNEL_ID = "mundialy_live_alerts_v3"
+    private const val NOTIFICATION_ID = 1002
 
     fun show(context: Context, payload: Map<String, Any?>) {
         createChannel(context)
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
         val home = payload["homeTeam"] as? Map<*, *>
         val away = payload["awayTeam"] as? Map<*, *>
         
@@ -23,16 +26,14 @@ object MatchStartNotificationManager {
         
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setCustomHeadsUpContentView(views)
+            .setCustomHeadsUpContentView(views) // Force le POP-UP
             .setCustomContentView(views)
-            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setDefaults(Notification.DEFAULT_ALL)
             .setVibrate(longArrayOf(0, 200, 100, 200))
-            .setOnlyAlertOnce(true)
             .setAutoCancel(true)
 
         var notification = builder.build()
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
 
         val homeCode = home?.get("countryCode")?.toString() ?: ""
@@ -44,7 +45,6 @@ object MatchStartNotificationManager {
             .into(NotificationTarget(context, R.id.flag_away_bg, views, notification, NOTIFICATION_ID))
 
         val handler = Handler(Looper.getMainLooper())
-        
         handler.postDelayed({
             views.setViewVisibility(R.id.pitch_line, View.VISIBLE)
             notificationManager.notify(NOTIFICATION_ID, notification)
@@ -55,7 +55,6 @@ object MatchStartNotificationManager {
             views.setViewVisibility(R.id.logo_home_start, View.VISIBLE)
             views.setViewVisibility(R.id.logo_away_start, View.VISIBLE)
             views.setViewVisibility(R.id.match_teams_text, View.VISIBLE)
-            
             views.setTextViewText(R.id.match_teams_text, "${home?.get("name")}  VS  ${away?.get("name")}")
             views.setTextViewText(R.id.match_footer, "${payload["competition"]}  •  ${payload["kickoffTime"]}")
             
@@ -76,7 +75,10 @@ object MatchStartNotificationManager {
     private fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(CHANNEL_ID, "Match Alerts", NotificationManager.IMPORTANCE_HIGH)
+            val channel = NotificationChannel(CHANNEL_ID, "Match Alerts High", NotificationManager.IMPORTANCE_HIGH).apply {
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                enableVibration(true)
+            }
             notificationManager.createNotificationChannel(channel)
         }
     }

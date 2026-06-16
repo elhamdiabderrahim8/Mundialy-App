@@ -39,7 +39,8 @@ class _MatchState {
 }
 
 class ApiService {
-  static const String _liveAlertsChannelId = 'mundialy_live_alerts_v2';
+  static const String _goalAlertsChannelId = 'mundialy_goal_alerts';
+  static const String _otherAlertsChannelId = 'mundialy_other_alerts';
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   static final Map<String, _MatchState> _matchStates = {};
@@ -117,32 +118,46 @@ class ApiService {
 
     await _notifications.initialize(settings);
 
-    const channel = AndroidNotificationChannel(
-      _liveAlertsChannelId,
+    const goalChannel = AndroidNotificationChannel(
+      _goalAlertsChannelId,
       'Buts en Direct',
-      description: 'Alertes en temps réel lors d\'un but',
+      description: 'Alertes en temps réel lors d\'un but (Alertes Prioritaires)',
       importance: Importance.max,
       playSound: true,
       enableVibration: true,
+      showBadge: true,
     );
 
-    await _notifications
+    const otherChannel = AndroidNotificationChannel(
+      _otherAlertsChannelId,
+      'Infos Match',
+      description: 'Début, fin de match et autres infos (Vibration uniquement)',
+      importance: Importance.defaultImportance, // Shows in tray, vibrates, but no heads-up
+      playSound: false,
+      enableVibration: true,
+      showBadge: false,
+    );
+
+    final plugin = _notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
+        >();
+    
+    await plugin?.createNotificationChannel(goalChannel);
+    await plugin?.createNotificationChannel(otherChannel);
   }
 
-  static Future<void> showSystemNotification(String title, String body) async {
-    const androidDetails = AndroidNotificationDetails(
-      _liveAlertsChannelId,
-      'Buts en Direct',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
+  static Future<void> showSystemNotification(String title, String body, {bool isGoal = false}) async {
+    final androidDetails = AndroidNotificationDetails(
+      isGoal ? _goalAlertsChannelId : _otherAlertsChannelId,
+      isGoal ? 'Buts en Direct' : 'Infos Match',
+      importance: isGoal ? Importance.max : Importance.defaultImportance,
+      priority: isGoal ? Priority.high : Priority.defaultPriority,
+      playSound: isGoal,
       enableVibration: true,
+      icon: '@drawable/ic_notification',
     );
-    const details = NotificationDetails(android: androidDetails);
+    final details = NotificationDetails(android: androidDetails);
     await _notifications.show(
       DateTime.now().millisecond,
       title,
@@ -177,11 +192,12 @@ class ApiService {
       final currentHome = m.scoreHome ?? 0;
       final currentAway = m.scoreAway ?? 0;
       final currentStatus = m.statusShort ?? '';
+      final currentLongStatus = m.statusLong ?? '';
 
       if (_matchStates.containsKey(m.id)) {
         final lastState = _matchStates[m.id]!;
 
-        // Check for Goal Scored
+        // 1. Goal Scored
         if (currentHome > lastState.home || currentAway > lastState.away) {
           bool homeScored = currentHome > lastState.home;
           _triggerNotification(
@@ -192,7 +208,7 @@ class ApiService {
             homeScored: homeScored,
           );
         }
-        // Check for Cancelled Goal (VAR)
+        // 2. Cancelled Goal (VAR)
         else if (currentHome < lastState.home || currentAway < lastState.away) {
           _triggerNotification(
             m,
@@ -202,18 +218,25 @@ class ApiService {
           );
         }
 
-        // Check for Status Change
-        if (currentStatus != lastState.status) {
-          if (currentStatus == 'HT') {
-            _triggerNotification(
+        // 3. Status Change (Start, HT, FT)
+        if (currentStatus != lastState.status || (currentStatus == 'LIVE' && lastState.status == 'NS')) {
+          if (m.isLive && (lastState.status == 'NS' || lastState.status == '')) {
+             _triggerNotification(
               m,
-              '⏱ MI-TEMPS',
-              '${m.homeTeam} $currentHome - $currentAway ${m.awayTeam}',
+              '🎬 MATCH DÉMARRÉ',
+              'C\'est parti entre ${m.homeTeam} et ${m.awayTeam} !',
               false,
             );
-          } else if (currentStatus == 'FT' ||
-              currentStatus == 'AET' ||
-              currentStatus == 'PEN') {
+          } else if (m.matchMinute == 'HT' || currentLongStatus.toLowerCase().contains('mi-temps')) {
+            if (lastState.status != 'HT') {
+               _triggerNotification(
+                m,
+                '⏱ MI-TEMPS',
+                '${m.homeTeam} $currentHome - $currentAway ${m.awayTeam}',
+                false,
+              );
+            }
+          } else if (m.isFinished) {
             _triggerNotification(
               m,
               '🏁 FIN DU MATCH',
@@ -257,20 +280,48 @@ class ApiService {
     bool isGoal, {
     bool? homeScored,
   }) async {
-    // 1. In-App Animated Notification (if app is open)
+    String scorer = "";
+    bool isPenalty = title.contains('PENALTY') || body.contains('PENALTY');
+
+    // 0. If Goal, try to fetch the scorer name immediately
+    if (isGoal) {
+      try {
+        final details = await fetchFullMatchDetails(m.id).timeout(const Duration(seconds: 4));
+        if (details != null && details.summary.events.isNotEmpty) {
+          final goals = details.summary.events.where((e) => e.icon == MatchEventIcon.goal).toList();
+          if (goals.isNotEmpty) {
+            final lastGoal = goals.last;
+            scorer = lastGoal.scorerName;
+            if (lastGoal.title.contains('PENALTY') || lastGoal.detail.contains('penalty')) {
+              isPenalty = true;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching scorer for notification: $e');
+      }
+    }
+
+    // 1. Visual Notification (if app is open)
     final context = globalNavigatorKey.currentContext;
     if (context != null) {
       if (isGoal && homeScored != null) {
+        // Full screen animation for Goal
         showGoalOverlay(context, {
           'scoringTeamCode': homeScored ? m.homeCode : m.awayCode,
           'homeTeamName': m.homeTeam,
           'awayTeamName': m.awayTeam,
+          'homeCode': m.homeCode,
+          'awayCode': m.awayCode,
           'homeScore': '${m.scoreHome ?? 0}',
           'awayScore': '${m.scoreAway ?? 0}',
           'scoringTeam': homeScored ? 'home' : 'away',
           'minute': m.matchMinute,
+          'scorer': scorer,
+          'isPenalty': isPenalty,
         });
-      } else {
+      } else if (isGoal) {
+        // Fallback for goals without team info
         InAppNotification.show(
           context,
           m.homeTeam,
@@ -278,17 +329,20 @@ class ApiService {
           m.matchMinute,
           title,
           body,
-          isGoal: isGoal,
+          isGoal: true,
         );
       }
+      // Non-goal notifications don't show an in-app banner ("sans visualisation de l'onglet")
     }
 
     // 2. System Push Notification (Local)
     final android = AndroidNotificationDetails(
-      _liveAlertsChannelId,
-      'Buts en Direct',
-      importance: Importance.max,
-      priority: Priority.high,
+      isGoal ? _goalAlertsChannelId : _otherAlertsChannelId,
+      isGoal ? 'Buts en Direct' : 'Infos Match',
+      importance: isGoal ? Importance.max : Importance.defaultImportance,
+      priority: isGoal ? Priority.high : Priority.defaultPriority,
+      playSound: isGoal,
+      enableVibration: true,
       icon: '@drawable/ic_notification',
       color: const Color(0xFFD4AF37),
       styleInformation: BigTextStyleInformation(
@@ -309,13 +363,14 @@ class ApiService {
         if (isGoal) type = "GOAL";
         else if (title.contains('TEMPS') || title.contains('HT')) type = "HALF_TIME";
         else if (title.contains('FIN') || title.contains('FT')) type = "FULL_TIME";
+        else if (title.contains('DÉMARRÉ')) type = "START";
 
         final payload = {
           "topic": "live_matches",
           "type": type,
           "title": title,
           "message": body,
-          "scoringTeam": homeScored == true ? "home" : "away",
+          "scoringTeam": homeScored == true ? "home" : (homeScored == false ? "away" : ""),
           "winner": (m.scoreHome ?? 0) > (m.scoreAway ?? 0) ? "home" : ((m.scoreAway ?? 0) > (m.scoreHome ?? 0) ? "away" : "draw"),
           "homeTeam": {
             "name": m.homeTeam,
@@ -329,10 +384,10 @@ class ApiService {
             "countryCode": m.awayCode.toLowerCase(),
             "logoUrl": "https://flagcdn.com/w160/${m.awayCode.toLowerCase()}.png"
           },
-          "scorer": "", 
+          "scorer": scorer, 
           "minute": m.matchMinute,
           "duration": m.matchMinute,
-          "isPenalty": title.contains('PENALTY') || body.contains('PENALTY'),
+          "isPenalty": isPenalty,
         };
 
         await http
