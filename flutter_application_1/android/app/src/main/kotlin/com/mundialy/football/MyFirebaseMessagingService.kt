@@ -11,22 +11,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
         
         val data = remoteMessage.data
-        val type = data["type"]
+        val type = data["type"] ?: return
         
         Log.d("FCM", "Received message type: $type")
 
-        if (type?.equals("GOAL", ignoreCase = true) == true) {
-            val payload = parsePayload(data)
-            GoalNotificationManager(this).showGoalNotification(payload)
-        } else if (type?.equals("MATCH_START", ignoreCase = true) == true) {
-            val payload = parsePayload(data)
-            GoalNotificationManager(this).showMatchStartNotification(payload)
-        } else if (type?.equals("HALF_TIME", ignoreCase = true) == true) {
-            val payload = parsePayload(data)
-            GoalNotificationManager(this).showHalfTimeNotification(payload)
-        } else if (type?.equals("FULL_TIME", ignoreCase = true) == true) {
-            val payload = parsePayload(data)
-            GoalNotificationManager(this).showFullTimeNotification(payload)
+        val payload = parsePayload(data)
+
+        when (type.uppercase()) {
+            "GOAL" -> GoalNotificationManager.show(this, payload)
+            "MATCH_START" -> MatchStartNotificationManager.show(this, payload)
+            "HALF_TIME" -> HalfTimeNotificationManager.show(this, payload)
+            "FULL_TIME" -> FullTimeNotificationManager.show(this, payload)
+            else -> Log.w("FCM", "Unknown notification type: $type")
         }
     }
 
