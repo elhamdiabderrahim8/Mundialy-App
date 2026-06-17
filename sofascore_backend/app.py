@@ -305,18 +305,29 @@ def _save_json_file(path, data):
 
 def _get_365_all_games(force=False):
     cache_path = os.path.join(WC2026_DIR, "fixtures_365.json")
-    if not force and os.path.exists(cache_path) and (time.time() - os.path.getmtime(cache_path)) < 60:
+    if not force and os.path.exists(cache_path) and (time.time() - os.path.getmtime(cache_path)) < 300: # Cache 5 min
         return _load_json_file(cache_path) or []
+
+    # OPTIMISATION : On demande seulement la compétition Coupe du Monde (5930) pour économiser la RAM
     raw = fetch_365_json("games/allscores/", {
         "startDate": SCORES365_START_DATE,
         "endDate": SCORES365_END_DATE,
         "sports": 1,
+        "competitions": SCORES365_COMPETITION_ID # Filtrage côté serveur 365Scores
     })
+
     games = []
     if isinstance(raw, dict):
         for game in raw.get("games", []):
+            # Double vérification pour être sûr
             if _safe_int(game.get("competitionId")) == SCORES365_COMPETITION_ID:
                 games.append(_normalize_365_game(game))
+
+    # Libération explicite de la grosse réponse brute
+    del raw
+    import gc
+    gc.collect()
+
     games.sort(key=lambda x: x.get("fixture", {}).get("timestamp") or 0)
     if games:
         _save_json_file(cache_path, games)
@@ -1540,11 +1551,13 @@ def server_live_polling():
                 status_group = g.get('statusGroup')
                 home, away = g.get('homeCompetitor', {}), g.get('awayCompetitor', {})
                 h_name, a_name = home.get('name', 'Home'), away.get('name', 'Away')
-                h_score = int(home.get('score', 0)) if home.get('score') is not None else 0
-                a_score = int(away.get('score', 0)) if away.get('score') is not None else 0
+                raw_h = home.get('score', 0)
+                raw_a = away.get('score', 0)
+                h_score = max(0, int(raw_h)) if raw_h is not None else 0
+                a_score = max(0, int(raw_a)) if raw_a is not None else 0
 
                 if game_id not in _SERVER_MATCH_STATES:
-                    _SERVER_MATCH_STATES[game_id] = {"score": f"{h_score}-{a_score}", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False, "second_half_notified": False}
+                    _SERVER_MATCH_STATES[game_id] = {"score": "0-0", "reminded_30m": False, "started_notified": False, "ht_notified": False, "ft_notified": False, "second_half_notified": False}
 
                 # Correction du format d'état si nécessaire
                 if isinstance(_SERVER_MATCH_STATES[game_id], str):
@@ -1618,11 +1631,11 @@ def server_live_polling():
                         members = _member_index_365(game_data['game'])
                         for ev in game_data['game'].get('events', []):
                             if ev.get('eventType', {}).get('id') == 1: # Goal
-                                mid = ev.get('memberId')
+                                pid = ev.get('playerId') or ev.get('memberId')
                                 team_id = ev.get('competitorId')
                                 team_name = h_name if team_id == home.get('id') else a_name
-                                p_name = members.get(mid, {}).get('name', 'Joueur') if mid else "Joueur"
-                                scorers.append({"name": p_name, "team": team_name, "minute": str(ev.get('gameTime', ''))})
+                                p_name = members.get(pid, {}).get('name', 'Joueur') if pid else "Joueur"
+                                scorers.append({"name": p_name, "team": team_name, "minute": str(int(ev.get('gameTime', 0)))})
 
                     _send_server_push("⏱ MI-TEMPS", f"Score à la pause : {h_name} {h_score} - {a_score} {a_name}", {
                         "type": "HALF_TIME",
@@ -1752,19 +1765,43 @@ def _send_server_push(title, body, extra_data):
     except Exception as e:
         print(f"❌ [Auto-Polling Push] Error: {e}")
 
-# --- DÉMARRAGE AUTOMATIQUE (Compatible Gunicorn/Render) ---
-# --- DÉMARRAGE AUTOMATIQUE ---
-# On sort de toute fonction pour forcer l'exécution globale au chargement
+# --- DÉMARRAGE AUTOMATIQUE (Optimisé pour Render 512MB) ---
 print("🚀 [System] Initializing Global Scorer Engine...")
 
-def delayed_start():
-    print("⏳ [System] Waiting for Flask to stabilize (5s)...")
-    time.sleep(5)
-    print("🚀 [System] Starting Scorer Loop now.")
-    server_live_polling()
+# Variable pour s'assurer qu'un seul thread tourne par processus
+_POLLING_STARTED = False
 
-# Lancement immédiat du thread
-threading.Thread(target=delayed_start, daemon=True).start()
+def delayed_start():
+    global _POLLING_STARTED
+    if _POLLING_STARTED:
+        return
+    _POLLING_STARTED = True
+
+    print("⏳ [System] Waiting for Flask to stabilize (10s)...")
+    time.sleep(10)
+    print("🚀 [System] Starting Scorer Loop now.")
+
+    # Nettoyage périodique des états globaux pour économiser la RAM
+    last_cleanup = time.time()
+
+    while True:
+        try:
+            # Purge de la mémoire toutes les 24h ou si trop gros
+            current_time = time.time()
+            if current_time - last_cleanup > 86400 or len(_SERVER_MATCH_STATES) > 100:
+                print("🧹 [System] Cleaning up global match states to save memory...")
+                _SERVER_MATCH_STATES.clear()
+                _SERVER_PROCESSED_EVENTS.clear()
+                last_cleanup = current_time
+
+            server_live_polling()
+        except Exception as e:
+            print(f"⚠️ [System] Critical Polling Error: {e}")
+            time.sleep(60)
+
+# Lancement du thread de polling une seule fois
+if not os.environ.get("WERKZEUG_RUN_MAIN") == "true": # Évite le double lancement en mode debug Flask
+    threading.Thread(target=delayed_start, daemon=True).start()
 
 if __name__ == '__main__':
     # Ce bloc n'est utilisé que pour le développement local
