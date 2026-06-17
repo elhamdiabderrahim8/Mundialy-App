@@ -1588,9 +1588,9 @@ def server_live_polling():
                             members = _member_index_365(game_data['game'])
                             for ev in reversed(game_data['game'].get('events', [])):
                                 if ev.get('eventType', {}).get('id') == 1:
-                                    mid = ev.get('memberId')
-                                    p_name = members.get(mid, {}).get('name', '') if mid else ""
-                                    p_min = str(ev.get('gameTime', '0'))
+                                    pid = ev.get('playerId') or ev.get('memberId')
+                                    p_name = members.get(pid, {}).get('name', '') if pid else ""
+                                    p_min = str(int(ev.get('gameTime', 0)))
                                     break
 
                         body = f"{p_name} ⚽ {h_name} {h_score} - {a_score} {a_name}" if p_name else f"BUT !!! {h_name} {h_score} - {a_score} {a_name}"
@@ -1635,11 +1635,14 @@ def server_live_polling():
 
                 # --- 4.5 DEUXIÈME MI-TEMPS ---
                 if status_group == 3 and ("SECOND HALF" in status_text or "2ND HALF" in status_text) and not state.get("second_half_notified"):
-                    _send_server_push("⏱ REPRISE", f"La 2ème mi-temps commence : {h_name} vs {a_name}", {
-                        "type": "start", 
+                    _send_server_push("⏱ REPRISE", f"La 2ème mi-temps commence : {h_name} {h_score} - {a_score} {a_name}", {
+                        "type": "HALF_TIME", 
+                        "badge": "2ÈME MI-TEMPS",
                         "gameId": game_id,
                         "homeTeamName": h_name,
-                        "awayTeamName": a_name
+                        "awayTeamName": a_name,
+                        "homeScore": str(h_score),
+                        "awayScore": str(a_score)
                     })
                     state["second_half_notified"] = True
 
@@ -1722,7 +1725,8 @@ def _send_server_push(title, body, extra_data):
             "minute": str(extra_data.get('minute', '0')),
             "isPenalty": "true" if "PENALTY" in title.upper() else "false",
             "competition": extra_data.get('competition', 'Coupe du Monde'),
-            "motm": extra_data.get('motm', extra_data.get('winner', ''))
+            "motm": extra_data.get('motm', extra_data.get('winner', '')),
+            "badge": extra_data.get('badge', '')
         }
         
         # topScorer handling for HT
@@ -1740,7 +1744,7 @@ def _send_server_push(title, body, extra_data):
             topic='live_matches',
             android=messaging.AndroidConfig(
                 priority='high',
-                ttl=3600
+                ttl=86400
             )
         )
         messaging.send(message)
