@@ -248,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_selectedTab != 2 || _matchFilterMode != 0) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_pageController.hasClients) return;
-      final todayIndex = _datePageDays().indexWhere(_isToday);
+      final todayIndex = _datePageDays(_matches).indexWhere(_isToday);
       if (todayIndex != -1) {
         _pageController.jumpToPage(todayIndex);
       }
@@ -289,9 +289,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${weekdays[day.weekday - 1]} ${day.day} ${months[day.month - 1]} ${day.year}';
   }
 
-  List<DateTime> _datePageDays() {
+  List<DateTime> _datePageDays(List<LiveMatch> matches) {
     final matchDays =
-        _matches
+        matches
             .map((m) => m.dateTime)
             .whereType<DateTime>()
             .map(_dayOnly)
@@ -320,9 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return days;
   }
 
-  Map<String, List<LiveMatch>> _matchesGroupedByDay() {
+  Map<String, List<LiveMatch>> _matchesGroupedByDay(List<LiveMatch> matches) {
     final grouped = <String, List<LiveMatch>>{};
-    for (final match in _matches) {
+    for (final match in matches) {
       final date = match.dateTime;
       if (date == null) continue;
       grouped.putIfAbsent(_dateKey(date), () => []).add(match);
@@ -347,7 +347,8 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const InlineAdaptiveBanner(horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
+            const InlineAdaptiveBanner(
+                horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
             _buildBottomNav(),
           ],
         ),
@@ -360,7 +361,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const InlineAdaptiveBanner(horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
+          const InlineAdaptiveBanner(
+              horizontalMargin: 0, verticalMargin: 0, maxHeight: 60),
           _buildBottomNav(),
         ],
       ),
@@ -377,10 +379,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             NestedScrollView(
-              headerSliverBuilder: (context, _) => [_buildCollapsingHeader()],
+              headerSliverBuilder: (context, _) => [
+                _buildCollapsingHeader()
+              ],
               body: _isLoading
                   ? MatchListSkeleton(isDark: isDark)
-                  : _buildMainContent(textColor),
+                  : _buildMainContent(textColor, _matches, _standings),
             ),
           ],
         ),
@@ -388,29 +392,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMainContent(Color textColor) {
+  Widget _buildMainContent(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
     if (_selectedTab == 0 && _selectedYear == 2026) {
-      return _buildModernHome2026(textColor);
+      return _buildModernHome2026(textColor, matches, standings);
     }
     switch (_selectedTab) {
       case 0:
-        return _buildPagedMatchView(textColor);
+        return _buildPagedMatchView(textColor, matches, standings);
       case 1:
-        return _buildPagedMatchView(textColor); // Live View
+        return _buildPagedMatchView(textColor, matches, standings); // Live View
       case 2:
-        return _buildCalendrierView(textColor);
+        return _buildCalendrierView(textColor, matches, standings);
       case 3:
-        return _buildStandingsView(textColor);
+        return _buildStandingsView(textColor, standings);
       case 4:
         return _buildTopScorersView(textColor);
       case 5:
-        return _buildBracketView(textColor);
+        return _buildBracketView(textColor, matches);
       default:
-        return _buildPagedMatchView(textColor);
+        return _buildPagedMatchView(textColor, matches, standings);
     }
   }
 
-  Widget _buildCalendrierView(Color textColor) {
+  Widget _buildCalendrierView(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
     return Column(
       children: [
         _MatchFilterBar(
@@ -430,12 +434,12 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           },
         ),
-        Expanded(child: _buildPagedMatchView(textColor)),
+        Expanded(child: _buildPagedMatchView(textColor, matches, standings)),
       ],
     );
   }
 
-  Widget _buildModernHome2026(Color textColor) {
+  Widget _buildModernHome2026(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
     return RefreshIndicator(
       color: _kGold,
       backgroundColor: isDark ? _kCardDark : Colors.white,
@@ -507,7 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 28),
 
           // â”€â”€ STANDINGS / GROUPS â”€â”€
-          if (_standings.isNotEmpty) ...[
+          if (standings.isNotEmpty) ...[
             _SectionHeader(
               icon: Icons.leaderboard_rounded,
               title: 'CLASSEMENTS',
@@ -516,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             _GroupsAutoCarousel(
-              groups: _standings,
+              groups: standings,
               textColor: textColor,
               year: _selectedYear,
             ),
@@ -524,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
 
           // ── LIVE MATCHES ──
-          if (_matches.any((m) => m.isLive)) ...[
+          if (matches.any((m) => m.isLive)) ...[
             _SectionHeader(
               icon: Icons.whatshot_rounded,
               title: 'EN DIRECT',
@@ -532,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
               textColor: Colors.redAccent,
             ),
             const SizedBox(height: 12),
-            ..._buildLiveMatchCards2026(textColor),
+            ..._buildLiveMatchCards2026(textColor, matches),
             const SizedBox(height: 28),
           ],
 
@@ -544,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
             textColor: textColor,
           ),
           const SizedBox(height: 12),
-          ..._buildUpcomingMatchCards2026(textColor),
+          ..._buildUpcomingMatchCards2026(textColor, matches),
           const SizedBox(height: 100),
         ],
       ),
@@ -609,8 +613,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Widget> _buildLiveMatchCards2026(Color textColor) {
-    final liveMatches = _matches.where((m) => m.isLive).toList();
+  List<Widget> _buildLiveMatchCards2026(Color textColor, List<LiveMatch> matches) {
+    final liveMatches = matches.where((m) => m.isLive).toList();
     if (liveMatches.isEmpty) return [];
 
     return liveMatches.map((m) => Padding(
@@ -619,8 +623,8 @@ class _HomeScreenState extends State<HomeScreen> {
     )).toList();
   }
 
-  List<Widget> _buildUpcomingMatchCards2026(Color textColor) {
-    final upcoming = _matches.where((m) => !m.isLive && !m.isFinished).toList();
+  List<Widget> _buildUpcomingMatchCards2026(Color textColor, List<LiveMatch> matches) {
+    final upcoming = matches.where((m) => !m.isLive && !m.isFinished).toList();
     if (upcoming.isEmpty) {
       return [
         const SizedBox(
@@ -694,9 +698,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return widgets;
   }
 
-  Widget _buildPagedMatchView(Color textColor) {
+  Widget _buildPagedMatchView(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
     if (_selectedTab == 2 && _matchFilterMode == 0) {
-      return _buildPagedDateMatchView(textColor);
+      return _buildPagedDateMatchView(textColor, matches, standings);
     }
 
     final List<String> Function(LiveMatch) keysOf;
@@ -707,7 +711,7 @@ class _HomeScreenState extends State<HomeScreen> {
           break; // Group by Team
         case 2:
           keysOf = (m) {
-            final s = _standings.firstWhere(
+            final s = standings.firstWhere(
               (st) => st.teams.any((t) => t.teamName == m.homeTeam),
               orElse: () => GroupStanding(groupName: 'Autre', teams: []),
             );
@@ -721,7 +725,7 @@ class _HomeScreenState extends State<HomeScreen> {
       keysOf = (m) => [m.dateLabel];
     }
     final grouped = <String, List<LiveMatch>>{};
-    for (final m in _matches) {
+    for (final m in matches) {
       for (final key in keysOf(m)) {
         grouped.putIfAbsent(key, () => []).add(m);
       }
@@ -743,10 +747,10 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: keys.length,
       itemBuilder: (context, index) {
         final key = keys[index];
-        final matches = grouped[key] ?? [];
-        final liveMatches = matches.where((m) => m.isLive).toList();
-        final upcomingMatches = matches.where((m) => !m.isFinished && !m.isLive).toList();
-        final finishedMatches = matches.where((m) => m.isFinished).toList();
+        final matchesForKey = grouped[key] ?? [];
+        final liveMatches = matchesForKey.where((m) => m.isLive).toList();
+        final upcomingMatches = matchesForKey.where((m) => !m.isFinished && !m.isLive).toList();
+        final finishedMatches = matchesForKey.where((m) => m.isFinished).toList();
 
         final List<Widget> items = [];
         // Page header with navigation
@@ -863,9 +867,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPagedDateMatchView(Color textColor) {
-    final days = _datePageDays();
-    final grouped = _matchesGroupedByDay();
+  Widget _buildPagedDateMatchView(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
+    final days = _datePageDays(matches);
+    final grouped = _matchesGroupedByDay(matches);
     if (days.isEmpty) {
       return const _EmptyState(msg: 'Aucun match disponible.');
     }
@@ -1017,15 +1021,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStandingsView(Color textColor) {
-    if (_standings.isEmpty) {
+  Widget _buildStandingsView(Color textColor, List<GroupStanding> standings) {
+    if (standings.isEmpty) {
       return const _EmptyState(msg: 'Aucun classement disponible.');
     }
 
     // Collect all third-placed teams (rank == 3) and sort by FIFA rules:
     // 1. Points  2. Goal diff  3. Goals for
     final thirdPlaced =
-        _standings
+        standings
             .expand(
               (g) => g.teams
                   .where((t) => t.rank == 3)
@@ -1049,11 +1053,11 @@ class _HomeScreenState extends State<HomeScreen> {
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, i) => _GroupTable(
-                group: _standings[i],
+                group: standings[i],
                 textColor: textColor,
                 year: _selectedYear,
               ),
-              childCount: _standings.length,
+              childCount: standings.length,
             ),
           ),
         ),
@@ -1169,8 +1173,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBracketView(Color textColor) {
-    final rounds = _buildKnockoutRounds(_matches);
+  Widget _buildBracketView(Color textColor, List<LiveMatch> matches) {
+    final rounds = _buildKnockoutRounds(matches);
     if (rounds.isEmpty) {
       return const _EmptyState(msg: 'Phase finale non disponible.');
     }
@@ -1505,7 +1509,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final currentKeyIndex = _pageController.hasClients
           ? _pageController.page?.round() ?? 0
           : 0;
-      final days = _datePageDays();
+      final days = _datePageDays(_matches);
       final selectedDate =
           days.isNotEmpty &&
               currentKeyIndex >= 0 &&

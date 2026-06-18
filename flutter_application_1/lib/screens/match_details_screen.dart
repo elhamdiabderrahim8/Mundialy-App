@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:provider/provider.dart';
 
 import '../models/live_match.dart';
 import '../models/match_details.dart';
@@ -13,6 +14,7 @@ import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
 import '../models/match_news.dart';
 import '../services/scores365_service.dart';
+
 const Color kGold = Color(0xFFE7C16A);
 const Color _kPasserColor = Color(0xFF38BDF8);
 
@@ -254,7 +256,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     }
   }
 
-  Future<void> _pinMatch() async {
+  Future<void> _pinMatch(LiveMatch match) async {
     final status = await FlutterOverlayWindow.isPermissionGranted();
     if (!status) {
       await FlutterOverlayWindow.requestPermission();
@@ -265,7 +267,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       await FlutterOverlayWindow.closeOverlay();
     }
 
-    ApiService.pinnedMatchId = widget.match.id;
+    ApiService.pinnedMatchId = match.id;
 
     await FlutterOverlayWindow.showOverlay(
       enableDrag: true,
@@ -279,13 +281,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
 
     await FlutterOverlayWindow.shareData({
-      'home': widget.match.homeTeam,
-      'away': widget.match.awayTeam,
-      'homeCode': widget.match.homeCode,
-      'awayCode': widget.match.awayCode,
-      'score':
-          '${widget.match.scoreHome ?? 0} - ${widget.match.scoreAway ?? 0}',
-      'minute': widget.match.matchMinute ?? '',
+      'home': match.homeTeam,
+      'away': match.awayTeam,
+      'homeCode': match.homeCode,
+      'awayCode': match.awayCode,
+      'score': '${match.scoreHome ?? 0} - ${match.scoreAway ?? 0}',
+      'minute': match.matchMinute ?? '',
     });
 
     if (mounted) {
@@ -312,10 +313,10 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgColor = isDark ? const Color(0xFF0E1A24) : Colors.white;
-    final Color cardColor = isDark
-        ? const Color(0xFF182531)
-        : Colors.grey.shade100;
+    final Color cardColor = isDark ? const Color(0xFF182531) : Colors.grey.shade100;
     final Color textColor = isDark ? Colors.white : Colors.black87;
+
+    final effectiveMatch = widget.match;
 
     if (_isLoading) {
       return const MatchDetailsSkeleton();
@@ -338,20 +339,20 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildTopBar(context, textColor),
+            _buildTopBar(context, textColor, effectiveMatch),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildScoreCard(cardColor, textColor),
+                    _buildScoreCard(cardColor, textColor, effectiveMatch),
                     const SizedBox(height: 14),
                     _buildSwitchButtons(cardColor, textColor),
                     const InlineAdaptiveBanner(horizontalMargin: 0),
                     const SizedBox(height: 14),
                     if (_selectedView == 0) ...[
-                      _buildSummarySection(cardColor, textColor),
+                      _buildSummarySection(cardColor, textColor, effectiveMatch),
                     ] else if (_selectedView == 1) ...[
                       _buildStatsSection(cardColor, textColor),
                     ] else if (_selectedView == 2) ...[
@@ -363,8 +364,10 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                           cardColor,
                           textColor,
                           isDark,
+                          effectiveMatch,
                         ),
                     ],
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
@@ -375,7 +378,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, Color textColor) {
+  Widget _buildTopBar(BuildContext context, Color textColor, LiveMatch match) {
     final details = _details!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -399,20 +402,16 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   style: TextStyle(
                     color: textColor,
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  widget.match.isLive
-                      ? 'EN DIRECT • ${widget.match.statusDisplay}'
-                      : widget.match.statusDisplay,
+                  match.isLive ? 'EN DIRECT • ${match.statusDisplay}' : match.statusDisplay,
                   style: TextStyle(
-                    color: widget.match.isLive ? Colors.redAccent : kGold,
+                    color: match.isLive ? Colors.redAccent : kGold,
                     fontSize: 12,
-                    fontWeight: widget.match.isLive
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    fontWeight: match.isLive ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
@@ -421,10 +420,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.match.streamUrl != null && widget.match.isLive)
+              if (match.streamUrl != null && match.isLive)
                 IconButton(
-                  onPressed: () =>
-                      _openLiveStream(context, widget.match.streamUrl!),
+                  onPressed: () => _openLiveStream(context, match.streamUrl!),
                   icon: const Icon(
                     Icons.live_tv_rounded,
                     color: kGold,
@@ -432,7 +430,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   ),
                 ),
               IconButton(
-                onPressed: _pinMatch,
+                onPressed: () => _pinMatch(match),
                 icon: const Icon(
                   Icons.push_pin_outlined,
                   color: kGold,
@@ -446,8 +444,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  Widget _buildScoreCard(Color cardColor, Color textColor) {
+  Widget _buildScoreCard(Color cardColor, Color textColor, LiveMatch match) {
     final overview = _details!.overview;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
@@ -475,8 +474,8 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   name: overview.homeTeam,
                   code: overview.homeCode,
                   logoUrl: overview.homeLogoUrl,
-                  teamId: widget.match.homeTeamId,
-                  heroTag: 'logo_home_${widget.match.id}',
+                  teamId: match.homeTeamId,
+                  heroTag: 'logo_home_${match.id}',
                   year: _tournamentSeason,
                 ),
               ),
@@ -487,22 +486,18 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        (widget.match.statusShort == 'NS' ||
-                                widget.match.statusShort == 'TBD')
+                        (match.statusShort == 'NS' || match.statusShort == 'TBD')
                             ? '-  :  -'
-                            : '${overview.scoreHome} - ${overview.scoreAway}',
+                            : '${match.scoreHome ?? 0} - ${match.scoreAway ?? 0}',
                         style: TextStyle(
-                          color: widget.match.isLive
-                              ? Colors.redAccent
-                              : textColor,
+                          color: match.isLive ? Colors.redAccent : textColor,
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1,
                         ),
                       ),
                     ),
-                    if (overview.penaltyHome != null ||
-                        overview.penaltyAway != null)
+                    if (overview.penaltyHome != null || overview.penaltyAway != null)
                       Container(
                         margin: const EdgeInsets.only(top: 12),
                         padding: const EdgeInsets.symmetric(
@@ -535,8 +530,8 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   name: overview.awayTeam,
                   code: overview.awayCode,
                   logoUrl: overview.awayLogoUrl,
-                  teamId: widget.match.awayTeamId,
-                  heroTag: 'logo_away_${widget.match.id}',
+                  teamId: match.awayTeamId,
+                  heroTag: 'logo_away_${match.id}',
                   year: _tournamentSeason,
                 ),
               ),
@@ -583,15 +578,14 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  Widget _buildSummarySection(Color cardColor, Color textColor) {
+  Widget _buildSummarySection(Color cardColor, Color textColor, LiveMatch match) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSummaryCard(cardColor, textColor),
-        if (_details!.overview.penaltyHome != null ||
-            _details!.overview.penaltyAway != null) ...[
+        _buildSummaryCard(cardColor, textColor, match),
+        if (_details!.overview.penaltyHome != null || _details!.overview.penaltyAway != null) ...[
           const SizedBox(height: 14),
-          _buildShootoutSection(cardColor, textColor),
+          _buildShootoutSection(cardColor, textColor, match),
         ],
         const SizedBox(height: 14),
         _buildInfoCard(cardColor, textColor),
@@ -599,16 +593,15 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  Widget _buildShootoutSection(Color cardColor, Color textColor) {
+  Widget _buildShootoutSection(Color cardColor, Color textColor, LiveMatch match) {
     final allEvents = _details!.summary.events;
     final homeTeam = _details!.overview.homeTeam;
     final awayTeam = _details!.overview.awayTeam;
     final homeCode = _details!.overview.homeCode;
     final awayCode = _details!.overview.awayCode;
-    final homeId = widget.match.homeTeamId;
-    final awayId = widget.match.awayTeamId;
+    final homeId = match.homeTeamId;
+    final awayId = match.awayTeamId;
 
-    // Filtrer uniquement les pénaltys shootout (minute > 120 ou contient TAB/PEN)
     final shootoutEvents = allEvents.where((e) {
       final minStr = e.minute.toUpperCase();
       final min = int.tryParse(e.minute.replaceAll("'", "")) ?? 0;
@@ -619,14 +612,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           e.title.toLowerCase().contains('tirs au but');
     }).toList();
 
-    final homeEvents = shootoutEvents
-        .where((e) => e.teamName == homeTeam)
-        .toList();
-    final awayEvents = shootoutEvents
-        .where((e) => e.teamName == awayTeam)
-        .toList();
+    final homeEvents = shootoutEvents.where((e) => e.teamName == homeTeam).toList();
+    final awayEvents = shootoutEvents.where((e) => e.teamName == awayTeam).toList();
 
-    // Score cumulé
     int homeScore = _details!.overview.penaltyHome ?? 0;
     int awayScore = _details!.overview.penaltyAway ?? 0;
 
@@ -639,7 +627,6 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       ),
       child: Column(
         children: [
-          // Titre
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -659,8 +646,6 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             ],
           ),
           const SizedBox(height: 20),
-
-          // Score final pénaltys
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -691,12 +676,9 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             ],
           ),
           const SizedBox(height: 24),
-
-          // Cercles des tirs côte à côte
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Colonne équipe home
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -725,19 +707,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   ],
                 ),
               ),
-              // Divider vertical
               Container(
                 width: 1,
-                height:
-                    (homeEvents.length > awayEvents.length
-                            ? homeEvents.length
-                            : awayEvents.length) *
-                        44.0 +
-                    50,
+                height: (homeEvents.length > awayEvents.length ? homeEvents.length : awayEvents.length) * 44.0 + 50,
                 color: textColor.withValues(alpha: 0.08),
                 margin: const EdgeInsets.symmetric(horizontal: 12),
               ),
-              // Colonne équipe away
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -774,9 +749,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  // Supprimé - remplacé par le nouveau widget _ShootoutRow
-
-  Widget _buildSummaryCard(Color cardColor, Color textColor) {
+  Widget _buildSummaryCard(Color cardColor, Color textColor, LiveMatch match) {
     final events = _details!.summary.events;
     if (events.isEmpty) {
       return Container(
@@ -794,32 +767,22 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       );
     }
 
-    // Grouper les événements par période
     final List<Widget> children = [];
-    int? currentPeriod; // 1: 1H, 2: 2H, 3: ET, 4: PENS
+    int? currentPeriod;
 
     for (var i = 0; i < events.length; i++) {
       final e = events[i];
       final minStr = e.minute.replaceAll("'", "");
       final minute = int.tryParse(minStr) ?? 0;
-      // Exclure les tirs au but de la liste principale
       final minUpper = e.minute.toUpperCase();
-      final isShootout =
-          e.detail.toLowerCase().contains('shootout') ||
+      final isShootout = e.detail.toLowerCase().contains('shootout') ||
           minUpper.contains('TAB') ||
           minUpper.contains('PEN') ||
           (e.title.toLowerCase().contains('penalty') && minute > 120) ||
           e.title.toLowerCase().contains('tirs au but');
       if (isShootout) continue;
 
-      int period;
-      if (minute > 90) {
-        period = 3;
-      } else if (minute > 45) {
-        period = 2;
-      } else {
-        period = 1;
-      }
+      int period = minute > 90 ? 3 : (minute > 45 ? 2 : 1);
 
       if (currentPeriod != period) {
         currentPeriod = period;
@@ -872,12 +835,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         children: [
-          Expanded(
-            child: Divider(
-              color: textColor.withValues(alpha: 0.1),
-              thickness: 1,
-            ),
-          ),
+          Expanded(child: Divider(color: textColor.withValues(alpha: 0.1), thickness: 1)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
@@ -890,12 +848,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               ),
             ),
           ),
-          Expanded(
-            child: Divider(
-              color: textColor.withValues(alpha: 0.1),
-              thickness: 1,
-            ),
-          ),
+          Expanded(child: Divider(color: textColor.withValues(alpha: 0.1), thickness: 1)),
         ],
       ),
     );
@@ -916,17 +869,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
         children: [
           Text(
             'Informations du match',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           _InfoRow(
             label: 'Arbitre',
-            value:
-                '${referee.name}${referee.nationality.isNotEmpty ? " • ${referee.nationality}" : ""}',
+            value: '${referee.name}${referee.nationality.isNotEmpty ? " • ${referee.nationality}" : ""}',
             textColor: textColor,
           ),
           _InfoRow(label: 'Stade', value: venue.stadium, textColor: textColor),
@@ -951,13 +899,14 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Statistiques du match',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Statistiques du match',
+                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           ..._details!.stats.map(
@@ -1002,6 +951,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     Color cardColor,
     Color textColor,
     bool isDark,
+    LiveMatch match,
   ) {
     const double fieldHeight = 500;
 
@@ -1027,11 +977,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                       children: [
                         Text(
                           lineup.teamName,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                           overflow: TextOverflow.clip,
                           maxLines: 1,
                         ),
@@ -1054,10 +1000,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   Flexible(
                     flex: 2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: textColor.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
@@ -1076,11 +1019,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                           ),
                           Text(
                             lineup.coach,
-                            style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
+                            style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 12),
                             overflow: TextOverflow.clip,
                             maxLines: 1,
                             textAlign: TextAlign.end,
@@ -1098,39 +1037,24 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     return Container(
                       height: fieldHeight,
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF132231)
-                            : Colors.green.shade900.withValues(alpha: 0.8),
+                        color: isDark ? const Color(0xFF132231) : Colors.green.shade900.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: textColor.withValues(alpha: 0.05),
-                        ),
+                        border: Border.all(color: textColor.withValues(alpha: 0.05)),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(24),
                         child: Stack(
                           children: [
-                            Positioned.fill(
-                              child: CustomPaint(painter: _PitchPainter()),
-                            ),
-                            Center(
-                              child: _PitchTrophyWatermark(isDark: isDark),
-                            ),
+                            Positioned.fill(child: CustomPaint(painter: _PitchPainter())),
+                            Center(child: _PitchTrophyWatermark(isDark: isDark)),
                             ...List.generate(lineup.players.length, (index) {
                               final player = lineup.players[index];
-                              final coords =
-                                  _formationCoordinates[lineup.formation] ??
-                                  _formationCoordinates['4-3-3']!;
-                              final Offset relativePos = index < coords.length
-                                  ? coords[index]
-                                  : Offset(player.x, player.y);
+                              final coords = _formationCoordinates[lineup.formation] ?? _formationCoordinates['4-3-3']!;
+                              final Offset relativePos = index < coords.length ? coords[index] : Offset(player.x, player.y);
 
                               const double widgetWidth = 65;
-                              final double posX =
-                                  (relativePos.dx * constraints.maxWidth) -
-                                  (widgetWidth / 2);
-                              final double posY =
-                                  (relativePos.dy * fieldHeight) - 30;
+                              final double posX = (relativePos.dx * constraints.maxWidth) - (widgetWidth / 2);
+                              final double posY = (relativePos.dy * fieldHeight) - 30;
 
                               return Positioned(
                                 left: posX,
@@ -1151,9 +1075,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                                   child: _PlayerJersey(
                                     player: player,
                                     kitColor: Color(lineup.kitColor),
-                                    textColor: isDark
-                                        ? Colors.white
-                                        : Colors.black,
+                                    textColor: isDark ? Colors.white : Colors.black,
                                   ),
                                 ),
                               );
@@ -1173,9 +1095,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 8, bottom: 16),
             child: Text(
-              lineup.players.isNotEmpty
-                  ? 'BANC DE TOUCHE'
-                  : 'EFFECTIF DE L\'ÉQUIPE',
+              lineup.players.isNotEmpty ? 'BANC DE TOUCHE' : 'EFFECTIF DE L\'ÉQUIPE',
               style: TextStyle(
                 color: textColor.withValues(alpha: 0.38),
                 fontSize: 12,
@@ -1191,16 +1111,16 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               return GestureDetector(
                 onTap: player.id > 0
                     ? () => openPlayerProfile(
-                        context,
-                        playerId: player.id,
-                        playerName: player.name,
-                        teamName: lineup.teamName,
-                        teamCode: lineup.teamCode,
-                        season: _tournamentSeason,
-                        shirtNumber: player.number,
-                        position: player.role,
-                        lineups: _matchLineups,
-                      )
+                          context,
+                          playerId: player.id,
+                          playerName: player.name,
+                          teamName: lineup.teamName,
+                          teamCode: lineup.teamCode,
+                          season: _tournamentSeason,
+                          shirtNumber: player.number,
+                          position: player.role,
+                          lineups: _matchLineups,
+                        )
                     : null,
                 child: Container(
                   width: 100,
@@ -1208,9 +1128,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                   decoration: BoxDecoration(
                     color: cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: textColor.withValues(alpha: 0.05),
-                    ),
+                    border: Border.all(color: textColor.withValues(alpha: 0.05)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1222,17 +1140,11 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                           color: Color(lineup.kitColor).withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Color(
-                              lineup.kitColor,
-                            ).withValues(alpha: 0.3),
+                            color: Color(lineup.kitColor).withValues(alpha: 0.3),
                             width: 2,
                           ),
                         ),
-                        child: Icon(
-                          Icons.person,
-                          size: 24,
-                          color: Color(lineup.kitColor),
-                        ),
+                        child: Icon(Icons.person, size: 24, color: Color(lineup.kitColor)),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -1240,11 +1152,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.clip,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.bold),
                       ),
                       if (player.substitutedOut ||
                           player.substitutedIn ||
@@ -1258,48 +1166,23 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              if (player.substitutedIn)
-                                const Icon(
-                                  Icons.arrow_upward,
-                                  size: 12,
-                                  color: Colors.green,
-                                ),
-                              if (player.substitutedOut)
-                                const Icon(
-                                  Icons.arrow_downward,
-                                  size: 12,
-                                  color: Colors.red,
-                                ),
+                              if (player.substitutedIn) const Icon(Icons.arrow_upward, size: 12, color: Colors.green),
+                              if (player.substitutedOut) const Icon(Icons.arrow_downward, size: 12, color: Colors.red),
                               if (player.goals > 0)
                                 ...List.generate(
                                   player.goals,
-                                  (_) => const Text(
-                                    '⚽',
-                                    style: TextStyle(fontSize: 10),
-                                  ),
+                                  (_) => const Text('⚽', style: TextStyle(fontSize: 10)),
                                 ),
                               if (player.assists > 0)
                                 ...List.generate(
                                   player.assists,
-                                  (_) => const Text(
-                                    '👟',
-                                    style: TextStyle(fontSize: 10),
-                                  ),
+                                  (_) => const Text('👟', style: TextStyle(fontSize: 10)),
                                 ),
-                              if (player.redCard)
-                                const Icon(
-                                  Icons.square,
-                                  size: 10,
-                                  color: Colors.red,
-                                ),
+                              if (player.redCard) const Icon(Icons.square, size: 10, color: Colors.red),
                               if (!player.redCard && player.yellowCards > 0)
                                 ...List.generate(
                                   player.yellowCards,
-                                  (_) => const Icon(
-                                    Icons.square,
-                                    size: 10,
-                                    color: Colors.yellow,
-                                  ),
+                                  (_) => const Icon(Icons.square, size: 10, color: Colors.yellow),
                                 ),
                             ],
                           ),
@@ -1315,7 +1198,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     );
   }
 
-  void _openLiveStream(BuildContext context, String url) {
+  void _openLiveStream(BuildContext context, String streamUrl) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -1330,10 +1213,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
               padding: EdgeInsets.all(20),
               child: Text(
                 'IPTV LIVE',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
             TextButton(
@@ -1385,30 +1265,21 @@ class _PlayerJersey extends StatelessWidget {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            CustomPaint(
-              size: const Size(38, 38), // On agrandit un peu
-              painter: _JerseyPainter(color: kitColor),
-            ),
+            CustomPaint(size: const Size(38, 38), painter: _JerseyPainter(color: kitColor)),
             Text(
               '${player.number}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: kitColor.computeLuminance() > 0.5
-                    ? Colors.black
-                    : Colors.white,
+                color: kitColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
               ),
             ),
-            // Affichage de la NOTE
             if (player.rating.isNotEmpty)
               Positioned(
                 top: -8,
                 right: -12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 1,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: _getRatingColor(player.rating),
                     borderRadius: BorderRadius.circular(4),
@@ -1416,27 +1287,16 @@ class _PlayerJersey extends StatelessWidget {
                   ),
                   child: Text(
                     player.rating,
-                    style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                    ),
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.black),
                   ),
                 ),
               ),
-            // Icons Overlay (Goals, Assists, Cards) above the shirt
-            if (player.goals > 0 ||
-                player.assists > 0 ||
-                player.yellowCards > 0 ||
-                player.redCard)
+            if (player.goals > 0 || player.assists > 0 || player.yellowCards > 0 || player.redCard)
               Positioned(
                 top: -10,
                 left: -10,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 2,
-                    vertical: 1,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(4),
@@ -1444,34 +1304,11 @@ class _PlayerJersey extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (player.goals > 0)
-                        ...List.generate(
-                          player.goals,
-                          (_) => const Text('⚽', style: TextStyle(fontSize: 9)),
-                        ),
-                      if (player.assists > 0)
-                        ...List.generate(
-                          player.assists,
-                          (_) =>
-                              const Text('👟', style: TextStyle(fontSize: 9)),
-                        ),
-                      if (player.redCard)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 1.0),
-                          child: Icon(Icons.square, size: 8, color: Colors.red),
-                        ),
+                      if (player.goals > 0) ...List.generate(player.goals, (_) => const Text('⚽', style: TextStyle(fontSize: 9))),
+                      if (player.assists > 0) ...List.generate(player.assists, (_) => const Text('👟', style: TextStyle(fontSize: 9))),
+                      if (player.redCard) const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Icon(Icons.square, size: 8, color: Colors.red)),
                       if (!player.redCard && player.yellowCards > 0)
-                        ...List.generate(
-                          player.yellowCards,
-                          (_) => const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 1.0),
-                            child: Icon(
-                              Icons.square,
-                              size: 8,
-                              color: Colors.yellow,
-                            ),
-                          ),
-                        ),
+                        ...List.generate(player.yellowCards, (_) => const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Icon(Icons.square, size: 8, color: Colors.yellow))),
                     ],
                   ),
                 ),
@@ -1482,20 +1319,13 @@ class _PlayerJersey extends StatelessWidget {
         Container(
           constraints: const BoxConstraints(maxWidth: 78),
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(6),
-          ),
+          decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
           child: Column(
             children: [
               Text(
                 _formatName(player.name),
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1506,18 +1336,8 @@ class _PlayerJersey extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (player.substitutedIn)
-                        const Icon(
-                          Icons.arrow_upward,
-                          size: 10,
-                          color: Colors.greenAccent,
-                        ),
-                      if (player.substitutedOut)
-                        const Icon(
-                          Icons.arrow_downward,
-                          size: 10,
-                          color: Colors.redAccent,
-                        ),
+                      if (player.substitutedIn) const Icon(Icons.arrow_upward, size: 10, color: Colors.greenAccent),
+                      if (player.substitutedOut) const Icon(Icons.arrow_downward, size: 10, color: Colors.redAccent),
                     ],
                   ),
                 ),
@@ -1587,34 +1407,17 @@ class _TeamMiniCard extends StatelessWidget {
     final nameColor = isDark ? Colors.white : const Color(0xFF16324A);
 
     return InkWell(
-      onTap: teamId == null
-          ? null
-          : () => openTeamProfile(
-              context,
-              teamName: name,
-              teamId: teamId,
-              year: year,
-            ),
+      onTap: teamId == null ? null : () => openTeamProfile(context, teamName: name, teamId: teamId, year: year),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (heroTag != null)
             Hero(
               tag: heroTag!,
-              child: _DiamondFlag(
-                countryCode: code,
-                teamName: name,
-                logoUrl: logoUrl,
-                size: 74,
-              ),
+              child: _DiamondFlag(countryCode: code, teamName: name, logoUrl: logoUrl, size: 74),
             )
           else
-            _DiamondFlag(
-              countryCode: code,
-              teamName: name,
-              logoUrl: logoUrl,
-              size: 74,
-            ),
+            _DiamondFlag(countryCode: code, teamName: name, logoUrl: logoUrl, size: 74),
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -1623,12 +1426,7 @@ class _TeamMiniCard extends StatelessWidget {
               child: Text(
                 name,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: nameColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
+                style: TextStyle(color: nameColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
               ),
             ),
           ),
@@ -1686,23 +1484,17 @@ class _SwitchButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? kGold.withValues(alpha: 0.18) : cardColor,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected ? kGold : textColor.withValues(alpha: 0.08),
-          ),
+          border: Border.all(color: selected ? kGold : textColor.withValues(alpha: 0.08)),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: selected ? kGold : textColor.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: selected ? kGold : textColor.withValues(alpha: 0.7), fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 }
-
 
 class _EventTile extends StatelessWidget {
   const _EventTile({
@@ -1734,10 +1526,7 @@ class _EventTile extends StatelessWidget {
         Container(
           width: 52,
           padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: textColor.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: textColor.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
           alignment: Alignment.center,
           child: Text(
             event.minute,
@@ -1763,26 +1552,16 @@ class _EventTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         event.title,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
                         overflow: TextOverflow.clip,
                         maxLines: 2,
                       ),
                     ),
                     if (event.teamId != null)
                       GestureDetector(
-                        onTap: () => openTeamProfile(
-                          context,
-                          teamName: event.teamName,
-                          teamId: event.teamId,
-                          year: year,
-                        ),
+                        onTap: () => openTeamProfile(context, teamName: event.teamName, teamId: event.teamId, year: year),
                         child: NationFlagBadge(
-                          countryCode: event.teamCode.isNotEmpty
-                              ? event.teamCode
-                              : resolveCountryCode(event.teamName),
+                          countryCode: event.teamCode.isNotEmpty ? event.teamCode : resolveCountryCode(event.teamName),
                           teamName: event.teamName,
                           size: 28,
                         ),
@@ -1794,21 +1573,19 @@ class _EventTile extends StatelessWidget {
                   GestureDetector(
                     onTap: _canOpenPlayer(event.scorerName, event.playerId)
                         ? () => openPlayerProfile(
-                            context,
-                            playerId: event.playerId ?? 0,
-                            playerName: event.scorerName,
-                            teamName: event.teamName,
-                            teamCode: event.teamCode,
-                            season: year,
-                            lineups: lineups,
-                          )
+                              context,
+                              playerId: event.playerId ?? 0,
+                              playerName: event.scorerName,
+                              teamName: event.teamName,
+                              teamCode: event.teamCode,
+                              season: year,
+                              lineups: lineups,
+                            )
                         : null,
                     child: Text(
                       event.scorerName,
                       style: TextStyle(
-                        color: _canOpenPlayer(event.scorerName, event.playerId)
-                            ? textColor
-                            : textColor.withValues(alpha: 0.7),
+                        color: _canOpenPlayer(event.scorerName, event.playerId) ? textColor : textColor.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -1820,43 +1597,29 @@ class _EventTile extends StatelessWidget {
                     child: GestureDetector(
                       onTap: _canOpenPlayer(event.assistant!, event.assistantId)
                           ? () => openPlayerProfile(
-                              context,
-                              playerId: event.assistantId ?? 0,
-                              playerName: event.assistant!,
-                              teamName: event.teamName,
-                              teamCode: event.teamCode,
-                              season: year,
-                              lineups: lineups,
-                            )
+                                context,
+                                playerId: event.assistantId ?? 0,
+                                playerName: event.assistant!,
+                                teamName: event.teamName,
+                                teamCode: event.teamCode,
+                                season: year,
+                                lineups: lineups,
+                              )
                           : null,
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.swap_calls_rounded,
-                            size: 14,
-                            color: _kPasserColor.withValues(alpha: 0.9),
-                          ),
+                          Icon(Icons.swap_calls_rounded, size: 14, color: _kPasserColor.withValues(alpha: 0.9)),
                           const SizedBox(width: 4),
                           Text(
                             'Passe :',
-                            style: TextStyle(
-                              color: textColor.withValues(alpha: 0.45),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(color: textColor.withValues(alpha: 0.45), fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               event.assistant!,
                               style: TextStyle(
-                                color:
-                                    _canOpenPlayer(
-                                      event.assistant!,
-                                      event.assistantId,
-                                    )
-                                    ? _kPasserColor
-                                    : textColor.withValues(alpha: 0.54),
+                                color: _canOpenPlayer(event.assistant!, event.assistantId) ? _kPasserColor : textColor.withValues(alpha: 0.54),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1873,50 +1636,34 @@ class _EventTile extends StatelessWidget {
                       children: [
                         if (event.playerIn != null)
                           GestureDetector(
-                            onTap:
-                                _canOpenPlayer(
-                                  event.playerIn!,
-                                  event.playerInId,
-                                )
+                            onTap: _canOpenPlayer(event.playerIn!, event.playerInId)
                                 ? () => openPlayerProfile(
-                                    context,
-                                    playerId: event.playerInId ?? 0,
-                                    playerName: event.playerIn!,
-                                    teamName: event.teamName,
-                                    teamCode: event.teamCode,
-                                    season: year,
-                                    lineups: lineups,
-                                  )
+                                      context,
+                                      playerId: event.playerInId ?? 0,
+                                      playerName: event.playerIn!,
+                                      teamName: event.teamName,
+                                      teamCode: event.teamCode,
+                                      season: year,
+                                      lineups: lineups,
+                                    )
                                 : null,
-                            child: _EventPill(
-                              label: 'ENTRE: ${event.playerIn!}',
-                              color: const Color(0xFF1E6C47),
-                              icon: Icons.login,
-                            ),
+                            child: _EventPill(label: 'ENTRE: ${event.playerIn!}', color: const Color(0xFF1E6C47), icon: Icons.login),
                           ),
                         if (event.playerOut != null) const SizedBox(height: 4),
                         if (event.playerOut != null)
                           GestureDetector(
-                            onTap:
-                                _canOpenPlayer(
-                                  event.playerOut!,
-                                  event.playerOutId,
-                                )
+                            onTap: _canOpenPlayer(event.playerOut!, event.playerOutId)
                                 ? () => openPlayerProfile(
-                                    context,
-                                    playerId: event.playerOutId ?? 0,
-                                    playerName: event.playerOut!,
-                                    teamName: event.teamName,
-                                    teamCode: event.teamCode,
-                                    season: year,
-                                    lineups: lineups,
-                                  )
+                                      context,
+                                      playerId: event.playerOutId ?? 0,
+                                      playerName: event.playerOut!,
+                                      teamName: event.teamName,
+                                      teamCode: event.teamCode,
+                                      season: year,
+                                      lineups: lineups,
+                                    )
                                 : null,
-                            child: _EventPill(
-                              label: 'SORT: ${event.playerOut!}',
-                              color: const Color(0xFF7A3A2A),
-                              icon: Icons.logout,
-                            ),
+                            child: _EventPill(label: 'SORT: ${event.playerOut!}', color: const Color(0xFF7A3A2A), icon: Icons.logout),
                           ),
                       ],
                     ),
@@ -1925,22 +1672,11 @@ class _EventTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getDetailBgColor(event),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: _getDetailBgColor(event), borderRadius: BorderRadius.circular(6)),
                       child: Text(
                         _translateDetail(event.detail).toUpperCase(),
-                        style: TextStyle(
-                          color: _getDetailTextColor(event),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
+                        style: TextStyle(color: _getDetailTextColor(event), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
                       ),
                     ),
                   ),
@@ -1954,13 +1690,8 @@ class _EventTile extends StatelessWidget {
 
   String _translateDetail(String detail) {
     final d = detail.toLowerCase();
-    if (d.contains('missed penalty') || d.contains('penalty missed')) {
-      return 'Penalty manqué';
-    }
-    if (d.contains('penalty goal') ||
-        (d.contains('penalty') && !d.contains('missed'))) {
-      return 'Penalty marqué';
-    }
+    if (d.contains('missed penalty') || d.contains('penalty missed')) return 'Penalty manqué';
+    if (d.contains('penalty goal') || (d.contains('penalty') && !d.contains('missed'))) return 'Penalty marqué';
     if (d.contains('hit the post')) return 'Poteau';
     if (d.contains('saved')) return 'Arrêt du gardien';
     if (d.contains('goal cancelled')) return 'But annulé (VAR)';
@@ -1969,11 +1700,7 @@ class _EventTile extends StatelessWidget {
 
   Color _getDetailBgColor(MatchEvent event) {
     final d = event.detail.toLowerCase();
-    if (event.icon == MatchEventIcon.penaltyMissed ||
-        d.contains('missed penalty') ||
-        d.contains('penalty missed')) {
-      return Colors.red.withValues(alpha: 0.15);
-    }
+    if (event.icon == MatchEventIcon.penaltyMissed || d.contains('missed penalty') || d.contains('penalty missed')) return Colors.red.withValues(alpha: 0.15);
     if (d.contains('penalty')) return Colors.green.withValues(alpha: 0.15);
     if (d.contains('cancelled')) return Colors.white10;
     return Colors.white.withValues(alpha: 0.05);
@@ -1981,11 +1708,7 @@ class _EventTile extends StatelessWidget {
 
   Color _getDetailTextColor(MatchEvent event) {
     final d = event.detail.toLowerCase();
-    if (event.icon == MatchEventIcon.penaltyMissed ||
-        d.contains('missed penalty') ||
-        d.contains('penalty missed')) {
-      return Colors.redAccent;
-    }
+    if (event.icon == MatchEventIcon.penaltyMissed || d.contains('missed penalty') || d.contains('penalty missed')) return Colors.redAccent;
     if (d.contains('penalty')) return Colors.greenAccent;
     return Colors.white70;
   }
@@ -2003,26 +1726,12 @@ class _EventPill extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.36)),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withValues(alpha: 0.36))),
       child: Row(
         children: [
           if (icon != null) Icon(icon, size: 12, color: Colors.white70),
           if (icon != null) const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.clip,
-            ),
-          ),
+          Expanded(child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), overflow: TextOverflow.clip)),
         ],
       ),
     );
@@ -2030,11 +1739,7 @@ class _EventPill extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    required this.textColor,
-  });
+  const _InfoRow({required this.label, required this.value, required this.textColor});
 
   final String label;
   final String value;
@@ -2047,21 +1752,8 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-              overflow: TextOverflow.clip,
-              maxLines: 3,
-            ),
-          ),
+          SizedBox(width: 110, child: Text(label, style: TextStyle(color: textColor.withValues(alpha: 0.7)))),
+          Expanded(child: Text(value, style: TextStyle(color: textColor, fontWeight: FontWeight.w500), overflow: TextOverflow.clip, maxLines: 3)),
         ],
       ),
     );
@@ -2087,80 +1779,20 @@ class _StatBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SizedBox(
-              width: 40,
-              child: Text(
-                '${stat.homeValue.toInt()}${stat.label == 'Possession' ? '%' : ''}',
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                stat.label.toUpperCase(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.54),
-                  fontSize: 11,
-                  letterSpacing: 1.2,
-                ),
-                overflow: TextOverflow.clip,
-              ),
-            ),
-            SizedBox(
-              width: 40,
-              child: Text(
-                '${stat.awayValue.toInt()}${stat.label == 'Possession' ? '%' : ''}',
-                textAlign: TextAlign.end,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            SizedBox(width: 40, child: Text('${stat.homeValue.toInt()}${stat.label == 'Possession' ? '%' : ''}', style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold))),
+            Expanded(child: Text(stat.label.toUpperCase(), textAlign: TextAlign.center, style: TextStyle(color: textColor.withValues(alpha: 0.54), fontSize: 11, letterSpacing: 1.2), overflow: TextOverflow.clip)),
+            SizedBox(width: 40, child: Text('${stat.awayValue.toInt()}${stat.label == 'Possession' ? '%' : ''}', textAlign: TextAlign.end, style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold))),
           ],
         ),
         const SizedBox(height: 10),
         Stack(
           children: [
-            Container(
-              height: 6,
-              decoration: BoxDecoration(
-                color: textColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
+            Container(height: 6, decoration: BoxDecoration(color: textColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10))),
             Row(
               children: [
-                Expanded(
-                  flex: homeFlex,
-                  child: Container(
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: kGold,
-                      borderRadius: BorderRadius.horizontal(
-                        left: Radius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
+                Expanded(flex: homeFlex, child: Container(height: 6, decoration: const BoxDecoration(color: kGold, borderRadius: BorderRadius.horizontal(left: Radius.circular(10))))),
                 Container(width: 2, height: 6, color: Colors.black26),
-                Expanded(
-                  flex: awayFlex,
-                  child: Container(
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: textColor.withValues(alpha: 0.38),
-                      borderRadius: BorderRadius.horizontal(
-                        right: Radius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
+                Expanded(flex: awayFlex, child: Container(height: 6, decoration: BoxDecoration(color: textColor.withValues(alpha: 0.38), borderRadius: BorderRadius.horizontal(right: Radius.circular(10))))),
               ],
             ),
           ],
@@ -2179,52 +1811,12 @@ class _PitchPainter extends CustomPainter {
       ..strokeWidth = 1.5;
 
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), linePaint);
-    canvas.drawLine(
-      Offset(0, size.height / 2),
-      Offset(size.width, size.height / 2),
-      linePaint,
-    );
-    canvas.drawCircle(
-      Offset(size.width / 2, size.height / 2),
-      size.width * 0.15,
-      linePaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.15,
-        0,
-        size.width * 0.70,
-        size.height * 0.18,
-      ),
-      linePaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.15,
-        size.height * 0.82,
-        size.width * 0.70,
-        size.height * 0.18,
-      ),
-      linePaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.35,
-        0,
-        size.width * 0.30,
-        size.height * 0.06,
-      ),
-      linePaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        size.width * 0.35,
-        size.height * 0.94,
-        size.width * 0.30,
-        size.height * 0.06,
-      ),
-      linePaint,
-    );
+    canvas.drawLine(Offset(0, size.height / 2), Offset(size.width, size.height / 2), linePaint);
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width * 0.15, linePaint);
+    canvas.drawRect(Rect.fromLTWH(size.width * 0.15, 0, size.width * 0.70, size.height * 0.18), linePaint);
+    canvas.drawRect(Rect.fromLTWH(size.width * 0.15, size.height * 0.82, size.width * 0.70, size.height * 0.18), linePaint);
+    canvas.drawRect(Rect.fromLTWH(size.width * 0.35, 0, size.width * 0.30, size.height * 0.06), linePaint);
+    canvas.drawRect(Rect.fromLTWH(size.width * 0.35, size.height * 0.94, size.width * 0.30, size.height * 0.06), linePaint);
   }
 
   @override
@@ -2239,40 +1831,21 @@ class _EventIconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _eventAccent(event.icon);
-    final isCard =
-        event.icon == MatchEventIcon.yellowCard ||
-        event.icon == MatchEventIcon.redCard;
+    final isCard = event.icon == MatchEventIcon.yellowCard || event.icon == MatchEventIcon.redCard;
     final isVar = event.icon == MatchEventIcon.varReview;
 
     return Container(
       width: 34,
       height: 34,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(10), border: Border.all(color: color.withValues(alpha: 0.42))),
       alignment: Alignment.center,
       child: isVar
-          ? Text(
-              'VAR',
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w800,
-                fontSize: 9,
-              ),
-            )
+          ? Text('VAR', style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 9))
           : isCard
-          ? _CardBadge(color: color)
-          : event.icon == MatchEventIcon.penaltyMissed
-          ? Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(Icons.sports_soccer, color: color, size: 18),
-                const Icon(Icons.close, color: Colors.white70, size: 12),
-              ],
-            )
-          : Icon(_iconForEvent(event.icon), color: color, size: 18),
+              ? _CardBadge(color: color)
+              : event.icon == MatchEventIcon.penaltyMissed
+                  ? Stack(alignment: Alignment.center, children: [Icon(Icons.sports_soccer, color: color, size: 18), const Icon(Icons.close, color: Colors.white70, size: 12)])
+                  : Icon(_iconForEvent(event.icon), color: color, size: 18),
     );
   }
 }
@@ -2284,18 +1857,7 @@ class _CardBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: 0.03,
-      child: Container(
-        width: 10,
-        height: 14,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(1.5),
-          border: Border.all(color: Colors.black26, width: 0.5),
-        ),
-      ),
-    );
+    return Transform.rotate(angle: 0.03, child: Container(width: 10, height: 14, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(1.5), border: Border.all(color: Colors.black26, width: 0.5))));
   }
 }
 
@@ -2325,7 +1887,6 @@ Color _eventAccent(MatchEventIcon icon) {
   };
 }
 
-/// Logo d'équipe sans cercle pour la section tirs au but
 class _ShootoutTeamLogo extends StatelessWidget {
   const _ShootoutTeamLogo({required this.teamId, required this.code});
 
@@ -2338,14 +1899,8 @@ class _ShootoutTeamLogo extends StatelessWidget {
   }
 }
 
-/// Une ligne de tir au but : cercle coloré + nom du tireur
 class _ShootoutRow extends StatelessWidget {
-  const _ShootoutRow({
-    required this.event,
-    required this.isGoal,
-    required this.textColor,
-    required this.isHome,
-  });
+  const _ShootoutRow({required this.event, required this.isGoal, required this.textColor, required this.isHome});
 
   final MatchEvent event;
   final bool isGoal;
@@ -2358,29 +1913,16 @@ class _ShootoutRow extends StatelessWidget {
       width: 30,
       height: 30,
       decoration: BoxDecoration(
-        color: isGoal
-            ? const Color(0xFF1FAE68).withValues(alpha: 0.18)
-            : const Color(0xFFE05151).withValues(alpha: 0.18),
+        color: isGoal ? const Color(0xFF1FAE68).withValues(alpha: 0.18) : const Color(0xFFE05151).withValues(alpha: 0.18),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: isGoal ? const Color(0xFF1FAE68) : const Color(0xFFE05151),
-          width: 2,
-        ),
+        border: Border.all(color: isGoal ? const Color(0xFF1FAE68) : const Color(0xFFE05151), width: 2),
       ),
-      child: Icon(
-        isGoal ? Icons.check_rounded : Icons.close_rounded,
-        color: isGoal ? const Color(0xFF1FAE68) : const Color(0xFFE05151),
-        size: 17,
-      ),
+      child: Icon(isGoal ? Icons.check_rounded : Icons.close_rounded, color: isGoal ? const Color(0xFF1FAE68) : const Color(0xFFE05151), size: 17),
     );
 
     final playerName = Text(
       event.description.isNotEmpty ? event.description : event.title,
-      style: TextStyle(
-        color: textColor.withValues(alpha: 0.75),
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-      ),
+      style: TextStyle(color: textColor.withValues(alpha: 0.75), fontSize: 11, fontWeight: FontWeight.w500),
       maxLines: 1,
       overflow: TextOverflow.clip,
     );
@@ -2388,45 +1930,19 @@ class _ShootoutRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: isHome
-            ? MainAxisAlignment.start
-            : MainAxisAlignment.end,
-        children: isHome
-            ? [circle, const SizedBox(width: 8), Expanded(child: playerName)]
-            : [Expanded(child: playerName), const SizedBox(width: 8), circle],
+        mainAxisAlignment: isHome ? MainAxisAlignment.start : MainAxisAlignment.end,
+        children: isHome ? [circle, const SizedBox(width: 8), Expanded(child: playerName)] : [Expanded(child: playerName), const SizedBox(width: 8), circle],
       ),
     );
   }
 }
 
-/// Filigrane trophée doré — inversion des lignes noires puis dégradé or.
 class _PitchTrophyWatermark extends StatelessWidget {
   const _PitchTrophyWatermark({required this.isDark});
 
   final bool isDark;
 
-  static const _invertMatrix = ColorFilter.matrix([
-    -1,
-    0,
-    0,
-    0,
-    255,
-    0,
-    -1,
-    0,
-    0,
-    255,
-    0,
-    0,
-    -1,
-    0,
-    255,
-    0,
-    0,
-    0,
-    1,
-    0,
-  ]);
+  static const _invertMatrix = ColorFilter.matrix([-1, 0, 0, 0, 255, 0, -1, 0, 0, 255, 0, 0, -1, 0, 255, 0, 0, 0, 1, 0]);
 
   @override
   Widget build(BuildContext context) {
@@ -2434,22 +1950,14 @@ class _PitchTrophyWatermark extends StatelessWidget {
       opacity: isDark ? 0.16 : 0.12,
       child: ShaderMask(
         blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) => const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFF5E6B8), Color(0xFFC8973A)],
-        ).createShader(bounds),
+        shaderCallback: (bounds) => const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF5E6B8), Color(0xFFC8973A)]).createShader(bounds),
         child: ColorFiltered(
           colorFilter: _invertMatrix,
           child: Image.asset(
             'assets/trophy_pitch.png',
             width: 100,
             fit: BoxFit.contain,
-            errorBuilder: (_, _, _) => Icon(
-              Icons.emoji_events_rounded,
-              size: 90,
-              color: kGold.withValues(alpha: 0.25),
-            ),
+            errorBuilder: (_, _, _) => Icon(Icons.emoji_events_rounded, size: 90, color: kGold.withValues(alpha: 0.25)),
           ),
         ),
       ),
