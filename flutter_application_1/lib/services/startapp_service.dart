@@ -19,11 +19,8 @@ class StartAppService {
       if (kDebugMode) {
         _instance._startAppSdk.setTestAdsEnabled(true);
       }
-      // StartApp Return Ads are enabled by default, but we will manage 
-      // the App Open (resume) logic ourselves to guarantee the exact same flow 
-      // the user had with AdMob. We disable StartApp's native return ads 
-      // to avoid double ads.
-      _instance._startAppSdk.disableReturnAds();
+      // StartApp Return Ads are enabled by default. Nous supprimons l'appel
+      // manuel à disableReturnAds car il n'est pas défini dans ce SDK Flutter.
       
       await _instance._loadAppOpenAd();
       await showAppOpenAdIfAvailable();
