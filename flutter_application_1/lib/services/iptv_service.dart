@@ -319,7 +319,7 @@ class IptvService {
                 _attr(line, 'tvg-id')   ??
                 _afterComma(line);
         logo  = _attr(line, 'tvg-logo') ?? '';
-        group = _attr(line, 'group-title') ?? 'Général';
+        group = _attr(line, 'group-title')?.replaceAll(';', ' ') ?? 'Général';
       } else if (line.isNotEmpty && !line.startsWith('#')) {
         if (name != null && name.isNotEmpty) {
           channels.add(IptvParsedChannel(

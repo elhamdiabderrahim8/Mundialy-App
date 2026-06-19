@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:startapp_sdk/startapp.dart';
 
 import '../services/ad_units.dart';
 
@@ -8,7 +8,7 @@ class InlineAdaptiveBanner extends StatefulWidget {
     super.key,
     this.horizontalMargin = 16,
     this.verticalMargin = 12,
-    this.maxHeight = 120,
+    this.maxHeight = 120, // Keep API identical to avoid breaking other files
   });
 
   final double horizontalMargin;
@@ -20,109 +20,88 @@ class InlineAdaptiveBanner extends StatefulWidget {
 }
 
 class _InlineAdaptiveBannerState extends State<InlineAdaptiveBanner> {
-  BannerAd? _bannerAd;
-  AdSize? _loadedSize;
-  bool _isLoaded = false;
-  int? _requestedWidth;
-  Orientation? _requestedOrientation;
+  final _startAppSdk = StartAppSdk();
+  StartAppBannerAd? _bannerAd;
+  bool _isLoading = true;
 
   @override
-  void dispose() {
-    _bannerAd?.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadBanner();
   }
 
-  Future<void> _loadAd(int width, Orientation orientation) async {
-    final adUnitId = AdUnits.inlineBanner;
-    if (adUnitId.isEmpty || width <= 0) return;
-    if (_requestedWidth == width && _requestedOrientation == orientation) {
+  void _loadBanner() {
+    if (!AdUnits.isSupported) {
+      setState(() => _isLoading = false);
       return;
     }
 
-    _requestedWidth = width;
-    _requestedOrientation = orientation;
-    _isLoaded = false;
-    _loadedSize = null;
-    await _bannerAd?.dispose();
-    _bannerAd = null;
-
-    final size = AdSize.getInlineAdaptiveBannerAdSize(width, widget.maxHeight);
-
-    final banner = BannerAd(
-      adUnitId: adUnitId,
-      size: size,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) async {
-          final bannerAd = ad as BannerAd;
-          final platformSize = await bannerAd.getPlatformAdSize();
-          if (!mounted || platformSize == null) {
-            await bannerAd.dispose();
-            return;
-          }
-          setState(() {
-            _bannerAd = bannerAd;
-            _loadedSize = platformSize;
-            _isLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          debugPrint('Inline banner failed to load: $error');
-          ad.dispose();
-          if (!mounted) return;
-          setState(() {
-            _bannerAd = null;
-            _loadedSize = null;
-            _isLoaded = false;
-          });
-        },
-      ),
-    );
-
-    _bannerAd = banner;
-    await banner.load();
+    _startAppSdk.loadBannerAd(StartAppBannerType.BANNER).then((ad) {
+      if (mounted) {
+        setState(() {
+          _bannerAd = ad;
+          _isLoading = false;
+        });
+      }
+    }).catchError((error) {
+      debugPrint('StartApp banner failed to load: $error');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!AdUnits.isSupported || AdUnits.inlineBanner.isEmpty) {
+    if (!AdUnits.isSupported) {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final orientation = MediaQuery.orientationOf(context);
-        final width = (constraints.maxWidth - (widget.horizontalMargin * 2))
-            .clamp(0, constraints.maxWidth)
-            .truncate();
-
-        if (width > 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _loadAd(width, orientation);
-          });
-        }
-
-        if (!_isLoaded || _bannerAd == null || _loadedSize == null) {
-          return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: widget.horizontalMargin,
-            vertical: widget.verticalMargin,
-          ),
+    if (_isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: widget.horizontalMargin,
+          vertical: widget.verticalMargin,
+        ),
+        child: SizedBox(
+          height: 50, // Standard banner height
           child: Center(
-            child: SizedBox(
-              width: _loadedSize!.width.toDouble(),
-              height: _loadedSize!.height.toDouble(),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AdWidget(ad: _bannerAd!),
-              ),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.withValues(alpha: 0.3)),
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    if (_bannerAd == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.horizontalMargin,
+        vertical: widget.verticalMargin,
+      ),
+      child: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: StartAppBanner(_bannerAd!),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -54,8 +54,8 @@
         </provider>
 
         <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-1247207419826743~6323005382" />
+            android:name="com.startapp.sdk.APPLICATION_ID"
+            android:value="205563396" />
 
         <!-- Icône notifications : silhouette blanche TV + trophée (sans fond jaune) -->
         <meta-data

@@ -8,7 +8,7 @@ import 'firebase_options.dart';
 import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
-import 'services/ad_mob_service.dart';
+import 'services/startapp_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_globals.dart';
 import 'widgets/animated_goal_overlay.dart';
@@ -77,9 +77,9 @@ Future<void> _initializeStartupServices() async {
   }
 
   try {
-    await AdMobService.initialize();
+    await StartAppService.initialize();
   } catch (error, stackTrace) {
-    debugPrint('Startup AdMob init error: $error');
+    debugPrint('Startup StartApp init error: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 
@@ -167,7 +167,7 @@ class _MyAppState extends State<MyApp> {
 
   void _onStateChanged(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      AdMobService.showAppOpenAdIfAvailable();
+      StartAppService.showAppOpenAdIfAvailable();
       _GlobalLiveScanner.start();
     } else if (state == AppLifecycleState.paused) {
       _GlobalLiveScanner.stop();
