@@ -8,7 +8,7 @@ void main() {
     print('\n--- DEBUT DU TEST TECHNIQUE REEL ---');
     
     // 1. Récupération des matchs de l'API (72 matchs trouvés dans le test précédent)
-    final fixtures = await Scores365Service.fetchFixtures2026();
+    final fixtures = await Scores365Service.fetchFixtures(2026);
     print('1. API Connectée : ${fixtures.length} matchs récupérés.');
 
     // On cherche un match qui a potentiellement des buts (on prend le premier pour l'exemple)
