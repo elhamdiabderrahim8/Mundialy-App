@@ -23,7 +23,6 @@ class StartAppService {
       // manuel à disableReturnAds car il n'est pas défini dans ce SDK Flutter.
       
       await _instance._loadAppOpenAd();
-      await showAppOpenAdIfAvailable();
     } catch (error, stackTrace) {
       debugPrint('StartApp init failed: $error');
       debugPrintStack(stackTrace: stackTrace);

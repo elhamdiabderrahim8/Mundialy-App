@@ -8,19 +8,24 @@ import '../models/live_match.dart';
 import 'api_service.dart';
 
 class ScorerCalculationService {
-  static const String _storageKey = 'eternal_scorers_v2'; // Version 2 pour réinitialiser les bugs de comptage
-  static const String _processedGoalsKey = 'processed_goals_ledger_v1';
+  static String _getStorageKey(int year) => 'eternal_scorers_v3_$year';
+  static String _getProcessedGoalsKey(int year) => 'processed_goals_v3_$year';
+  static String _getProcessedMatchesKey(int year) => 'processed_matches_v3_$year';
 
   static final ValueNotifier<int> progressNotifier = ValueNotifier(0);
 
   /// Algorithme d'ingénieur pour l'agrégation "Éternelle" des buteurs.
   /// Charge une base initiale (JSON fourni) et l'enrichit dynamiquement.
-  static Future<void> runAggregator(List<LiveMatch> matches) async {
+  static Future<void> runAggregator(List<LiveMatch> matches, {int year = 2026}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
+      final storageKey = _getStorageKey(year);
+      final processedGoalsKey = _getProcessedGoalsKey(year);
+      final processedMatchesKey = _getProcessedMatchesKey(year);
+
       // 1. Chargement de l'état actuel (depuis SharedPreferences)
-      String? storedRaw = prefs.getString(_storageKey);
+      String? storedRaw = prefs.getString(storageKey);
       Map<String, dynamic> playerMap;
 
       if (storedRaw == null) {
@@ -31,7 +36,9 @@ class ScorerCalculationService {
       }
       
       // 2. Registre des buts pour éviter le sur-comptage (Idempotence totale)
-      final List<String> goalLedger = prefs.getStringList(_processedGoalsKey) ?? [];
+      final List<String> goalLedger = prefs.getStringList(processedGoalsKey) ?? [];
+      
+      final List<String> matchLedger = prefs.getStringList(processedMatchesKey) ?? [];
 
       // 3. Filtrage des matchs
       final targetMatches = matches.where((m) => m.isFinished || m.isLive).toList();
@@ -40,13 +47,47 @@ class ScorerCalculationService {
       if (targetMatches.isEmpty) return;
 
       bool dataChanged = false;
+      bool ledgersChanged = false;
+      int apiCallsThisRun = 0;
 
-      for (final match in targetMatches.take(10)) {
+      // Parcours de TOUS les matchs, mais avec un système de ledger pour sauter les anciens
+      for (final match in targetMatches) {
+        final String matchIdStr = match.id.toString();
+        
+        if (match.isFinished && matchLedger.contains(matchIdStr)) {
+          continue; // Match déjà entièrement analysé
+        }
+
+        // Limite de sécurité pour éviter de spammer le serveur (5 matchs max par session de calcul)
+        if (apiCallsThisRun >= 5) {
+          break;
+        }
+
         final details = await ApiService.fetchMatchDetails(match);
+        apiCallsThisRun++;
+        
         if (details == null) continue;
 
+        int ledgerInitialLength = goalLedger.length;
+
         for (final event in details.summary.events) {
-          if (event.icon == MatchEventIcon.goal) {
+          // Compter les buts normaux ET les penaltys marqués (en jeu ou aux tirs au but)
+          // Exclure les buts contre son camp (ownGoal)
+          final isGoalEvent = event.icon == MatchEventIcon.goal || 
+                              event.icon == MatchEventIcon.penaltyGoal;
+          if (isGoalEvent) {
+            // Ignorer les buts contre son camp de façon robuste
+            final titleLower = event.title.toLowerCase();
+            final detailLower = event.detail.toLowerCase();
+            if (titleLower.contains('contre son camp') || 
+                titleLower.contains('own goal') || 
+                titleLower.contains('owngoal') || 
+                detailLower.contains('own-goal') || 
+                detailLower.contains('owngoal') ||
+                event.icon == MatchEventIcon.ownGoal) {
+              continue; // On ignore ce but pour le Soulier d'Or
+            }
+
             final String name = event.scorerName;
             final String team = event.teamName;
             
@@ -78,18 +119,31 @@ class ScorerCalculationService {
             }
             
             goalLedger.add(goalSignature);
-            dataChanged = true;
           }
           
           // Captation des cartons et passes même si pas de but
           _processSecondaryEvents(playerMap, event, match.id, goalLedger);
         }
         
-        if (dataChanged) {
-          await prefs.setString(_storageKey, jsonEncode(playerMap));
-          await prefs.setStringList(_processedGoalsKey, goalLedger);
-          progressNotifier.value++;
+        if (goalLedger.length > ledgerInitialLength) {
+          dataChanged = true;
         }
+        
+        if (match.isFinished && !matchLedger.contains(matchIdStr)) {
+          matchLedger.add(matchIdStr);
+          ledgersChanged = true;
+        }
+      }
+      
+      if (dataChanged || ledgersChanged) {
+        if (dataChanged) {
+          await prefs.setString(storageKey, jsonEncode(playerMap));
+          await prefs.setStringList(processedGoalsKey, goalLedger);
+        }
+        if (ledgersChanged) {
+          await prefs.setStringList(processedMatchesKey, matchLedger);
+        }
+        progressNotifier.value++;
       }
     } catch (e) {
       debugPrint('[ScorerEngine] Erreur : $e');
@@ -191,10 +245,10 @@ class ScorerCalculationService {
 
   static String _generateKey(String name, String team) => '${name.trim()}_${team.trim()}';
 
-  static Future<List<TopScorer>> getStoredScorers() async {
+  static Future<List<TopScorer>> getStoredScorers({int year = 2026}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? raw = prefs.getString(_storageKey);
+      final String? raw = prefs.getString(_getStorageKey(year));
       if (raw == null) {
         // Si vide, on affiche au moins les données initiales du JSON
         final initMap = await _initializeFromAsset();

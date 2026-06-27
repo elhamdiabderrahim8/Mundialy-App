@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
   cupertino_icons: ^1.0.8
   http: ^1.1.0
   shared_preferences: ^2.5.5
@@ -24,8 +27,9 @@ dependencies:
   cached_network_image: ^3.4.1
   cronet_http: 1.8.0
   shimmer: ^3.0.0
+  showcaseview: ^5.1.0
   startapp_sdk: ^1.0.1
-
+  webview_flutter: ^4.14.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -33,10 +37,12 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:
     - assets/data/matches_2022.json
+    - assets/data/match_details_2022.json
     - assets/data/standings_2022.json
     - assets/data/topscorers_2022.json
     - assets/data/topscorers_2026_init.json

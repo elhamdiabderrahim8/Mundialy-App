@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/live_match.dart';
@@ -34,6 +35,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
   TeamProfile? _profile;
   List<LiveMatch> _matches = [];
+  List<LiveMatch> _matches2022Extra = []; // matchs 2022 pour équipes consultées en 2026
   GroupStanding? _teamStanding;
   StandingTeam? _standingRow;
   bool _isLoading = true;
@@ -47,29 +49,43 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    final results = await Future.wait([
+    // On charge l'édition consultée + les matchs 2022 si on consulte 2026
+    final futures = <Future>[
       ApiService.fetchTeamProfile(
         teamId: widget.teamId,
         teamName: widget.teamName,
         year: widget.year,
       ),
-      ApiService.fetchMatches(year: 2022),
-      ApiService.fetchMatches(year: 2026),
+      ApiService.fetchMatches(year: widget.year),
       ApiService.fetchStandings(year: widget.year),
-    ]);
+    ];
+    // Ajouter 2022 uniquement si on consulte 2026 (historique complet)
+    if (widget.year == 2026) {
+      futures.add(ApiService.fetchMatches(year: 2022));
+    }
 
-    final List<LiveMatch> matches2022 = results[1] as List<LiveMatch>;
-    final List<LiveMatch> matches2026 = results[2] as List<LiveMatch>;
+    final results = await Future.wait(futures);
 
-    final List<LiveMatch> teamMatches = [...matches2022, ...matches2026]
+    final List<LiveMatch> allMatches = results[1] as List<LiveMatch>;
+
+    final List<LiveMatch> teamMatches = allMatches
         .where(
           (m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
         )
         .toList();
 
+    // Récupérer aussi les matchs 2022 pour compléter l'historique
+    List<LiveMatch> extra2022 = [];
+    if (widget.year == 2026 && results.length > 3) {
+      final all2022 = results[3] as List<LiveMatch>;
+      extra2022 = all2022
+          .where((m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName))
+          .toList();
+    }
+
     if (!mounted) return;
 
-    final standings = results[3] as List<GroupStanding>;
+    final standings = results[2] as List<GroupStanding>;
     GroupStanding? teamStanding;
     StandingTeam? standingRow;
 
@@ -92,6 +108,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     setState(() {
       _profile = results[0] as TeamProfile?;
       _matches = teamMatches;
+      _matches2022Extra = extra2022;
       _teamStanding = teamStanding;
       _standingRow = standingRow;
       _isLoading = false;
@@ -291,16 +308,32 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                     end: Alignment.bottomRight,
                   ),
                 ),
-                child: Center(
-                  child: Text(
-                    _initials(coach.name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
+                clipBehavior: Clip.hardEdge,
+                child: coach.photoUrl != null && coach.photoUrl!.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: coach.photoUrl!,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) => Center(
+                          child: Text(
+                            _initials(coach.name),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          _initials(coach.name),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -435,19 +468,20 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   }
 
   Widget _buildMatchesList(bool isDark) {
-    if (_matches.isEmpty) {
+    if (_matches.isEmpty && _matches2022Extra.isEmpty) {
       return _buildEmptyCard(
         isDark: isDark,
         message: 'Aucun match trouvé pour cette équipe.',
       );
     }
 
-    final matches2022 = _matches
-        .where((m) => m.dateTime?.year == 2022)
-        .toList();
-    final matches2026 = _matches
-        .where((m) => m.dateTime?.year != 2022)
-        .toList();
+    final matches2022 = widget.year == 2022 
+        ? _matches.where((m) => m.dateTime?.year == 2022).toList()
+        : _matches2022Extra;
+        
+    final matches2026 = widget.year == 2026
+        ? _matches.where((m) => m.dateTime?.year != 2022).toList()
+        : <LiveMatch>[];
 
     return Column(
       children: [
@@ -951,16 +985,32 @@ class _PlayerRow extends StatelessWidget {
                 width: 1.5,
               ),
             ),
-            child: Center(
-              child: Text(
-                _initials(player.name),
-                style: const TextStyle(
-                  color: Color(0xFFE7C16A),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-            ),
+            clipBehavior: Clip.hardEdge,
+            child: player.photoUrl != null && player.photoUrl!.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: player.photoUrl!,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Center(
+                      child: Text(
+                        _initials(player.name),
+                        style: const TextStyle(
+                          color: Color(0xFFE7C16A),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      _initials(player.name),
+                      style: const TextStyle(
+                        color: Color(0xFFE7C16A),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

@@ -420,33 +420,30 @@ class ApiService {
     }
 
     try {
+      List<LiveMatch> data = [];
       if (year == 2022) {
-        // 2022 : chargement INSTANTANÉ depuis les assets embarqués (0 latence)
-        final raw = await rootBundle.loadString(
-          'assets/data/matches_2022.json',
-        );
-        final data = _parseMatchesResponse(raw);
+        try {
+          final raw = await rootBundle.loadString('assets/data/matches_2022.json');
+          final decoded = jsonDecode(raw);
+          final List fixtures = decoded['response'] ?? [];
+          data = fixtures.map((e) => LiveMatch.fromApiFootball(e as Map<String, dynamic>)).toList();
+        } catch (e) {
+          debugPrint('Error loading 2022 matches: $e');
+        }
+      } else {
+        data = await Scores365Service.fetchFixtures(year ?? 2026);
+      }
+
+      if (data.isNotEmpty) {
         TeamResolver.indexMatches(data);
         _setCache(cacheKey, data);
         
-        // Déclencher l'algorithme des buteurs même pour 2022 si besoin
-        ScorerCalculationService.runAggregator(data);
+        // Déclencher l'algorithme des buteurs en arrière-plan
+        ScorerCalculationService.runAggregator(data, year: year ?? 2026);
 
         return data;
-      } else {
-        // 2026 : appel DIRECT à 365Scores
-        final data = await Scores365Service.fetchFixtures2026();
-        if (data.isNotEmpty) {
-          TeamResolver.indexMatches(data);
-          _setCache(cacheKey, data);
-          
-          // Déclencher l'algorithme des buteurs en arrière-plan
-          ScorerCalculationService.runAggregator(data);
-
-          return data;
-        }
-        debugPrint('fetchMatches: 365Scores direct returned no fixtures');
       }
+      debugPrint('fetchMatches: API returned no fixtures for year $year');
     } catch (e) {
       debugPrint('❌ fetchMatches Error: $e');
     }
@@ -462,26 +459,27 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
+      List<GroupStanding> data = [];
       if (year == 2022) {
-        final matchesRaw = await rootBundle.loadString(
-          'assets/data/matches_2022.json',
-        );
-        TeamResolver.indexMatches(_parseMatchesResponse(matchesRaw));
-        final raw = await rootBundle.loadString(
-          'assets/data/standings_2022.json',
-        );
-        final data = _remapStandingsIds(_parseStandingsResponse(raw));
+        try {
+          final raw = await rootBundle.loadString('assets/data/standings_2022.json');
+          data = _parseStandingsResponse(raw);
+        } catch (e) {
+          debugPrint('Error loading 2022 standings: $e');
+        }
+      } else {
+        data = await Scores365Service.fetchStandings(year ?? 2026);
+      }
+
+      if (data.isNotEmpty) {
+        // On récupère aussi les matchs pour indexer les équipes si besoin (notamment pour 2022)
+        if (year == 2022 && TeamResolver.hasNoData) {
+          await fetchMatches(year: 2022);
+        }
         _setCache(cacheKey, data);
         return data;
-      } else {
-        // 2026 : appel DIRECT à 365Scores
-        final data = await Scores365Service.fetchStandings2026();
-        if (data.isNotEmpty) {
-          _setCache(cacheKey, data);
-          return data;
-        }
-        debugPrint('fetchStandings: 365Scores direct returned no groups');
       }
+      debugPrint('fetchStandings: API returned no groups for year $year');
     } catch (e) {
       debugPrint('❌ fetchStandings Error: $e');
     }
@@ -501,9 +499,22 @@ class ApiService {
     if (cached != null) return cached;
 
     try {
-      final details = await Scores365Service.fetchMatchDetails(
-        int.tryParse(fixtureId) ?? 0,
-      );
+      MatchDetails? details;
+      if (year == 2022) {
+        try {
+          final raw = await rootBundle.loadString('assets/data/match_details_2022.json');
+          final decoded = jsonDecode(raw);
+          if (decoded[fixtureId] != null) {
+            details = MatchDetails.fromApi(decoded[fixtureId]);
+          }
+        } catch (e) {
+          debugPrint('Error loading 2022 match details: $e');
+        }
+      } else {
+        details = await Scores365Service.fetchMatchDetails(
+          int.tryParse(fixtureId) ?? 0,
+        );
+      }
 
       if (details != null) {
         _setCache(cacheKey, details);
@@ -635,44 +646,35 @@ class ApiService {
     // le plus vite possible, donc on réduit la durée du cache
     final cached = _getCache<List<TopScorer>>(
       cacheKey,
-      ttlMinutes: 1, // Cache très court pour voir les mises à jour
+      ttlMinutes: season == 2022 ? 1440 : 10, // 10 min pour 2026, 24h pour 2022
     );
     if (cached != null && cached.isNotEmpty) return cached;
 
     try {
-      List<TopScorer> scorers;
-      if (season == 2022) {
-        // 2022 : chargement INSTANTANÉ depuis les assets embarqués
-        final raw = await rootBundle.loadString(
-          'assets/data/topscorers_2022.json',
-        );
-        final body = jsonDecode(raw);
-        final data = body['response'] as List? ?? [];
-        scorers = data
-            .asMap()
-            .entries
-            .map<TopScorer>(
-              (entry) => TopScorer.fromApi(
-                entry.value as Map<String, dynamic>,
-                entry.key + 1,
-              ),
-            )
-            .toList();
-      } else {
-        // 2026 : On utilise d'abord l'algorithme local pour valider le calcul "éternel"
-        scorers = await ScorerCalculationService.getStoredScorers();
-
-        // Si l'algorithme local n'a encore rien (premier lancement), on essaie l'API
-        if (scorers.isEmpty) {
+      List<TopScorer> scorers = await ScorerCalculationService.getStoredScorers(year: season);
+      
+      // Si l'algorithme local n'a encore rien (premier lancement), on essaie l'API
+      if (scorers.isEmpty) {
+        if (season == 2022) {
+          try {
+            final raw = await rootBundle.loadString('assets/data/topscorers_2022.json');
+            final decoded = jsonDecode(raw);
+            final List list = decoded['response'] ?? [];
+            scorers = list.asMap().entries.map((e) => TopScorer.fromApi(e.value, e.key + 1)).toList();
+          } catch (e) {
+            debugPrint('Error loading 2022 topscorers: $e');
+          }
+        } else {
           scorers = await Scores365Service.fetchTopScorers(
+            season,
             Scores365Service.wcCompetitionId,
           );
         }
+      }
 
-        // Rank them
-        for (int i = 0; i < scorers.length; i++) {
-          scorers[i].rank = i + 1;
-        }
+      // Rank them
+      for (int i = 0; i < scorers.length; i++) {
+        scorers[i].rank = i + 1;
       }
 
       // Ne pas mettre en cache une liste vide pour permettre un rafraîchissement rapide
@@ -692,7 +694,7 @@ class ApiService {
       final query = team != null && team.isNotEmpty ? '?team=$team' : '';
       final response = await _backendGet('/api/worldcup/news$query');
       if (response != null) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
         // Backend returns a list of news items directly
         if (data is List) return data;
         // Fallback if wrapped in a key
@@ -711,7 +713,7 @@ class ApiService {
           : '/api/venues?season=$year';
       final response = await _backendGet(venuePath);
       if (response != null) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
         return data['response'] as List? ?? [];
       }
     } catch (e) {
@@ -727,7 +729,7 @@ class ApiService {
           : '/api/cuptree?season=$year';
       final response = await _backendGet(cupTreePath);
       if (response != null) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
         return data['response'];
       }
     } catch (e) {
@@ -744,7 +746,7 @@ class ApiService {
           : '/api/wc2022/power-rankings';
       final response = await _backendGet(rankPath);
       if (response != null) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
         return data['response'] as List? ?? [];
       }
     } catch (e) {

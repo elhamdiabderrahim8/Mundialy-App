@@ -1,6 +1,8 @@
 import 'dart:async' as java_timer;
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter/services.dart';
@@ -10,10 +12,13 @@ import '../models/top_scorer.dart';
 import '../services/api_service.dart';
 import '../services/theme_provider.dart';
 import '../utils/country_flags.dart';
+import '../utils/lang_utils.dart';
 import '../utils/standing_status.dart';
 import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
+import 'matches_list_tab.dart';
 import 'match_details_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import '../utils/team_navigation.dart';
 import '../utils/app_globals.dart';
 import '../utils/player_navigation.dart';
@@ -27,6 +32,8 @@ import '../utils/app_routes.dart';
 import 'news_detail_screen.dart';
 import 'iptv/iptv_main_screen.dart';
 import '../services/scorer_calculation_service.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// --- CONSTANTES ÉLITE ---
 const Color _kGold = Color(0xFFE7C16A);
@@ -55,6 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
   java_timer.Timer? _liveTimer;
   java_timer.StreamSubscription<void>? _refreshSubscription;
 
+  final GlobalKey _yearSelectorKey = GlobalKey();
+  final GlobalKey _settingsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -62,9 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
     ApiService.initNotifications();
     _loadInitialData();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeen = prefs.getBool('hasSeenHomeGuide') ?? false;
+      if (!hasSeen) {
+        if (mounted) {
+          ShowCaseWidget.of(context).startShowCase([_yearSelectorKey, _settingsKey]);
+          await prefs.setBool('hasSeenHomeGuide', true);
+        }
+      }
+    });
+
     // Écouter les notifications FCM pour rafraîchir brusquement
     _refreshSubscription = refreshStreamController.stream.listen((_) {
-      debugPrint('ðŸ”„ FCM déclenche un rafraîchissement brusque !');
+      debugPrint('🔄 FCM déclenche un rafraîchissement brusque !');
       _loadInitialData();
     });
 
@@ -137,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       _startSilentScoreRefresh();
     } catch (e) {
-      debugPrint('ðŸ’¥ Error loading data: $e');
+      debugPrint('💥 Error loading data: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -400,7 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildPagedMatchView(textColor, matches, standings);
       case 1:
-        return _buildPagedMatchView(textColor, matches, standings); // Live View
+        return const MatchesListTab(); // Live View
       case 2:
         return _buildCalendrierView(textColor, matches, standings);
       case 3:
@@ -447,16 +468,16 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          // â”€â”€ HERO BANNER â”€â”€
+          // ── HERO BANNER ──
           const _HeroBannerDivider(),
           const _TournamentHero2026(),
           const SizedBox(height: 20),
 
-          // â”€â”€ NEWS SECTION â”€â”€
+          // ── NEWS SECTION ──
           _SectionHeader(
             icon: Icons.newspaper_rounded,
-            title: 'ACTUALITÉS FIFA',
-            subtitle: 'Les dernières nouvelles du Mondial',
+            title: AppLocalizations.of(context)?.newsFifa ?? 'ACTUALITÉS FIFA',
+            subtitle: AppLocalizations.of(context)?.latestNews ?? 'Les dernières nouvelles du Mondial',
             textColor: textColor,
           ),
           const SizedBox(height: 10),
@@ -468,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _FilterChip2026(
-                  label: 'TOUT',
+                  label: AppLocalizations.of(context)?.all ?? 'TOUT',
                   isSelected: _selectedNewsTeam.isEmpty,
                   onTap: () {
                     if (_selectedNewsTeam.isNotEmpty) {
@@ -510,12 +531,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const InlineAdaptiveBanner(),
           const SizedBox(height: 28),
 
-          // â”€â”€ STANDINGS / GROUPS â”€â”€
+          // ── STANDINGS / GROUPS ──
           if (standings.isNotEmpty) ...[
             _SectionHeader(
               icon: Icons.leaderboard_rounded,
-              title: 'CLASSEMENTS',
-              subtitle: 'Phase de groupes – Classement officiel',
+              title: AppLocalizations.of(context)?.standingsTitle ?? 'CLASSEMENTS',
+              subtitle: AppLocalizations.of(context)?.groupPhaseOfficial ?? 'Phase de groupes – Classement officiel',
               textColor: textColor,
             ),
             const SizedBox(height: 12),
@@ -532,7 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _SectionHeader(
               icon: Icons.whatshot_rounded,
               title: 'EN DIRECT',
-              subtitle: 'Matchs en cours',
+              subtitle: AppLocalizations.of(context)?.liveMatches ?? 'Matchs en cours',
               textColor: Colors.redAccent,
             ),
             const SizedBox(height: 12),
@@ -540,11 +561,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 28),
           ],
 
-          // ── UPCOMING MATCHES ──
           _SectionHeader(
             icon: Icons.calendar_month_rounded,
-            title: 'PROGRAMME',
-            subtitle: 'Prochains matchs du tournoi',
+            title: AppLocalizations.of(context)?.schedule ?? 'PROGRAMME',
+            subtitle: AppLocalizations.of(context)?.upcomingMatches ?? 'Prochains matchs du tournoi',
             textColor: textColor,
           ),
           const SizedBox(height: 12),
@@ -570,7 +590,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Actualités indisponibles',
+                AppLocalizations.of(context)?.newsUnavailable ?? 'Actualités indisponibles',
                 style: TextStyle(
                   color: Colors.grey.withValues(alpha: 0.6),
                   fontSize: 13,
@@ -1061,7 +1081,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        if (thirdPlaced.isNotEmpty)
+        if (thirdPlaced.isNotEmpty && _selectedYear == 2026)
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             sliver: SliverToBoxAdapter(
@@ -1093,12 +1113,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: _kGold.withValues(alpha: 0.1),
                   border: Border.all(color: _kGold.withValues(alpha: 0.2), width: 2),
                 ),
-                child: Center(
+                child: const Center(
                   child: Icon(Icons.auto_awesome_rounded, size: 60, color: _kGold),
                 ),
               ).animateInfiniteGlow(),
               const SizedBox(height: 32),
-              Text(
+              const Text(
                 'MUNDIALY INTELLIGENCE',
                 style: TextStyle(
                   color: _kGold,
@@ -1134,6 +1154,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final hasAd = _topScorers.length > 3;
+    final listCount = _topScorers.length + (hasAd ? 1 : 0);
+
     return RefreshIndicator(
       onRefresh: _loadInitialData,
       color: _kGold,
@@ -1145,12 +1168,23 @@ class _HomeScreenState extends State<HomeScreen> {
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, i) {
-                  final scorer = _topScorers[i];
-                  final bool isTop3 = i < 3;
+                  if (hasAd && i == 3) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        child: InlineAdaptiveBanner(),
+                      ),
+                    );
+                  }
+
+                  final dataIndex = (hasAd && i > 3) ? i - 1 : i;
+                  final scorer = _topScorers[dataIndex];
+                  final bool isTop3 = dataIndex < 3;
                   
                   return _PremiumScorerTile(
                     scorer: scorer,
-                    rank: i + 1,
+                    rank: dataIndex + 1,
                     isTop3: isTop3,
                     textColor: textColor,
                     onTap: () => openPlayerProfile(
@@ -1163,7 +1197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 },
-                childCount: _topScorers.length,
+                childCount: listCount,
               ),
             ),
           ),
@@ -1215,7 +1249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: Text(
-                        round.$1.toUpperCase(),
+                        _translateRound(context, round.$1).toUpperCase(),
                         style: const TextStyle(
                           color: _kGold,
                           fontWeight: FontWeight.bold,
@@ -1244,15 +1278,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _translateRound(BuildContext context, String round) {
+    final loc = AppLocalizations.of(context)!;
+    switch (round) {
+      case 'Round of 32': return loc.roundOf32;
+      case 'Round of 16': return loc.roundOf16;
+      case 'Quarter-finals': return loc.quarterFinal;
+      case 'Semi-finals': return loc.semiFinal;
+      case 'Third place': return loc.thirdPlace;
+      case 'Final': return loc.final_;
+      default: return round;
+    }
+  }
+
   List<(String, List<LiveMatch>)> _buildKnockoutRounds(
     List<LiveMatch> matches,
   ) {
     final buckets = <String, List<LiveMatch>>{};
     for (final m in matches) {
-      final round = _normalizeRound(m.phaseLabel);
+      final round = LangUtils.normalizePhase(m.phaseLabel);
       if (round != null) buckets.putIfAbsent(round, () => []).add(m);
     }
     const order = [
+      'Round of 32',
       'Round of 16',
       'Quarter-finals',
       'Semi-finals',
@@ -1265,26 +1313,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
   }
 
-  String? _normalizeRound(String raw) {
-    final v = raw.toLowerCase().replaceAll('_', ' ');
-    if (v.contains('round of 16') ||
-        v.contains('8th finals') ||
-        v.contains('huitième')) {
-      return 'Round of 16';
-    }
-    if (v.contains('quarter') || v.contains('quart')) return 'Quarter-finals';
-    if (v.contains('semi') || v.contains('demi')) return 'Semi-finals';
-    if (v.contains('third place') || v.contains('troisième')) {
-      return 'Third place';
-    }
-    if (v == 'final' ||
-        (v.contains('final') &&
-            !v.contains('semi') &&
-            !v.contains('quarter'))) {
-      return 'Final';
-    }
-    return null;
-  }
+
 
   Widget _buildCollapsingHeader() {
     final lightHeaderBg = const Color(0xFFFFFFFF);
@@ -1352,16 +1381,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _YearDropdownSelector(
-                        selectedYear: _selectedYear,
-                        onYearChanged: (y) {
-                          if (_selectedYear != y) {
-                            setState(() {
-                              _selectedYear = y;
-                            });
-                            _loadInitialData();
-                          }
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Showcase(
+                            key: _yearSelectorKey,
+                            description: 'Basculez facilement entre les données 2022 et 2026',
+                            child: _YearDropdownSelector(
+                              selectedYear: _selectedYear,
+                              onYearChanged: (y) {
+                                if (_selectedYear != y) {
+                                  setState(() {
+                                    _selectedYear = y;
+                                  });
+                                  _loadInitialData();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -1391,8 +1429,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       actions: [
-        Container(
-          margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+        Showcase(
+          key: _settingsKey,
+          description: 'Personnalisez le thème, la langue et les alertes',
+          child: Container(
+            margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
           decoration: BoxDecoration(
             color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white,
             borderRadius: BorderRadius.circular(14),
@@ -1453,6 +1494,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+        ),
       ],
     );
   }
@@ -1476,27 +1518,27 @@ class _HomeScreenState extends State<HomeScreen> {
           currentIndex: _selectedTab,
           onTap: _onTabTap,
           type: BottomNavigationBarType.fixed,
-          items: const [
+          items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
-              label: 'Accueil',
+              label: AppLocalizations.of(context)!.home,
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.bolt), label: 'Live'),
+            BottomNavigationBarItem(icon: Icon(Icons.bolt), label: AppLocalizations.of(context)!.live),
             BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today),
-              label: 'Matchs',
+              label: AppLocalizations.of(context)!.matches,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.format_list_numbered),
-              label: 'Groupes',
+              label: AppLocalizations.of(context)!.groups,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.emoji_events_outlined),
-              label: 'Buteurs',
+              label: AppLocalizations.of(context)!.scorers,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_tree_outlined),
-              label: 'Bracket',
+              label: AppLocalizations.of(context)!.bracket,
             ),
           ],
         ),
@@ -1586,6 +1628,7 @@ class _YearDropdownSelector extends StatelessWidget {
   final int selectedYear;
   final void Function(int) onYearChanged;
   const _YearDropdownSelector({
+    super.key,
     required this.selectedYear,
     required this.onYearChanged,
   });
@@ -1593,108 +1636,62 @@ class _YearDropdownSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color panelColor = isDark ? const Color(0xFF1E2630) : Colors.white;
-    final Color accentColor = _kGold;
-    final Color labelColor = isDark ? Colors.white : const Color(0xFF16324A);
-    final Color mutedColor = isDark ? Colors.white54 : const Color(0xFF5B6B79);
-
-    return Theme(
-      data: Theme.of(context).copyWith(
-        popupMenuTheme: PopupMenuThemeData(
-          color: panelColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: accentColor.withValues(alpha: 0.4)),
-          ),
-          elevation: 8,
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _kGold.withValues(alpha: 0.5),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
-      child: PopupMenuButton<int>(
-        initialValue: selectedYear,
-        onSelected: onYearChanged,
-        offset: const Offset(0, 50),
-        itemBuilder: (context) {
-          return [2022, 2026].map((y) {
-            final isSel = selectedYear == y;
-            final label = 'FIFA $y';
-            return PopupMenuItem<int>(
-              value: y,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: isSel
-                      ? accentColor.withValues(alpha: 0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.emoji_events_rounded,
-                      color: isSel ? accentColor : mutedColor,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: isSel ? accentColor : labelColor,
-                        fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: selectedYear,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _kGold),
+          dropdownColor: isDark ? const Color(0xFF16324A) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF16324A),
+            fontWeight: FontWeight.w900,
+            fontSize: 15,
+            letterSpacing: 0.5,
+          ),
+          onChanged: (int? newValue) {
+            if (newValue != null) {
+              onYearChanged(newValue);
+            }
+          },
+          items: [
+            DropdownMenuItem(
+              value: 2026,
+              child: Row(
+                children: [
+                  Icon(Icons.public, color: _kGold, size: 18),
+                  SizedBox(width: 8),
+                  Text(AppLocalizations.of(context)!.worldCup2026),
+                ],
               ),
-            );
-          }).toList();
-        },
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 280),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          decoration: BoxDecoration(
-            color: panelColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark
-                  ? accentColor.withValues(alpha: 0.65)
-                  : const Color(0xFF16324A).withValues(alpha: 0.14),
-              width: 1.5,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: (isDark ? accentColor : const Color(0xFF16324A))
-                    .withValues(alpha: isDark ? 0.18 : 0.07),
-                blurRadius: 12,
-                offset: const Offset(0, 3),
+            DropdownMenuItem(
+              value: 2022,
+              child: Row(
+                children: [
+                  Icon(Icons.public, color: _kGold, size: 18),
+                  SizedBox(width: 8),
+                  Text(AppLocalizations.of(context)!.worldCup2022),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.emoji_events_rounded, color: accentColor, size: 20),
-              const SizedBox(width: 14),
-              Flexible(
-                child: Text(
-                  'FIFA $selectedYear',
-                  style: TextStyle(
-                    color: labelColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    letterSpacing: 0.8,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: accentColor,
-                size: 22,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -2037,7 +2034,7 @@ class _MatchCard extends StatelessWidget {
                       Flexible(
                         flex: 2,
                         child: Text(
-                          match.phaseLabel,
+                          LangUtils.getTranslatedPhase(match.phaseLabel, context),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 11,
@@ -2285,43 +2282,50 @@ class _BracketMatchCard extends StatelessWidget {
   final Color textColor;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: textColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: textColor.withValues(alpha: 0.08)),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MatchDetailsScreen(match: match),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                '${match.dateLabel} â€¢ ${match.localTime}',
-                style: const TextStyle(
-                  color: _kGold,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: textColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: textColor.withValues(alpha: 0.08)),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  '${match.dateLabel} • ${match.localTime}',
+                  style: const TextStyle(
+                    color: _kGold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Icon(
-                Icons.bar_chart,
-                color: textColor.withValues(alpha: 0.38),
-                size: 16,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
+                const Spacer(),
+                Icon(
+                  Icons.bar_chart,
+                  color: textColor.withValues(alpha: 0.38),
+                  size: 16,
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
           _BracketTeamRow(
             name: match.homeTeam,
             code: match.homeCode,
@@ -2354,17 +2358,19 @@ class _BracketMatchCard extends StatelessWidget {
             logo: match.awayLogoUrl,
           ),
           const SizedBox(height: 12),
-          Text(
-            match.city,
-            style: TextStyle(
-              color: textColor.withValues(alpha: 0.54),
-              fontSize: 11,
-              fontStyle: FontStyle.italic,
+          if (match.city.isNotEmpty && match.city != AppLocalizations.of(context)!.stadium && match.city != 'Stadium')
+            Text(
+              match.city,
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.54),
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
             ),
-          ),
         ],
       ),
-    );
+    ),
+   );
   }
 }
 
@@ -3010,9 +3016,9 @@ class _BestThirdsTable extends StatelessWidget {
   );
 }
 
-// â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
-// â”€â”€ PREMIUM 2026 WIDGETS â”€â”€
-// â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
+// =========================================================
+// -- PREMIUM 2026 WIDGETS --
+// =========================================================
 
 /// Entrance animation wrapper – fade + slide up
 class _AnimatedEntrance extends StatefulWidget {
@@ -3686,7 +3692,7 @@ class _LiveMatchCard2026State extends State<_LiveMatchCard2026>
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          m.phaseLabel,
+                          LangUtils.getTranslatedPhase(m.phaseLabel, context),
                           style: const TextStyle(
                             color: Colors.redAccent,
                             fontSize: 10,
@@ -4507,101 +4513,311 @@ class _PremiumScorerTile extends StatelessWidget {
     required this.onTap,
   });
 
+  Color _getRankColor(int rank) {
+    if (rank == 1) return const Color(0xFFFFD700); // Or
+    if (rank == 2) return const Color(0xFFE0E0E0); // Argent
+    if (rank == 3) return const Color(0xFFCD7F32); // Bronze
+    return Colors.white;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final rankColor = _getRankColor(rank);
+
+    if (isTop3) {
+      // FIFA Premium Style Card
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    rankColor.withValues(alpha: 0.2),
+                    const Color(0xFF182531),
+                    rankColor.withValues(alpha: 0.05),
+                  ]
+                : [
+                    rankColor.withValues(alpha: 0.3),
+                    Colors.white,
+                    rankColor.withValues(alpha: 0.1),
+                  ],
+          ),
+          border: Border.all(
+            color: rankColor.withValues(alpha: 0.6),
+            width: rank == 1 ? 2.0 : 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: rankColor.withValues(alpha: rank == 1 ? 0.3 : 0.15),
+              blurRadius: 15,
+              spreadRadius: rank == 1 ? 2 : 0,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: Row(
+                children: [
+                  // Rank Trophy/Number
+                  SizedBox(
+                    width: 40,
+                    child: Column(
+                      children: [
+                        if (rank == 1)
+                          Icon(Icons.emoji_events, color: rankColor, size: 28)
+                        else
+                          Text(
+                            '#$rank',
+                            style: TextStyle(
+                              color: rankColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              shadows: [
+                                Shadow(
+                                  color: rankColor.withValues(alpha: 0.5),
+                                  blurRadius: 10,
+                                )
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Avatar
+                  Container(
+                    width: 55,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          rankColor,
+                          rankColor.withValues(alpha: 0.5),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: rankColor.withValues(alpha: 0.4),
+                          blurRadius: 10,
+                        )
+                      ],
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: scorer.bestPhotoUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: scorer.bestPhotoUrl!,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) => Center(
+                              child: Text(
+                                scorer.playerName.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 24,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              scorer.playerName.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 24,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            scorer.playerName.toUpperCase(),
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            NationFlagBadge(
+                              countryCode: resolveCountryCode(scorer.teamName),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                scorer.teamName.toUpperCase(),
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.7),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Goals Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [rankColor, rankColor.withValues(alpha: 0.7)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: rankColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${scorer.goals}',
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.sports_soccer, color: Colors.black54, size: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Standard Rank Tile
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isTop3 
-            ? _kGold.withValues(alpha: isDark ? 0.08 : 0.12)
-            : (isDark ? _kCardDark : Colors.white),
-        borderRadius: BorderRadius.circular(18),
+        color: isDark ? _kCardDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isTop3 ? _kGold.withValues(alpha: 0.5) : textColor.withValues(alpha: 0.05),
-          width: isTop3 ? 1.5 : 1,
+          color: textColor.withValues(alpha: 0.03),
         ),
-        boxShadow: isTop3 ? [
-          BoxShadow(
-            color: _kGold.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ] : [],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                // Rang avec décoration
                 SizedBox(
                   width: 40,
                   child: Text(
                     '#$rank',
                     style: TextStyle(
-                      color: isTop3 ? _kGold : textColor.withValues(alpha: 0.4),
+                      color: textColor.withValues(alpha: 0.4),
                       fontWeight: FontWeight.w900,
-                      fontSize: isTop3 ? 18 : 14,
+                      fontSize: 16,
                     ),
                   ),
                 ),
-                // Avatar / Initiale
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: isTop3 
-                          ? [_kGold, const Color(0xFFD4A843)]
-                          : [textColor.withValues(alpha: 0.1), textColor.withValues(alpha: 0.05)],
-                    ),
+                    color: textColor.withValues(alpha: 0.05),
                   ),
-                  child: Center(
-                    child: Text(
-                      scorer.playerName.substring(0, 1).toUpperCase(),
-                      style: TextStyle(
-                        color: isTop3 ? Colors.black : textColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: scorer.bestPhotoUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: scorer.bestPhotoUrl!,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => Center(
+                            child: Text(
+                              scorer.playerName.substring(0, 1).toUpperCase(),
+                              style: TextStyle(
+                                color: textColor.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            scorer.playerName.substring(0, 1).toUpperCase(),
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                 ),
-                const SizedBox(width: 16),
-                // Nom et Équipe
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        scorer.playerName,
-                        style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          scorer.playerName,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           NationFlagBadge(
                             countryCode: resolveCountryCode(scorer.teamName),
-                            size: 16,
+                            size: 14,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             scorer.teamName,
                             style: TextStyle(
                               color: textColor.withValues(alpha: 0.5),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -4609,20 +4825,12 @@ class _PremiumScorerTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Buts
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isTop3 ? _kGold : textColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${scorer.goals} G',
-                    style: TextStyle(
-                      color: isTop3 ? Colors.black : _kGold,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                    ),
+                Text(
+                  '${scorer.goals} G',
+                  style: TextStyle(
+                    color: textColor.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
                   ),
                 ),
               ],

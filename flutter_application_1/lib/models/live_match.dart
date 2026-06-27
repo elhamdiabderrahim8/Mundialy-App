@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../utils/country_flags.dart';
 
 enum MatchDataSource { mock, fifa2022, footballData2026, wc2026api }
 
@@ -90,6 +91,19 @@ class LiveMatch {
     }
 
     if (isLive) {
+      if (currentMin != null && int.tryParse(currentMin) != null) {
+        final int m = int.parse(currentMin);
+        if ((statusShort == '1H' || statusShort == '6') && m > 45) {
+          currentMin = '45+${m - 45}';
+        } else if ((statusShort == '2H' || statusShort == '7') && m > 90) {
+          currentMin = '90+${m - 90}';
+        } else if ((statusShort == 'ET1' || statusShort == '24') && m > 105) {
+          currentMin = '105+${m - 105}';
+        } else if ((statusShort == 'ET2' || statusShort == '25') && m > 120) {
+          currentMin = '120+${m - 120}';
+        }
+      }
+
       final String? status = currentMin ?? statusShort;
       if (status != null) {
         if (status == 'HT' || status.toUpperCase() == 'HALFTIME') return 'HT';
@@ -206,10 +220,10 @@ class LiveMatch {
         dateTime: date,
         city: fixture['venue']?['city'] ?? 'Stadium',
         homeTeam: teams['home']?['name'] ?? 'TBD',
-        homeCode: teams['home']?['id']?.toString() ?? 'UN',
+        homeCode: _extractCountryCode(teams['home']?['name'], teams['home']?['logo']),
         homeLogoUrl: teams['home']?['logo'],
         awayTeam: teams['away']?['name'] ?? 'TBD',
-        awayCode: teams['away']?['id']?.toString() ?? 'UN',
+        awayCode: _extractCountryCode(teams['away']?['name'], teams['away']?['logo']),
         awayLogoUrl: teams['away']?['logo'],
         phaseLabel: json['league']?['round'] ?? 'World Cup',
         scoreHome: goals['home'],
@@ -259,5 +273,25 @@ class LiveMatch {
       'Nov',
       'Dec',
     ][month - 1];
+  }
+
+  /// Extracts a 2-letter ISO country code for flag display.
+  /// API Football logos use /football/teams/{id}.png format (no country code),
+  /// so we resolve from the team name using our country dictionary.
+  static String _extractCountryCode(String? teamName, String? logoUrl) {
+    // 1. Try to extract from a flag URL pattern (e.g. /flags/nl.svg or /nl.png)
+    if (logoUrl != null && logoUrl.isNotEmpty) {
+      final flagMatch = RegExp(r'/flags?/([a-z]{2})[\._]', caseSensitive: false)
+          .firstMatch(logoUrl);
+      if (flagMatch != null) {
+        return flagMatch.group(1)!.toUpperCase();
+      }
+    }
+    // 2. Resolve from team name (primary method for API-Football data)
+    if (teamName != null && teamName.isNotEmpty) {
+      final code = resolveCountryCode(teamName, fallback: '');
+      if (code.isNotEmpty && code != 'UN') return code;
+    }
+    return 'UN';
   }
 }

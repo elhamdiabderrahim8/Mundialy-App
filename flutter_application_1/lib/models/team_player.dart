@@ -1,4 +1,5 @@
 import '../utils/country_flags.dart';
+import '../utils/nationality_resolver.dart';
 
 class TeamPlayer {
   final int id;
@@ -113,12 +114,18 @@ class TeamCoach {
   });
 
   factory TeamCoach.fromApi(Map<String, dynamic> json) {
+    final natName = json['nationality']?.toString() ?? '';
+    final natId = json['nationalityId'] as int?;
+    // Use nationalityId first (more reliable), fallback to name-based resolution
+    final natCode = natId != null
+        ? resolveNationalityId(natId)
+        : resolveCountryCode(natName);
     return TeamCoach(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       photoUrl: json['photo'],
-      nationality: json['nationality'] ?? '',
-      nationalityCode: resolveCountryCode(json['nationality'] ?? ''),
+      nationality: natName,
+      nationalityCode: natCode,
       age: json['age']?.toString(),
     );
   }

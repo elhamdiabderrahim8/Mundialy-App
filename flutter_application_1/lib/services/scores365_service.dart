@@ -9,15 +9,15 @@ import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../models/match_news.dart';
 import '../utils/country_flags.dart';
+import '../utils/lang_utils.dart';
 
 class Scores365Service {
   static const int wcCompetitionId = 5930;
-  static const int langId = 1;
 
   static const String baseUrl = 'https://webws.365scores.com/web';
 
   static String get baseParams =>
-      'appTypeId=5&langId=$langId&timezoneName=Europe%2FParis&userCountryId=135';
+      'appTypeId=5&langId=${LangUtils.scores365LangCode}&timezoneName=Europe%2FParis&userCountryId=135';
 
   static Map<String, String> _headers() {
     return {
@@ -37,7 +37,7 @@ class Scores365Service {
           .get(Uri.parse(url), headers: _headers())
           .timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
       } else {
         debugPrint('[365Scores] Error ${response.statusCode} for $url');
       }
@@ -69,10 +69,15 @@ class Scores365Service {
     return liveMatches;
   }
 
-  static Future<List<LiveMatch>> fetchFixtures2026() async {
-    final data = await _fetchJson(
-      'games/?$baseParams&competitions=$wcCompetitionId&startDate=11/06/2026&endDate=19/07/2026',
-    );
+  static Future<List<LiveMatch>> fetchFixtures(int year) async {
+    String endpoint = 'games/?$baseParams&competitions=$wcCompetitionId';
+    if (year == 2026) {
+      endpoint += '&startDate=11/06/2026&endDate=19/07/2026';
+    } else if (year == 2022) {
+      endpoint += '&seasonNum=24';
+    }
+    
+    final data = await _fetchJson(endpoint);
     if (data == null || data['games'] == null) return [];
 
     final games = data['games'] as List;
@@ -133,10 +138,13 @@ class Scores365Service {
       awayCode: _getTeamCode(teamAwayName),
       awayTeamId: away['id'],
       awayLogoUrl: null,
-      phaseLabel:
-          (g['groupName'] != null && g['groupName'].toString().isNotEmpty)
-          ? g['groupName']
-          : (g['roundName'] ?? 'World Cup'),
+      phaseLabel: () {
+        String phase = (g['groupName'] != null && g['groupName'].toString().isNotEmpty)
+            ? g['groupName']
+            : (g['roundName'] ?? g['stageName'] ?? 'World Cup');
+        if (phase.toLowerCase().trim() == 'round') return 'Round of 32';
+        return phase;
+      }(),
       source: MatchDataSource.wc2026api,
       competitionId: g['competitionId'],
       scoreHome: home['score']?.toInt() == -1 ? null : home['score']?.toInt(),
@@ -236,6 +244,10 @@ class Scores365Service {
       if (lineups != null && lineups['members'] != null) {
         final lineupMembers = lineups['members'] as List;
         for (var lm in lineupMembers) {
+          final posName = (lm['position']?['name'] ?? '').toString().toLowerCase();
+          final isCoach = posName.contains('coach') || lm['status'] == 4;
+          if (isCoach) continue;
+
           final memberId = lm['id'];
           final globalMember = membersMap[memberId] ?? {};
           final yard = lm['yardFormation'] as Map<String, dynamic>? ?? {};
@@ -286,10 +298,11 @@ class Scores365Service {
           incidentClass = 'scored';
         } else {
           type = 'goal';
-          if (subType.contains('penalty')) {
+          if (subType.contains('penalty') || subType.contains('pénalty') || subType.contains('جزاء')) {
             incidentClass = 'penalty';
-          } else if (subType.contains('own goal'))
+          } else if (subType.contains('own') || subType.contains('contre') || subType.contains('مرماه')) {
             incidentClass = 'own-goal';
+          }
         }
       } else if (typeId == 2) {
         type = 'card';
@@ -320,7 +333,12 @@ class Scores365Service {
       }
 
       if (type.isNotEmpty) {
-        final isHome = ev['competitorId'] == home['id'];
+        int? actualTeamId = ev['competitorId'];
+        final globalPlayer = membersMap[ev['playerId']];
+        if (globalPlayer != null && globalPlayer['competitorId'] != null) {
+          actualTeamId = globalPlayer['competitorId'];
+        }
+        final isHome = actualTeamId == home['id'];
 
         String? assistName;
         if (type == 'goal' &&
@@ -354,8 +372,8 @@ class Scores365Service {
             'id': isHome ? home['id'] : away['id'],
             'name': isHome ? home['name'] : away['name'],
             'logo': isHome
-                ? (home['nameCode'] ?? home['id'].toString())
-                : (away['nameCode'] ?? away['id'].toString()),
+                ? (home['nameCode'] ?? home['name'] ?? '')
+                : (away['nameCode'] ?? away['name'] ?? ''),
           },
           'type': type,
           'incidentClass': incidentClass,
@@ -441,10 +459,26 @@ class Scores365Service {
           final globalMember = membersMap[memberId] ?? {};
           final coachName = globalMember['name'] ?? globalMember['shortName'];
           if (coachName != null) {
+            final dobStr = globalMember['dateOfBirth'] ?? globalMember['birthDate'];
+            String ageStr = '';
+            if (dobStr != null) {
+              try {
+                final dob = DateTime.parse(dobStr.toString());
+                int age = DateTime.now().year - dob.year;
+                if (DateTime.now().month < dob.month || (DateTime.now().month == dob.month && DateTime.now().day < dob.day)) {
+                  age--;
+                }
+                ageStr = ' ($age ans)';
+              } catch (_) {}
+            } else if (globalMember['age'] != null) {
+              ageStr = ' (${globalMember['age']} ans)';
+            }
+            final finalCoach = '$coachName$ageStr';
+
             if (competitor['id'] == home['id']) {
-              homeCoach = coachName;
+              homeCoach = finalCoach;
             } else {
-              awayCoach = coachName;
+              awayCoach = finalCoach;
             }
           }
         }
@@ -455,10 +489,26 @@ class Scores365Service {
     if (homeCoach == 'Inconnu' || awayCoach == 'Inconnu') {
       for (var m in members) {
         if (m['jerseyNumber'] == -1) {
+          final dobStr = m['dateOfBirth'] ?? m['birthDate'];
+          String ageStr = '';
+          if (dobStr != null) {
+            try {
+              final dob = DateTime.parse(dobStr.toString());
+              int age = DateTime.now().year - dob.year;
+              if (DateTime.now().month < dob.month || (DateTime.now().month == dob.month && DateTime.now().day < dob.day)) age--;
+              ageStr = ' ($age ans)';
+            } catch (_) {}
+          } else if (m['age'] != null) {
+            ageStr = ' (${m['age']} ans)';
+          }
+          final coachName = m['name'] ?? m['shortName'] ?? 'Inconnu';
+          final finalCoach = coachName != 'Inconnu' ? '$coachName$ageStr' : 'Inconnu';
+
           if (m['competitorId'] == home['id'] && homeCoach == 'Inconnu') {
-            homeCoach = m['name'] ?? homeCoach;
-          } else if (m['competitorId'] == away['id'] && awayCoach == 'Inconnu')
-            awayCoach = m['name'] ?? awayCoach;
+            homeCoach = finalCoach;
+          } else if (m['competitorId'] == away['id'] && awayCoach == 'Inconnu') {
+            awayCoach = finalCoach;
+          }
         }
       }
     }
@@ -540,23 +590,17 @@ class Scores365Service {
     });
   }
 
-  static String _map365Position(int? posId) {
-    if (posId == null) return 'M';
-    if (posId == 1) return 'G';
-    if (posId == 2) return 'D';
-    if (posId == 3) return 'M';
-    if (posId == 4) return 'F';
-    return 'M';
-  }
 
   // ============================================================
   //  STANDINGS
   // ============================================================
 
-  static Future<List<GroupStanding>> fetchStandings2026() async {
-    final data = await _fetchJson(
-      'standings/?$baseParams&competitions=$wcCompetitionId&live=true',
-    );
+  static Future<List<GroupStanding>> fetchStandings(int year) async {
+    String endpoint = 'standings/?$baseParams&competitions=$wcCompetitionId&live=true';
+    if (year == 2022) {
+      endpoint += '&seasonNum=24';
+    }
+    final data = await _fetchJson(endpoint);
     if (data == null || data['standings'] == null) return [];
 
     final standings = data['standings'] as List;
@@ -611,8 +655,15 @@ class Scores365Service {
   //  STUB METHODS
   // ============================================================
 
-  static Future<Map<String, dynamic>?> fetchTeamCoach(int resolvedId) async =>
-      null;
+  static Future<Map<String, dynamic>?> fetchTeamCoach(int resolvedId) async {
+    try {
+      final result = await _fetchSquadData(resolvedId);
+      return result['coach'] as Map<String, dynamic>?;
+    } catch (e) {
+      debugPrint('fetchTeamCoach error: $e');
+    }
+    return null;
+  }
 
   static Future<List<Map<String, dynamic>>> fetchTournamentSquad(
     int resolvedId,
@@ -625,32 +676,111 @@ class Scores365Service {
     int resolvedId,
   ) async {
     try {
-      final url = 'squads/?competitors=$resolvedId&$baseParams';
-      final data = await _fetchJson(url);
-      if (data == null) return [];
-
-      final squads = data['squads'] as List?;
-      if (squads == null || squads.isEmpty) return [];
-
-      final athletes = squads[0]['athletes'] as List?;
-      if (athletes == null || athletes.isEmpty) return [];
-
-      return athletes.map((athlete) {
-        final imgVer = athlete['imageVersion'] ?? 1;
-        return {
-          'id': athlete['id'],
-          'name': athlete['name'],
-          'shirtNumber': athlete['jerseyNum'],
-          'position': athlete['position']?['name'] ?? '',
-          'photo':
-              'https://imagecache.365scores.com/image/upload/f_auto,q_auto,c_fill,w_300,h_300/v$imgVer/Athletes/${athlete['id']}',
-        };
-      }).toList();
+      final result = await _fetchSquadData(resolvedId);
+      return (result['players'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     } catch (e) {
       debugPrint('fetchTeamSquad error: $e');
       return [];
     }
   }
+
+  /// Shared method: one API call for both coach + players
+  static final Map<int, Future<Map<String, dynamic>>> _squadCache = {};
+
+  static Future<Map<String, dynamic>> _fetchSquadData(int resolvedId) async {
+    if (_squadCache.containsKey(resolvedId)) {
+      return _squadCache[resolvedId]!;
+    }
+    final future = _doFetchSquadData(resolvedId);
+    _squadCache[resolvedId] = future;
+    // Remove from cache after 60 seconds
+    future.whenComplete(() {
+      Future.delayed(const Duration(seconds: 60), () {
+        _squadCache.remove(resolvedId);
+      });
+    });
+    return future;
+  }
+
+  static Future<Map<String, dynamic>> _doFetchSquadData(int resolvedId) async {
+    final url = 'squads/?competitors=$resolvedId&$baseParams';
+    final data = await _fetchJson(url);
+    if (data == null) return {'coach': null, 'players': <Map<String, dynamic>>[]};
+
+    final squads = data['squads'] as List?;
+    if (squads == null || squads.isEmpty) return {'coach': null, 'players': <Map<String, dynamic>>[]};
+
+    final athletes = squads[0]['athletes'] as List?;
+    if (athletes == null || athletes.isEmpty) return {'coach': null, 'players': <Map<String, dynamic>>[]};
+
+    Map<String, dynamic>? coachData;
+    final List<Map<String, dynamic>> playersList = [];
+
+    for (final athlete in athletes) {
+      final formPos = athlete['formationPosition'];
+      final formPosName = formPos?['name']?.toString().toLowerCase() ?? '';
+      final posName = athlete['position']?['name']?.toString() ?? '';
+      final imgVer = athlete['imageVersion'] ?? 1;
+      final photoUrl = 'https://imagecache.365scores.com/image/upload/f_auto,q_auto,c_fill,w_300,h_300/v$imgVer/Athletes/${athlete['id']}';
+
+      // Skip coaches and staff (coach, assistant coach, manager, etc.)
+      if (formPosName.contains('coach') || formPosName == 'manager' || formPos?['id'] == 16 || formPos?['id'] == 17) {
+        // Only record the head coach (id=16), not assistants (id=17)
+        if ((formPosName == 'coach' || formPosName == 'head coach' || formPos?['id'] == 16) && coachData == null) {
+          coachData = {
+            'id': athlete['id'],
+            'name': athlete['name'],
+            'nationality': athlete['nationalityName'] ?? '',
+            'nationalityId': athlete['nationalityId'],
+            'photo': photoUrl,
+          };
+        }
+        continue; // Don't add any staff to player list
+      }
+
+      // Resolve position: prefer position.id (most reliable), then name, then formationPosition
+      final posId = athlete['position']?['id'] as int?;
+      String resolvedPos;
+      if (posId != null && posId > 0) {
+        resolvedPos = _map365Position(posId);
+      } else {
+        resolvedPos = posName.isNotEmpty ? _mapPositionName(posName) : _mapPositionName(formPosName);
+      }
+
+      playersList.add({
+        'id': athlete['id'],
+        'name': athlete['name'],
+        'shirtNumber': athlete['jerseyNum'],
+        'position': resolvedPos,
+        'photo': photoUrl,
+        'age': athlete['age'],
+      });
+    }
+
+    return {'coach': coachData, 'players': playersList};
+  }
+
+  /// Map full position names to short codes used in the app
+  static String _mapPositionName(String name) {
+    final lower = name.toLowerCase();
+    if (lower == 'goalkeeper') return 'G';
+    if (lower == 'defender' || lower == 'centre back' || lower == 'left back' || lower == 'right back') return 'D';
+    if (lower == 'midfielder' || lower == 'central midfielder' || lower == 'defensive midfielder' || lower == 'attacking midfielder') return 'M';
+    if (lower == 'forward' || lower == 'striker' || lower == 'left winger' || lower == 'right winger') return 'F';
+    // Already a short code
+    if (['G', 'D', 'M', 'F'].contains(name)) return name;
+    return _map365Position(int.tryParse(name));
+  }
+
+  static String _map365Position(int? posId) {
+    if (posId == null) return 'M';
+    if (posId == 1) return 'G';
+    if (posId == 2) return 'D';
+    if (posId == 3) return 'M';
+    if (posId == 4) return 'F';
+    return 'M';
+  }
+
 
   static Future<Map<String, dynamic>?> fetchPlayerNationalStats(
     int playerId,
@@ -689,8 +819,11 @@ class Scores365Service {
     };
   }
 
-  static Future<List<TopScorer>> fetchTopScorers(int competitionId) async {
-    final url = 'stats/?$baseParams&competitions=$competitionId';
+  static Future<List<TopScorer>> fetchTopScorers(int year, int competitionId) async {
+    String url = 'stats/?$baseParams&competitions=$competitionId';
+    if (year == 2022) {
+      url += '&seasonNum=24';
+    }
     final data = await _fetchJson(url);
     if (data == null || data['stats'] == null) return [];
 

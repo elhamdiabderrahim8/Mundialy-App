@@ -58,20 +58,16 @@ class NationFlagBadge extends StatelessWidget {
                 color: Colors.white,
                 child: imageUrl == null
                     ? _FlagFallback(countryCode: countryCode, size: size)
-                    : FittedBox(
-                        fit: BoxFit.cover,
-                        alignment: _flagAlignment(),
-                        child: SizedBox(
-                          width: innerSize * _flagAspectRatio(),
-                          height: innerSize,
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.fill,
-                            errorBuilder: (_, _, _) => _FlagFallback(
-                              countryCode: countryCode,
-                              size: size,
-                            ),
-                          ),
+                    : Image.network(
+                        imageUrl,
+                        fit: BoxFit.fill,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return _FlagFallback(countryCode: countryCode, size: size);
+                        },
+                        errorBuilder: (_, _, _) => _FlagFallback(
+                          countryCode: countryCode,
+                          size: size,
                         ),
                       ),
               ),
@@ -83,17 +79,9 @@ class NationFlagBadge extends StatelessWidget {
   }
 
   String? _resolveImageUrl() {
-    // 1. Explicit override (team logos etc.) - Strictly block 365scores
     final override = imageUrlOverride;
-    if (override != null &&
-        override.isNotEmpty &&
-        override.startsWith('http')) {
-      if (!override.toLowerCase().contains('365scores')) {
-        return override;
-      }
-    }
 
-    // 2. Try resolving from the teamName first (more reliable than raw code)
+    // 1. Try resolving from the teamName first (more reliable than raw code)
     final name = teamName;
     if (name != null && name.isNotEmpty) {
       final iso2 = resolveCountryCode(name, fallback: '');
@@ -102,11 +90,17 @@ class NationFlagBadge extends StatelessWidget {
       }
     }
 
-    // 3. From the countryCode itself (skip invalid/unknown codes)
+    // 2. From the countryCode itself (skip invalid/unknown codes)
     final code = countryCode.trim().toUpperCase();
-    if (code.isEmpty || code == 'UN' || code == 'UNK') return null;
-    final fromCode = resolveFlagUrl(code);
-    if (fromCode != null) return fromCode;
+    if (code.isNotEmpty && code != 'UN' && code != 'UNK') {
+      final fromCode = resolveFlagUrl(code);
+      if (fromCode != null) return fromCode;
+    }
+
+    // 3. Fallback to API override (e.g. 365Scores logo) if flagcdn fails
+    if (override != null && override.isNotEmpty && override.startsWith('http')) {
+      return override;
+    }
 
     return null;
   }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+import '../utils/lang_utils.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/live_match.dart';
 import '../models/match_details.dart';
@@ -214,25 +218,52 @@ const Map<String, List<Offset>> _formationCoordinates = {
   ],
 };
 
-class MatchDetailsScreen extends StatefulWidget {
+class MatchDetailsScreen extends StatelessWidget {
   const MatchDetailsScreen({super.key, required this.match});
 
   final LiveMatch match;
 
   @override
-  State<MatchDetailsScreen> createState() => _MatchDetailsScreenState();
+  Widget build(BuildContext context) {
+    return ShowCaseWidget(
+      builder: (context) => _MatchDetailsScreenBody(match: match),
+    );
+  }
 }
 
-class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
+class _MatchDetailsScreenBody extends StatefulWidget {
+  const _MatchDetailsScreenBody({required this.match});
+
+  final LiveMatch match;
+
+  @override
+  State<_MatchDetailsScreenBody> createState() => _MatchDetailsScreenState();
+}
+
+class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
   MatchDetails? _details;
   bool _isLoading = true;
   int _selectedView = 0;
   int _selectedTeamIndex = 0;
 
+  final GlobalKey _headerKey = GlobalKey();
+  final GlobalKey _tabsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _loadMatchDetails();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeen = prefs.getBool('hasSeenMatchGuide') ?? false;
+      if (!hasSeen) {
+        if (mounted) {
+          ShowCaseWidget.of(context).startShowCase([_headerKey, _tabsKey]);
+          await prefs.setBool('hasSeenMatchGuide', true);
+        }
+      }
+    });
   }
 
   Future<void> _loadMatchDetails() async {
@@ -243,7 +274,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
 
       if (!mounted) return;
       setState(() {
-        _details = details;
+        _details = details ?? getMockMatchDetails(widget.match);
         _isLoading = false;
       });
     } catch (e) {
@@ -346,9 +377,17 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildScoreCard(cardColor, textColor, effectiveMatch),
+                    Showcase(
+                      key: _headerKey,
+                      description: 'Le score en direct et les données principales de cette rencontre',
+                      child: _buildScoreCard(cardColor, textColor, effectiveMatch),
+                    ),
                     const SizedBox(height: 14),
-                    _buildSwitchButtons(cardColor, textColor),
+                    Showcase(
+                      key: _tabsKey,
+                      description: 'Naviguez entre le résumé, les statistiques et les compositions',
+                      child: _buildSwitchButtons(cardColor, textColor),
+                    ),
                     const InlineAdaptiveBanner(horizontalMargin: 0),
                     const SizedBox(height: 14),
                     if (_selectedView == 0) ...[
@@ -543,11 +582,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
   }
 
   Widget _buildSwitchButtons(Color cardColor, Color textColor) {
+    final loc = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
           child: _SwitchButton(
-            label: 'Resume',
+            label: loc.events,
             selected: _selectedView == 0,
             onTap: () => setState(() => _selectedView = 0),
             cardColor: cardColor,
@@ -557,7 +597,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _SwitchButton(
-            label: 'Statistiques',
+            label: loc.stats,
             selected: _selectedView == 1,
             onTap: () => setState(() => _selectedView = 1),
             cardColor: cardColor,
@@ -567,7 +607,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _SwitchButton(
-            label: 'Composition',
+            label: loc.lineup,
             selected: _selectedView == 2,
             onTap: () => setState(() => _selectedView = 2),
             cardColor: cardColor,
@@ -603,13 +643,12 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     final awayId = match.awayTeamId;
 
     final shootoutEvents = allEvents.where((e) {
-      final minStr = e.minute.toUpperCase();
-      final min = int.tryParse(e.minute.replaceAll("'", "")) ?? 0;
-      return e.detail.toLowerCase().contains('shootout') ||
-          minStr.contains('TAB') ||
-          minStr.contains('PEN') ||
-          (e.title.toLowerCase().contains('penalty') && min > 120) ||
-          e.title.toLowerCase().contains('tirs au but');
+      final titleLower = e.title.toLowerCase();
+      final detailLower = e.detail.toLowerCase();
+      return titleLower.contains('(tab)') ||
+          detailLower.contains('shootout') ||
+          titleLower.contains('tirs au but') ||
+          (titleLower.contains('penalty') && e.minute.contains('120+'));
     }).toList();
 
     final homeEvents = shootoutEvents.where((e) => e.teamName == homeTeam).toList();
@@ -619,7 +658,7 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     int awayScore = _details!.overview.penaltyAway ?? 0;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(28),
@@ -873,14 +912,14 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           ),
           const SizedBox(height: 12),
           _InfoRow(
-            label: 'Arbitre',
+            label: AppLocalizations.of(context)!.referee,
             value: '${referee.name}${referee.nationality.isNotEmpty ? " • ${referee.nationality}" : ""}',
             textColor: textColor,
           ),
-          _InfoRow(label: 'Stade', value: venue.stadium, textColor: textColor),
-          _InfoRow(label: 'Ville', value: venue.city, textColor: textColor),
+          _InfoRow(label: AppLocalizations.of(context)!.stadium, value: venue.stadium, textColor: textColor),
+          _InfoRow(label: AppLocalizations.of(context)!.city, value: venue.city, textColor: textColor),
           _InfoRow(
-            label: 'Heure de debut',
+            label: AppLocalizations.of(context)!.kickoff,
             value: _details!.summary.startTime,
             textColor: textColor,
           ),
@@ -1157,6 +1196,8 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                       if (player.substitutedOut ||
                           player.substitutedIn ||
                           player.goals > 0 ||
+                          player.penaltyGoals > 0 ||
+                          player.ownGoals > 0 ||
                           player.assists > 0 ||
                           player.yellowCards > 0 ||
                           player.redCard)
@@ -1172,6 +1213,16 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                                 ...List.generate(
                                   player.goals,
                                   (_) => const Text('⚽', style: TextStyle(fontSize: 10)),
+                                ),
+                              if (player.penaltyGoals > 0)
+                                ...List.generate(
+                                  player.penaltyGoals,
+                                  (_) => const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Icon(Icons.sports_score, size: 10, color: Color(0xFF1FAE68))),
+                                ),
+                              if (player.ownGoals > 0)
+                                ...List.generate(
+                                  player.ownGoals,
+                                  (_) => const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Icon(Icons.sports_soccer, size: 10, color: Color(0xFFE05151))),
                                 ),
                               if (player.assists > 0)
                                 ...List.generate(
@@ -1291,7 +1342,7 @@ class _PlayerJersey extends StatelessWidget {
                   ),
                 ),
               ),
-            if (player.goals > 0 || player.assists > 0 || player.yellowCards > 0 || player.redCard)
+            if (player.goals > 0 || player.penaltyGoals > 0 || player.ownGoals > 0 || player.assists > 0 || player.yellowCards > 0 || player.redCard)
               Positioned(
                 top: -10,
                 left: -10,
@@ -1305,6 +1356,10 @@ class _PlayerJersey extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (player.goals > 0) ...List.generate(player.goals, (_) => const Text('⚽', style: TextStyle(fontSize: 9))),
+                      // Penalty goal: green soccer ball in a net frame
+                      if (player.penaltyGoals > 0) ...List.generate(player.penaltyGoals, (_) => const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Text('🥅', style: TextStyle(fontSize: 9)))),
+                      // Own goal: red soccer ball
+                      if (player.ownGoals > 0) ...List.generate(player.ownGoals, (_) => const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Text('🔴', style: TextStyle(fontSize: 9)))),
                       if (player.assists > 0) ...List.generate(player.assists, (_) => const Text('👟', style: TextStyle(fontSize: 9))),
                       if (player.redCard) const Padding(padding: EdgeInsets.symmetric(horizontal: 1.0), child: Icon(Icons.square, size: 8, color: Colors.red)),
                       if (!player.redCard && player.yellowCards > 0)
@@ -1322,12 +1377,13 @@ class _PlayerJersey extends StatelessWidget {
           decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
           child: Column(
             children: [
-              Text(
-                _formatName(player.name),
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _formatName(player.name),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                ),
               ),
               if (player.substitutedOut || player.substitutedIn)
                 Padding(
@@ -1551,7 +1607,7 @@ class _EventTile extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        event.title,
+                        LangUtils.getTranslatedEventTitle(event.icon, event.title, context),
                         style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
                         overflow: TextOverflow.clip,
                         maxLines: 2,
@@ -1845,7 +1901,12 @@ class _EventIconBadge extends StatelessWidget {
               ? _CardBadge(color: color)
               : event.icon == MatchEventIcon.penaltyMissed
                   ? Stack(alignment: Alignment.center, children: [Icon(Icons.sports_soccer, color: color, size: 18), const Icon(Icons.close, color: Colors.white70, size: 12)])
-                  : Icon(_iconForEvent(event.icon), color: color, size: 18),
+                  : event.icon == MatchEventIcon.penaltyGoal
+                      ? Stack(alignment: Alignment.center, children: [
+                          const Text('🥅', style: TextStyle(fontSize: 18)),
+                          Positioned(bottom: 1, right: 2, child: Icon(Icons.sports_soccer, color: color, size: 10)),
+                        ])
+                      : Icon(_iconForEvent(event.icon), color: color, size: 18),
     );
   }
 }
@@ -1864,19 +1925,23 @@ class _CardBadge extends StatelessWidget {
 IconData _iconForEvent(MatchEventIcon icon) {
   return switch (icon) {
     MatchEventIcon.goal => Icons.sports_soccer,
+    MatchEventIcon.ownGoal => Icons.sports_soccer,
+    MatchEventIcon.penaltyGoal => Icons.sports_soccer, // ball in net style
     MatchEventIcon.substitution => Icons.swap_horiz,
     MatchEventIcon.varReview => Icons.videocam_outlined,
     MatchEventIcon.offside => Icons.rule,
     MatchEventIcon.cancelledGoal => Icons.block,
     MatchEventIcon.yellowCard => Icons.square,
     MatchEventIcon.redCard => Icons.square,
-    MatchEventIcon.penaltyMissed => Icons.sports_soccer,
+    MatchEventIcon.penaltyMissed => Icons.cancel_outlined,
   };
 }
 
 Color _eventAccent(MatchEventIcon icon) {
   return switch (icon) {
     MatchEventIcon.goal => const Color(0xFF1FAE68),
+    MatchEventIcon.ownGoal => const Color(0xFFE05151),
+    MatchEventIcon.penaltyGoal => const Color(0xFF1FAE68),
     MatchEventIcon.substitution => const Color(0xFFE38B2C),
     MatchEventIcon.varReview => const Color(0xFF4EA3FF),
     MatchEventIcon.offside => const Color(0xFF7E8BA0),
@@ -1921,7 +1986,7 @@ class _ShootoutRow extends StatelessWidget {
     );
 
     final playerName = Text(
-      event.description.isNotEmpty ? event.description : event.title,
+      event.description.isNotEmpty ? event.description : LangUtils.getTranslatedEventTitle(event.icon, event.title, context),
       style: TextStyle(color: textColor.withValues(alpha: 0.75), fontSize: 11, fontWeight: FontWeight.w500),
       maxLines: 1,
       overflow: TextOverflow.clip,

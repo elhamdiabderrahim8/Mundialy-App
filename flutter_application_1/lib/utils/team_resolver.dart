@@ -8,6 +8,8 @@ class TeamResolver {
 
   static final Map<String, int> _nameToSofaId = {};
 
+  static bool get hasNoData => _nameToSofaId.isEmpty;
+
   static String normalizeName(String? raw) {
     if (raw == null || raw.isEmpty) return '';
     return _cleanName(raw).trim().toLowerCase();

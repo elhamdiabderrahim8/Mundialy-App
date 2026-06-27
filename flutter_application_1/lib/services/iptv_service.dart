@@ -16,12 +16,16 @@ class IptvParsedChannel {
   final String logo;
   final String groupTitle;
   final String streamUrl;
+  final String tvgId;
+  final Map<String, String> httpHeaders;
 
   const IptvParsedChannel({
     required this.name,
     required this.logo,
     required this.groupTitle,
     required this.streamUrl,
+    this.tvgId = '',
+    this.httpHeaders = const {},
   });
 }
 
@@ -29,14 +33,17 @@ class IptvParsedChannel {
 // Service principal
 // ─────────────────────────────────────────────────────────────────────────────
 class IptvService {
+  static const freeSportsM3uUrl =
+      'https://live.iptv-free.com/iptv/categories/sports.m3u';
+
   // Clés SharedPreferences
-  static const _keyServerUrl      = 'iptv_server_url';
-  static const _keyUsername       = 'iptv_username';
-  static const _keyPassword       = 'iptv_password';
-  static const _keyM3uUrl         = 'iptv_m3u_url';
-  static const _keyPlaylistId     = 'iptv_playlist_id';
+  static const _keyServerUrl = 'iptv_server_url';
+  static const _keyUsername = 'iptv_username';
+  static const _keyPassword = 'iptv_password';
+  static const _keyM3uUrl = 'iptv_m3u_url';
+  static const _keyPlaylistId = 'iptv_playlist_id';
   static const _keyPlaylistServer = 'iptv_playlist_server';
-  static const _keyMode           = 'iptv_connection_mode';
+  static const _keyMode = 'iptv_connection_mode';
 
   // État en mémoire
   String? _serverUrl;
@@ -52,7 +59,7 @@ class IptvService {
 
   // ── Getters ───────────────────────────────────────────────────────────────
   IptvConnectionMode get currentMode => _mode;
-  String? get playlistId     => _playlistId;
+  String? get playlistId => _playlistId;
   String? get playlistServer => _playlistServer;
 
   bool get isConfigured {
@@ -76,11 +83,11 @@ class IptvService {
         orElse: () => IptvConnectionMode.xtream,
       );
     }
-    _serverUrl      = prefs.getString(_keyServerUrl);
-    _username       = prefs.getString(_keyUsername);
-    _password       = prefs.getString(_keyPassword);
-    _m3uUrl         = prefs.getString(_keyM3uUrl);
-    _playlistId     = prefs.getString(_keyPlaylistId);
+    _serverUrl = prefs.getString(_keyServerUrl);
+    _username = prefs.getString(_keyUsername);
+    _password = prefs.getString(_keyPassword);
+    _m3uUrl = prefs.getString(_keyM3uUrl);
+    _playlistId = prefs.getString(_keyPlaylistId);
     _playlistServer = prefs.getString(_keyPlaylistServer);
   }
 
@@ -97,7 +104,10 @@ class IptvService {
         if (data is Map<String, dynamic> && data.containsKey('user_info')) {
           if ((data['user_info']['auth'] as int? ?? 0) == 1) {
             await _saveXtreamCreds(
-              serverUrl, username, password, IptvConnectionMode.xtream,
+              serverUrl,
+              username,
+              password,
+              IptvConnectionMode.xtream,
             );
             return true;
           }
@@ -113,8 +123,9 @@ class IptvService {
   Future<bool> loginWithM3uUrl(String url) async {
     url = _normalizeUrl(url);
     try {
-      final resp =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+      final resp = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 20));
       if (resp.statusCode == 200 &&
           resp.body.trimLeft().startsWith('#EXTM3U')) {
         final channels = _parseM3u(resp.body);
@@ -153,8 +164,9 @@ class IptvService {
     for (final url in patterns) {
       try {
         debugPrint('IPTV Playlist ID → tentative : $url');
-        final resp =
-            await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+        final resp = await http
+            .get(Uri.parse(url))
+            .timeout(const Duration(seconds: 10));
         if (resp.statusCode == 200 &&
             resp.body.trimLeft().startsWith('#EXTM3U')) {
           final channels = _parseM3u(resp.body);
@@ -164,7 +176,7 @@ class IptvService {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString(_keyPlaylistId, id);
             await prefs.setString(_keyPlaylistServer, server);
-            _playlistId     = id;
+            _playlistId = id;
             _playlistServer = server;
             return true;
           }
@@ -180,13 +192,14 @@ class IptvService {
   /// Code = base64( serverUrl|username|password )
   Future<bool> loginWithQuickCode(String code) async {
     try {
-      final decoded =
-          utf8.decode(base64Decode(code.trim().replaceAll(RegExp(r'\s'), '')));
+      final decoded = utf8.decode(
+        base64Decode(code.trim().replaceAll(RegExp(r'\s'), '')),
+      );
       final parts = decoded.split('|');
       if (parts.length < 3) return false;
       final server = _normalizeUrl(parts[0]);
-      final user   = parts[1];
-      final pass   = parts.sublist(2).join('|');
+      final user = parts[1];
+      final pass = parts.sublist(2).join('|');
 
       final uri = Uri.parse(
         '$server/player_api.php?username=$user&password=$pass',
@@ -197,7 +210,10 @@ class IptvService {
         if (data is Map<String, dynamic> && data.containsKey('user_info')) {
           if ((data['user_info']['auth'] as int? ?? 0) == 1) {
             await _saveXtreamCreds(
-              server, user, pass, IptvConnectionMode.quickCode,
+              server,
+              user,
+              pass,
+              IptvConnectionMode.quickCode,
             );
             return true;
           }
@@ -211,7 +227,9 @@ class IptvService {
 
   /// Génère un code partageable depuis les identifiants Xtream actuels.
   String? generateQuickCode() {
-    if (_serverUrl == null || _username == null || _password == null) return null;
+    if (_serverUrl == null || _username == null || _password == null) {
+      return null;
+    }
     return base64Encode(utf8.encode('$_serverUrl|$_username|$_password'));
   }
 
@@ -230,7 +248,7 @@ class IptvService {
       for (final ch in _parsedChannels) {
         if (seen.add(ch.groupTitle)) {
           result.add({
-            'category_id':   ch.groupTitle,
+            'category_id': ch.groupTitle,
             'category_name': ch.groupTitle,
           });
         }
@@ -259,12 +277,16 @@ class IptvService {
         _mode == IptvConnectionMode.playlistId) {
       return _parsedChannels
           .where((c) => c.groupTitle == categoryId)
-          .map((c) => <String, dynamic>{
-                'name':        c.name,
-                'stream_icon': c.logo,
-                'stream_url':  c.streamUrl, // URL directe, pas d'ID Xtream
-                'stream_id':   null,
-              })
+          .map(
+            (c) => <String, dynamic>{
+              'name': c.name,
+              'stream_icon': c.logo,
+              'stream_url': c.streamUrl, // URL directe, pas d'ID Xtream
+              'tvg_id': c.tvgId,
+              'http_headers': c.httpHeaders,
+              'stream_id': null,
+            },
+          )
           .toList();
     }
 
@@ -291,45 +313,59 @@ class IptvService {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     for (final key in [
-      _keyServerUrl, _keyUsername, _keyPassword,
-      _keyM3uUrl, _keyPlaylistId, _keyPlaylistServer, _keyMode,
+      _keyServerUrl,
+      _keyUsername,
+      _keyPassword,
+      _keyM3uUrl,
+      _keyPlaylistId,
+      _keyPlaylistServer,
+      _keyMode,
     ]) {
       await prefs.remove(key);
     }
-    _serverUrl      = null;
-    _username       = null;
-    _password       = null;
-    _m3uUrl         = null;
-    _playlistId     = null;
+    _serverUrl = null;
+    _username = null;
+    _password = null;
+    _m3uUrl = null;
+    _playlistId = null;
     _playlistServer = null;
     _parsedChannels = [];
-    _mode           = IptvConnectionMode.xtream;
+    _mode = IptvConnectionMode.xtream;
   }
 
   // ── Parser M3U interne ────────────────────────────────────────────────────
   List<IptvParsedChannel> _parseM3u(String content) {
     final channels = <IptvParsedChannel>[];
-    final lines    = content.split('\n');
-    String? name, logo, group;
+    final lines = content.split('\n');
+    String? name, logo, group, tvgId;
+    Map<String, String> headers = const {};
 
     for (final raw in lines) {
       final line = raw.trim();
       if (line.startsWith('#EXTINF')) {
-        name  = _attr(line, 'tvg-name') ??
-                _attr(line, 'tvg-id')   ??
-                _afterComma(line);
-        logo  = _attr(line, 'tvg-logo') ?? '';
+        name =
+            _attr(line, 'tvg-name') ??
+            _attr(line, 'tvg-id') ??
+            _afterComma(line);
+        logo = _attr(line, 'tvg-logo') ?? '';
+        tvgId = _attr(line, 'tvg-id') ?? '';
         group = _attr(line, 'group-title')?.replaceAll(';', ' ') ?? 'Général';
+        headers = _extractHttpHeaders(line);
       } else if (line.isNotEmpty && !line.startsWith('#')) {
         if (name != null && name.isNotEmpty) {
-          channels.add(IptvParsedChannel(
-            name:       name,
-            logo:       logo ?? '',
-            groupTitle: group ?? 'Général',
-            streamUrl:  line,
-          ));
+          channels.add(
+            IptvParsedChannel(
+              name: name,
+              logo: logo ?? '',
+              groupTitle: group ?? 'Général',
+              streamUrl: line,
+              tvgId: tvgId ?? '',
+              httpHeaders: headers,
+            ),
+          );
         }
-        name = logo = group = null;
+        name = logo = group = tvgId = null;
+        headers = const {};
       }
     }
     return channels;
@@ -337,6 +373,19 @@ class IptvService {
 
   String? _attr(String line, String attr) =>
       RegExp('$attr="([^"]*)"').firstMatch(line)?.group(1);
+
+  Map<String, String> _extractHttpHeaders(String line) {
+    final headers = <String, String>{};
+    final userAgent = _attr(line, 'http-user-agent');
+    final referrer = _attr(line, 'http-referrer') ?? _attr(line, 'referrer');
+    if (userAgent != null && userAgent.isNotEmpty) {
+      headers['User-Agent'] = userAgent;
+    }
+    if (referrer != null && referrer.isNotEmpty) {
+      headers['Referer'] = referrer;
+    }
+    return headers;
+  }
 
   String _afterComma(String line) {
     final idx = line.lastIndexOf(',');
@@ -352,7 +401,10 @@ class IptvService {
   }
 
   Future<void> _saveXtreamCreds(
-    String server, String user, String pass, IptvConnectionMode mode,
+    String server,
+    String user,
+    String pass,
+    IptvConnectionMode mode,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyServerUrl, server);
@@ -362,18 +414,20 @@ class IptvService {
     await prefs.remove(_keyM3uUrl);
     await prefs.remove(_keyPlaylistId);
     await prefs.remove(_keyPlaylistServer);
-    _serverUrl      = server;
-    _username       = user;
-    _password       = pass;
-    _m3uUrl         = null;
-    _playlistId     = null;
+    _serverUrl = server;
+    _username = user;
+    _password = pass;
+    _m3uUrl = null;
+    _playlistId = null;
     _playlistServer = null;
     _parsedChannels = [];
-    _mode           = mode;
+    _mode = mode;
   }
 
   Future<void> _saveM3uState(
-    String url, List<IptvParsedChannel> channels, IptvConnectionMode mode,
+    String url,
+    List<IptvParsedChannel> channels,
+    IptvConnectionMode mode,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyM3uUrl, url);
@@ -381,11 +435,11 @@ class IptvService {
     await prefs.remove(_keyServerUrl);
     await prefs.remove(_keyUsername);
     await prefs.remove(_keyPassword);
-    _m3uUrl         = url;
+    _m3uUrl = url;
     _parsedChannels = channels;
-    _serverUrl      = null;
-    _username       = null;
-    _password       = null;
-    _mode           = mode;
+    _serverUrl = null;
+    _username = null;
+    _password = null;
+    _mode = mode;
   }
 }

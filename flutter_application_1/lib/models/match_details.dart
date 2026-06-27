@@ -189,15 +189,17 @@ class MatchDetails {
           String description = '';
 
           if (type == 'goal') {
-            icon = MatchEventIcon.goal;
             final playerName = json['player']?['name'] ?? 'Joueur';
             final assistName = json['assist']?['name'];
             if (incidentClass == 'penalty' || from == 'penalty') {
+              icon = MatchEventIcon.penaltyGoal;
               title = "PENALTY MARQUÉ";
             } else if (incidentClass == 'owngoal' ||
                 incidentClass == 'own-goal') {
+              icon = MatchEventIcon.ownGoal;
               title = "BUT CONTRE SON CAMP";
             } else {
+              icon = MatchEventIcon.goal;
               title = "BUT !";
             }
             description = assistName != null
@@ -246,12 +248,18 @@ class MatchDetails {
           } else if (type == 'vardecision' || type == 'var') {
             icon = MatchEventIcon.varReview;
             title = "DÉCISION VAR";
-            description = json['player']?['name'] ?? '';
+            description = json['player']?['name'] ?? json['playerName'] ?? json['reason'] ?? 'Vérification en cours';
             if (incidentClass == 'goalawarded') {
               title = "VAR: BUT ACCORDÉ";
             } else if (incidentClass == 'goalnotawarded') {
               title = "VAR: BUT ANNULÉ";
               icon = MatchEventIcon.cancelledGoal;
+            } else if (incidentClass == 'penaltyawarded') {
+              title = "VAR: PENALTY ACCORDÉ";
+            } else if (incidentClass == 'penaltynotawarded') {
+              title = "VAR: PENALTY ANNULÉ";
+            } else if (incidentClass == 'cardupgrade') {
+              title = "VAR: CARTON ROUGE";
             }
           } else if (type == 'injurytime') {
             return MatchEvent(
@@ -261,13 +269,21 @@ class MatchDetails {
               icon: MatchEventIcon.offside,
               detail: '',
             );
+          } else if (type == 'canceledgoal' || type == 'disallowedgoal') {
+            icon = MatchEventIcon.cancelledGoal;
+            title = "BUT ANNULÉ (VAR)";
+            description = json['player']?['name'] ?? json['playerName'] ?? 'Joueur';
           } else {
             return null;
           }
 
           final scorer = json['player']?['name']?.toString();
+          final time = _toIntOrNull(json['time']) ?? 0;
+          final addedTime = _toIntOrNull(json['addedTime']);
+          final minStr = json['displayTime']?.toString() ?? 
+                         (addedTime != null && addedTime > 0 ? "$time+$addedTime'" : "$time'");
           return MatchEvent(
-            minute: json['displayTime']?.toString() ?? "${json['time'] ?? 0}'",
+            minute: minStr,
             title: title,
             description: description,
             icon: icon,
@@ -582,6 +598,8 @@ class MatchDetails {
         );
         if (target != null) {
           if (event.icon == MatchEventIcon.goal) target.goals++;
+          if (event.icon == MatchEventIcon.penaltyGoal) target.penaltyGoals++;
+          if (event.icon == MatchEventIcon.ownGoal) target.ownGoals++;
           if (event.icon == MatchEventIcon.yellowCard) target.yellowCards++;
           if (event.icon == MatchEventIcon.redCard) target.redCard = true;
         }
@@ -719,27 +737,37 @@ class MatchEvent {
     String title = json['type']?.toString() ?? 'Action';
     String description = json['player']?['name']?.toString() ?? 'Joueur';
 
+    final detail = json['detail']?.toString().toLowerCase() ?? '';
+
     if (type == 'goal') {
-      icon = MatchEventIcon.goal;
-      if (incidentClass == 'penalty') {
+      if (incidentClass == 'penalty' || detail == 'penalty') {
+        icon = MatchEventIcon.penaltyGoal;
         title = "PENALTY MARQUÉ";
-      } else if (incidentClass == 'own-goal' || incidentClass == 'owngoal') {
+      } else if (incidentClass == 'own-goal' || incidentClass == 'owngoal' || detail == 'own goal') {
+        icon = MatchEventIcon.ownGoal;
         title = "BUT CONTRE SON CAMP";
+      } else if (detail == 'missed penalty') {
+        icon = MatchEventIcon.penaltyMissed;
+        title = "PENALTY RATÉ";
       } else {
+        icon = MatchEventIcon.goal;
         title = "BUT !";
       }
       final assistName = json['assist']?['name']?.toString();
-      if (assistName != null) {
+      if (assistName != null && assistName.isNotEmpty) {
         description = '$description (p. $assistName)';
       }
-    } else if (type == 'substitution') {
+    } else if (type == 'substitution' || type == 'subst') {
       icon = MatchEventIcon.substitution;
       title = "CHANGEMENT";
-      final pIn = json['playerIn']?['name'] ?? 'Entrant';
-      final pOut = json['playerOut']?['name'] ?? 'Sortant';
+      // API-Sports: player is out, assist is in
+      final assistMap = json['assist'] ?? {};
+      final playerMap = json['player'] ?? {};
+      final pIn = json['playerIn']?['name'] ?? (type == 'subst' ? assistMap['name'] : null) ?? 'Entrant';
+      final pOut = json['playerOut']?['name'] ?? (type == 'subst' ? playerMap['name'] : null) ?? 'Sortant';
       description = "$pIn remplace $pOut";
     } else if (type == 'card') {
-      if (incidentClass == 'red') {
+      if (incidentClass == 'red' || detail == 'red card') {
         icon = MatchEventIcon.redCard;
         title = "CARTON ROUGE";
       } else if (incidentClass == 'yellowred') {
@@ -754,16 +782,18 @@ class MatchEvent {
       title = "DÉCISION VAR";
       if (incidentClass == 'goalawarded') {
         title = "VAR: BUT ACCORDÉ";
-      } else if (incidentClass == 'goalnotawarded') {
+      } else if (incidentClass == 'goalnotawarded' || detail.contains('cancel')) {
         title = "VAR: BUT ANNULÉ";
         icon = MatchEventIcon.cancelledGoal;
+      } else if (detail.isNotEmpty) {
+        title = "VAR: ${detail.toUpperCase()}";
       }
     } else if (type == 'penaltyshootout') {
       if (incidentClass == 'missed') {
         icon = MatchEventIcon.penaltyMissed;
         title = "PENALTY RATÉ (TAB)";
       } else {
-        icon = MatchEventIcon.goal;
+        icon = MatchEventIcon.penaltyGoal;
         title = "PENALTY MARQUÉ (TAB)";
       }
     } else if (type == 'missedpenalty') {
@@ -780,9 +810,8 @@ class MatchEvent {
       minuteStr = json['displayTime'].toString();
     } else {
       final elapsed = _readElapsedMinute(json) ?? 0;
-      final extra = json['time'] is Map
-          ? _toInt((json['time'] as Map)['extra'])
-          : null;
+      final extraRaw = json['addedTime'] ?? (json['time'] is Map ? (json['time'] as Map)['extra'] : null);
+      final extra = _toInt(extraRaw);
       minuteStr = extra != null && extra > 0 ? "$elapsed+$extra'" : "$elapsed'";
     }
 
@@ -791,16 +820,16 @@ class MatchEvent {
       title: title,
       description: description,
       icon: icon,
-      detail: incidentClass,
+      detail: incidentClass.isNotEmpty ? incidentClass : detail,
       teamId: _toInt(json['team']?['id']),
       teamName: json['team']?['name']?.toString() ?? '',
       teamCode: json['team']?['logo']?.toString() ?? '',
       playerId: _toInt(json['player']?['id']),
       playerName: json['player']?['name']?.toString(),
-      playerIn: json['playerIn']?['name']?.toString(),
-      playerInId: _toInt(json['playerIn']?['id']),
-      playerOut: json['playerOut']?['name']?.toString(),
-      playerOutId: _toInt(json['playerOut']?['id']),
+      playerIn: type == 'subst' ? (json['assist'] ?? {})['name']?.toString() : json['playerOut']?['name']?.toString(),
+      playerInId: type == 'subst' ? _toInt((json['assist'] ?? {})['id']) : _toInt(json['playerOut']?['id']),
+      playerOut: type == 'subst' ? (json['player'] ?? {})['name']?.toString() : json['playerIn']?['name']?.toString(),
+      playerOutId: type == 'subst' ? _toInt((json['player'] ?? {})['id']) : _toInt(json['playerIn']?['id']),
       assistant: json['assist']?['name']?.toString(),
       assistantId: _toInt(json['assist']?['id']),
     );
@@ -828,6 +857,8 @@ class MatchEvent {
 
 enum MatchEventIcon {
   goal,
+  ownGoal,
+  penaltyGoal,
   substitution,
   varReview,
   offside,
@@ -845,15 +876,27 @@ class MatchOfficial {
 }
 
 class MatchVenue {
-  const MatchVenue({
-    required this.stadium,
+  MatchVenue({
+    required String stadium,
     required this.capacity,
-    required this.city,
-  });
+    required String city,
+  }) {
+    if ((city.isEmpty || city == 'City' || city == 'Unknown') && stadium.contains('(') && stadium.contains(')')) {
+      final start = stadium.indexOf('(');
+      final end = stadium.indexOf(')');
+      if (end > start) {
+        this.city = stadium.substring(start + 1, end).trim();
+        this.stadium = stadium.substring(0, start).trim();
+        return;
+      }
+    }
+    this.stadium = stadium.trim();
+    this.city = city.trim();
+  }
 
-  final String stadium;
+  late final String stadium;
+  late final String city;
   final String capacity;
-  final String city;
 }
 
 class MatchStat {
@@ -892,6 +935,8 @@ class PlayerSpot {
     this.rating = '',
     this.isCaptain = false,
     this.goals = 0,
+    this.ownGoals = 0,
+    this.penaltyGoals = 0,
     this.assists = 0,
     this.yellowCards = 0,
     this.redCard = false,
@@ -908,6 +953,8 @@ class PlayerSpot {
   String rating;
   bool isCaptain;
   int goals;
+  int ownGoals;
+  int penaltyGoals;
   int assists;
   int yellowCards;
   bool redCard;

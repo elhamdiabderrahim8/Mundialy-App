@@ -10,6 +10,7 @@ class TopScorer {
   final int yellowCards;
   final int redCards;
   final int? jerseyNum;
+  final String? photoUrl;
 
   TopScorer({
     this.rank = 0,
@@ -23,12 +24,23 @@ class TopScorer {
     this.yellowCards = 0,
     this.redCards = 0,
     this.jerseyNum,
+    this.photoUrl,
   });
+
+  /// Build the best photo URL for this scorer
+  String? get bestPhotoUrl {
+    if (photoUrl != null && photoUrl!.isNotEmpty) return photoUrl;
+    if (playerId > 0) {
+      return 'https://imagecache.365scores.com/image/upload/f_auto,q_auto,c_fill,w_300,h_300/v1/Athletes/$playerId';
+    }
+    return null;
+  }
 
   // for 365Scores API
   factory TopScorer.fromJson(Map<String, dynamic> json) {
+    final id = json['athleteId'] ?? json['id'] ?? 0;
     return TopScorer(
-      playerId: json['athleteId'] ?? json['id'] ?? 0,
+      playerId: id,
       playerName: json['athleteName'] ?? json['name'] ?? '',
       teamName: json['competitorName'] ?? '',
       teamCode: json['competitorId']?.toString() ?? '',
@@ -36,6 +48,7 @@ class TopScorer {
       goals: json['value']?.toInt() ?? 0,
       matches: json['games'] ?? 0,
       assists: json['assists'] ?? 0,
+      photoUrl: 'https://imagecache.365scores.com/image/upload/f_auto,q_auto,c_fill,w_300,h_300/v1/Athletes/$id',
     );
   }
 
@@ -59,6 +72,7 @@ class TopScorer {
         goals: g['total'] ?? 0,
         matches: 0,
         assists: g['assists'] ?? 0,
+        photoUrl: pl['photo'],
       );
     } else {
       // Format SofaScore/Direct (flat)

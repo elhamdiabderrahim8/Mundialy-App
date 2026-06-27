@@ -17,7 +17,11 @@ class GlobalConfig {
   static const String sofaBaseUrl = 'https://api.sofascore.com/api/v1';
 
   /// IDs de la Coupe du Monde
-  static const int worldCupTournamentId = 16;
-  static const int season2026Id = 58210;
-  static const int season2022Id = 41087;
+  static const int worldCupTournamentId = 16; // SofaScore
+  static const int season2026Id = 58210;      // SofaScore
+  static const int season2022Id = 41087;      // SofaScore
+
+  /// IDs de 365Scores
+  static const int season2022Id_365Scores = 24;
+  static const int season2026Id_365Scores = 25;
 }

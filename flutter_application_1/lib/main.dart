@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
 import 'constants/app_colors.dart';
 import 'screens/home_screen.dart';
@@ -11,9 +12,12 @@ import 'services/api_service.dart';
 import 'services/startapp_service.dart';
 import 'services/theme_provider.dart';
 import 'utils/app_globals.dart';
+import 'utils/lang_utils.dart';
 import 'widgets/animated_goal_overlay.dart';
 import 'widgets/in_app_notification.dart';
 import 'widgets/nation_flag_badge.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'l10n/app_localizations.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -28,8 +32,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final title = message.notification?.title ?? (isGoal ? "BUT ! 🔥" : "Alerte Match");
   final body = message.notification?.body ?? "$homeTeam vs $awayTeam";
 
-  await ApiService.initNotifications();
-  await ApiService.showSystemNotification(title, body, isGoal: isGoal);
+  if (message.notification == null) {
+    await ApiService.initNotifications();
+    await ApiService.showSystemNotification(title, body, isGoal: isGoal);
+  }
 }
 
 void main() async {
@@ -101,6 +107,13 @@ Future<void> _initializeStartupServices() async {
 void _handleForegroundMessage(RemoteMessage message) {
   debugPrint('FCM Foreground Message: ${message.notification?.title}');
 
+  // ★ MODE LECTURE EN DIRECT : on ignore toute notification visuelle
+  // pour éviter de gâcher l'expérience et spoiler des buts.
+  if (isWatchingLive) {
+    debugPrint('[Notifications] Notification ignorée — utilisateur en mode lecture');
+    return;
+  }
+
   final type = message.data['type'];
   final isGoal = type == 'goal' || type == 'GOAL';
   final context = globalNavigatorKey.currentContext;
@@ -122,7 +135,7 @@ void _handleForegroundMessage(RemoteMessage message) {
         isGoal: true,
       );
     } 
-    // Non-goal notifications don't show an in-app banner ("sans visualisation de l'onglet")
+    // Non-goal notifications don't show an in-app banner
   }
 
   refreshStreamController.add(null);
@@ -167,7 +180,6 @@ class _MyAppState extends State<MyApp> {
 
   void _onStateChanged(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      StartAppService.showAppOpenAdIfAvailable();
       _GlobalLiveScanner.start();
     } else if (state == AppLifecycleState.paused) {
       _GlobalLiveScanner.stop();
@@ -277,12 +289,39 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       navigatorKey: globalNavigatorKey,
-      title: 'Z WordCup',
+      title: 'Mundialy',
       themeMode: themeProvider.themeMode,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),
       debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      // Localization support: FR / EN / AR
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr'),
+        Locale('en'),
+        Locale('ar'),
+      ],
+      localeResolutionCallback: (deviceLocale, supportedLocales) {
+        // Cache the language code for API calls
+        if (deviceLocale != null) {
+          LangUtils.setLocale(deviceLocale.languageCode);
+        }
+        for (final supported in supportedLocales) {
+          if (deviceLocale?.languageCode == supported.languageCode) {
+            return supported;
+          }
+        }
+        // Default to French
+        return const Locale('fr');
+      },
+      home: ShowCaseWidget(
+        builder: (context) => const HomeScreen(),
+      ),
     );
   }
 }
