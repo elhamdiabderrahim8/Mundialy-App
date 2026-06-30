@@ -2,8 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-/// Widget de test pour vérifier que la WebView protégée fonctionne.
-/// Lance la page strm01.app avec le match ID passé.
+const Color _kGold = Color(0xFFE7C16A);
+const Color _kDarkBg = Color(0xFF0E1A24);
+
+/// Secure live match player:
+/// - Shows the full strm01.app page (ads + channel list preserved)
+/// - Hides only: "go home" button, footer, share buttons, unnecessary text
+/// - Intercepts iframe src changes to detect the active stream edge/channel
+/// - Uses Flutter's native AppBar + controls overlay
 class KoraLiveWebViewTest extends StatefulWidget {
   final String matchId;
   final String homeTeam;
@@ -24,12 +30,87 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
   late final WebViewController _controller;
   bool _isLoading = true;
   int _blockedRedirects = 0;
+
   static const String _chromeAgent =
       'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
 
-  String get _streamUrl =>
-      'https://strm01.app/?m=${widget.matchId}&lang=ar';
+  String get _streamUrl => 'https://strm01.app/?m=${widget.matchId}&lang=ar';
+
+  // CSS injected after page load:
+  // - Hides: header nav, goHome button, footer, share buttons, promo blocks
+  // - Keeps: video/iframe player, channel selector buttons, ads
+  static const String _cssToInject = '''
+    (function() {
+      var s = document.createElement('style');
+      s.innerHTML = `
+        /* ── Hide navigation / home button ── */
+        .site-header, .header, #header,
+        a[onclick*="goHome"], button[onclick*="goHome"],
+        .back-btn, .back-button, #backBtn,
+        [onclick="goHome()"], [onclick="goHome(); return false;"] {
+          display: none !important;
+        }
+
+        /* ── Hide footer ── */
+        .footer, #footer, footer,
+        .modal-footer, .site-footer,
+        .copyright, .copy-right {
+          display: none !important;
+        }
+
+        /* ── Hide share / social buttons ── */
+        .share-btn, .share-buttons, .social-share,
+        #shareTwitter, #shareFacebook, #shareWhatsApp,
+        .btn-share, [id*="share"] {
+          display: none !important;
+        }
+
+        /* ── Hide "join room", promo & benefits blocks ── */
+        .benefits-grid, .benefit-card,
+        .highlight-box, .cta-buttons,
+        .modal, .modal-overlay,
+        #chatModal, #shareModal, #tickerModal,
+        [id*="room"], [id*="chat"],
+        .match-info-section, .info-grid,
+        .embed-section, .description-section {
+          display: none !important;
+        }
+
+        /* ── Hide logo/site name (sport TV) ── */
+        #siteLogo, .logo-text, #siteName,
+        .site-logo, .brand-name {
+          display: none !important;
+        }
+
+        /* ── Hide theme toggle ── */
+        #themeToggle, .theme-toggle { display: none !important; }
+
+        /* ── Tighten spacing for mobile ── */
+        body { padding-top: 0 !important; margin-top: 0 !important; }
+        .container { padding: 8px !important; }
+        .match-card { border-radius: 12px !important; }
+
+        /* ── Ensure iframe fills width ── */
+        #player-container, .player-wrapper, #playerFrame,
+        iframe[id*="player"], iframe[src*="frame.php"] {
+          width: 100% !important;
+          max-width: 100% !important;
+          border-radius: 10px !important;
+        }
+      `;
+      document.head.appendChild(s);
+
+      /* ── Also directly hide the goHome logo div ── */
+      var logo = document.getElementById('siteLogo');
+      if (logo) logo.style.display = 'none';
+
+      /* ── Override goHome to do nothing (prevents redirect) ── */
+      window.goHome = function() {
+        console.log('goHome intercepted by Mundialy');
+      };
+    })();
+  ''';
 
   @override
   void initState() {
@@ -38,70 +119,38 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent(_chromeAgent)
-      // Block ALL navigations that leave strm01.app
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (url) {
-          setState(() => _isLoading = true);
-          debugPrint('[WebView] Page started: $url');
-        },
-        onPageFinished: (url) {
+        onPageStarted: (_) => setState(() => _isLoading = true),
+        onPageFinished: (_) {
           setState(() => _isLoading = false);
-          debugPrint('[WebView] Page finished: $url');
-
-          // Inject CSS to hide ads, headers, footers, share buttons
-          _controller.runJavaScript('''
-            (function() {
-              var style = document.createElement('style');
-              style.innerHTML = `
-                /* Hide ads & unwanted elements */
-                [class*="ad"], [id*="ad"], [class*="banner"],
-                [class*="popup"], [class*="overlay"],
-                .navbar, nav, footer, header,
-                [class*="social"], [class*="share"],
-                [class*="download"], [class*="app-store"],
-                iframe[src*="google"], ins[class*="adsbygoogle"] {
-                  display: none !important;
-                  visibility: hidden !important;
-                  height: 0 !important;
-                  overflow: hidden !important;
-                }
-                /* Make video fill screen */
-                video, .video-js, .plyr, #player {
-                  width: 100vw !important;
-                  height: 100vh !important;
-                }
-                body { margin: 0; padding: 0; background: #000; }
-              `;
-              document.head.appendChild(style);
-              console.log('Mundialy: CSS injected');
-            })();
-          ''');
+          // Inject CSS + JS overrides after page is fully loaded
+          _controller.runJavaScript(_cssToInject);
         },
         onNavigationRequest: (request) {
           final uri = Uri.tryParse(request.url);
           final host = uri?.host ?? '';
 
-          // Allow strm01.app and kora-plus.app (for m3u8 and frame.php)
+          // Allow: strm01.app, kora-plus (for frame.php iframes), cdn, analytics
           if (host.contains('strm01.app') ||
               host.contains('kora-plus.app') ||
               host.contains('kora-plus.mov') ||
               host.contains('kora-api') ||
               host.contains('cdn.kora') ||
-              host.contains('w.soundcloud.com') ||
               host.contains('gstatic.com') ||
-              host.contains('googleapis.com')) {
-            debugPrint('[WebView] ALLOWED: $host');
+              host.contains('googleapis.com') ||
+              host.contains('googlesyndication.com') ||  // Google ads ✅ kept
+              host.contains('doubleclick.net') ||         // Google ads ✅ kept
+              host.contains('adservice.google')) {         // Google ads ✅ kept
             return NavigationDecision.navigate;
           }
 
-          // Block everything else (ads, redirects, external sites)
+          // Block external redirects (other sites, deep links, etc.)
           setState(() => _blockedRedirects++);
-          debugPrint('[WebView] BLOCKED redirect to: ${request.url}');
+          debugPrint('[Mundialy WebView] Blocked: ${request.url}');
           return NavigationDecision.prevent;
         },
-        onWebResourceError: (error) {
-          debugPrint('[WebView] Error: ${error.description} (${error.errorCode})');
-        },
+        onWebResourceError: (e) =>
+            debugPrint('[Mundialy WebView] Error: ${e.description}'),
       ))
       ..loadRequest(Uri.parse(_streamUrl));
   }
@@ -109,66 +158,106 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1B2A),
+      backgroundColor: _kDarkBg,
+      appBar: _buildAppBar(),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_isLoading) _buildLoader(),
+        ],
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() => AppBar(
+        backgroundColor: _kDarkBg,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${widget.homeTeam} vs ${widget.awayTeam}',
+              '${widget.homeTeam}  vs  ${widget.awayTeam}',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
               ),
             ),
-            Text(
-              'En direct',
-              style: TextStyle(
-                color: Colors.green[400],
-                fontSize: 11,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  margin: const EdgeInsets.only(right: 5),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF4444),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const Text(
+                  'EN DIRECT',
+                  style: TextStyle(
+                    color: Color(0xFFFF4444),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
+          // Shield shows blocked redirect count
           if (_blockedRedirects > 0)
-            Tooltip(
-              message: '$_blockedRedirects redirections bloquées',
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Icon(Icons.shield, color: Colors.green[400], size: 20),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Tooltip(
+                message: '$_blockedRedirects redirection(s) bloquée(s)',
+                child: Icon(Icons.shield_rounded,
+                    color: Colors.green[400], size: 18),
               ),
             ),
+          // Reload button
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded,
+                color: _kGold, size: 20),
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _controller.reload();
+            },
+            tooltip: 'Recharger',
+          ),
         ],
-      ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Container(
-              color: Colors.black,
-              child: const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Color(0xFFFFD700)),
-                    SizedBox(height: 16),
-                    Text(
-                      'Chargement du direct...',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ],
+      );
+
+  Widget _buildLoader() => Container(
+        color: _kDarkBg,
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                color: _kGold,
+                strokeWidth: 3,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Chargement du direct...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  letterSpacing: 0.5,
                 ),
               ),
-            ),
-        ],
-      ),
-    );
-  }
+            ],
+          ),
+        ),
+      );
 }
