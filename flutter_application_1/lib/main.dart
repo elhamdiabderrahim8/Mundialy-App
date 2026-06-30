@@ -23,6 +23,15 @@ import 'l10n/app_localizations.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint("Background message: ${message.notification?.title}");
+
+  // ★ MODE LECTURE EN DIRECT (background isolate)
+  // isWatchingLive n'est pas accessible depuis un isolate séparé,
+  // on lit donc la valeur persistée dans SharedPreferences.
+  final watching = await isWatchingLivePersisted();
+  if (watching) {
+    debugPrint('[Notifications] Notification ignorée (background) — utilisateur en mode lecture');
+    return;
+  }
   
   final type = message.data['type'];
   final isGoal = type == 'goal' || type == 'GOAL';
