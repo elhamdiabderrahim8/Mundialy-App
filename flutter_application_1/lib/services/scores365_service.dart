@@ -174,11 +174,34 @@ class Scores365Service {
       scoreHome: home['score']?.toInt() == -1 ? null : home['score']?.toInt(),
       scoreAway: away['score']?.toInt() == -1 ? null : away['score']?.toInt(),
       penaltyHome: () {
-        final v = (home['penaltiesScore'] as num?)?.toInt();
+        // 1. Try stages array — 365Scores WC2026 API has a "Penalties" stage
+        //    with homeCompetitorScore / awayCompetitorScore
+        final stages = g['stages'] as List? ?? [];
+        for (final stage in stages) {
+          final name = (stage['name']?.toString() ?? '').toLowerCase();
+          if (name.contains('penalt') ||
+              name.contains('tirs') ||
+              name.contains('pênalt')) {
+            final v = (stage['homeCompetitorScore'] as num?)?.toInt();
+            if (v != null) return v;
+          }
+        }
+        // 2. Fallback: penaltyScore field (singular — NOT penaltiesScore)
+        final v = (home['penaltyScore'] as num?)?.toInt();
         return (v != null && v > 0) ? v : null;
       }(),
       penaltyAway: () {
-        final v = (away['penaltiesScore'] as num?)?.toInt();
+        final stages = g['stages'] as List? ?? [];
+        for (final stage in stages) {
+          final name = (stage['name']?.toString() ?? '').toLowerCase();
+          if (name.contains('penalt') ||
+              name.contains('tirs') ||
+              name.contains('pênalt')) {
+            final v = (stage['awayCompetitorScore'] as num?)?.toInt();
+            if (v != null) return v;
+          }
+        }
+        final v = (away['penaltyScore'] as num?)?.toInt();
         return (v != null && v > 0) ? v : null;
       }(),
       isLive: isLive,
@@ -668,15 +691,40 @@ class Scores365Service {
       },
       'score': {
         'penalty': {
-          // Only propagate penalty scores when > 0 (avoids false 0-0 shootout section)
-          // or when calcPenaltyHome detected from events (time-reset heuristic)
+          // Priority order for penalty scores (WC2026 365Scores):
+          // 1. stages array: stageId=11 "Penalties" with homeCompetitorScore/awayCompetitorScore
+          // 2. penaltyScore field (singular, not penaltiesScore) in homeCompetitor
+          // 3. calcPenaltyHome calculated from stageId=11 events (typeId=1 = goal)
           'home': () {
-            final fromApi = (home['penaltiesScore'] as num?)?.toInt();
+            // 1. Stages array (most reliable — contains explicit penalty score)
+            final stages = game['stages'] as List? ?? [];
+            for (final stage in stages) {
+              final name = (stage['name']?.toString() ?? '').toLowerCase();
+              if (name.contains('penalt') ||
+                  name.contains('tirs') ||
+                  name.contains('pênalt')) {
+                final v = (stage['homeCompetitorScore'] as num?)?.toInt();
+                if (v != null) return v;
+              }
+            }
+            // 2. penaltyScore field (singular — correct 365Scores field name)
+            final fromApi = (home['penaltyScore'] as num?)?.toInt();
             if (fromApi != null && fromApi > 0) return fromApi;
+            // 3. Calculated from stageId=11 events
             return calcPenaltyHome;
           }(),
           'away': () {
-            final fromApi = (away['penaltiesScore'] as num?)?.toInt();
+            final stages = game['stages'] as List? ?? [];
+            for (final stage in stages) {
+              final name = (stage['name']?.toString() ?? '').toLowerCase();
+              if (name.contains('penalt') ||
+                  name.contains('tirs') ||
+                  name.contains('pênalt')) {
+                final v = (stage['awayCompetitorScore'] as num?)?.toInt();
+                if (v != null) return v;
+              }
+            }
+            final fromApi = (away['penaltyScore'] as num?)?.toInt();
             if (fromApi != null && fromApi > 0) return fromApi;
             return calcPenaltyAway;
           }(),
