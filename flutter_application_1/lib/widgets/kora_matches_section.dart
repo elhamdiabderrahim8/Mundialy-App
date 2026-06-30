@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../services/kora_api_service.dart';
 import '../screens/kora_live_webview.dart';
+import '../utils/country_flags.dart';
 import 'nation_flag_badge.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
@@ -161,6 +162,8 @@ class _KoraMatchesSectionState extends State<KoraMatchesSection> {
                   matchId: match.id,
                   homeTeam: match.homeTeam,
                   awayTeam: match.awayTeam,
+                  homeCode: resolveCountryCode(match.homeTeam),
+                  awayCode: resolveCountryCode(match.awayTeam),
                 ),
               ))
           : null,

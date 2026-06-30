@@ -1,36 +1,55 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../utils/app_globals.dart';
+import '../widgets/nation_flag_badge.dart';
 
-const Color _kGold = Color(0xFFE7C16A);
-const Color _kDarkBg = Color(0xFF0E1A24);
+// ─────────────────────────────────── Palette identique à l'app ───────────────
+const Color _kGold        = Color(0xFFE7C16A);
+const Color _kGoldLight   = Color(0xFFF5D98B);
+const Color _kDarkBg      = Color(0xFF0E1A24);
+const Color _kCardDark    = Color(0xFF152132);
+const Color _kCardDarker  = Color(0xFF0C1620);
+const Color _kLiveRed     = Color(0xFFFF4444);
 
-/// Secure live match player:
-/// - Shows the full strm01.app page (ads + channel list preserved)
-/// - Hides only: "go home" button, footer, share buttons, unnecessary text
-/// - Intercepts iframe src changes to detect the active stream edge/channel
-/// - Uses Flutter's native AppBar + controls overlay
+/// Lecteur match en direct — UI identique à l'application Mundialy.
+/// • Plein écran immersif (status bar cachée)
+/// • Notifications suspendues pendant la lecture
+/// • Redirection externe bloquée
 class KoraLiveWebViewTest extends StatefulWidget {
   final String matchId;
   final String homeTeam;
   final String awayTeam;
+  /// Code ISO‑2 optionnel pour afficher les drapeaux (ex. "FR", "DE")
+  final String? homeCode;
+  final String? awayCode;
 
   const KoraLiveWebViewTest({
     super.key,
     required this.matchId,
     required this.homeTeam,
     required this.awayTeam,
+    this.homeCode,
+    this.awayCode,
   });
 
   @override
   State<KoraLiveWebViewTest> createState() => _KoraLiveWebViewTestState();
 }
 
-class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
+class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
+    with TickerProviderStateMixin {
   late final WebViewController _controller;
   bool _isLoading = true;
-  int _blockedRedirects = 0;
+  int  _blockedRedirects = 0;
+
+  // Animation pour le point LIVE pulsant
+  late final AnimationController _pulseCtrl;
+  late final Animation<double>   _pulseAnim;
+
+  // Animation pour le shimmer de chargement
+  late final AnimationController _shimmerCtrl;
 
   static const String _chromeAgent =
       'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
@@ -38,87 +57,99 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
 
   String get _streamUrl => 'https://strm01.app/?m=${widget.matchId}&lang=ar';
 
-  // CSS injected after page load:
-  // - Hides: header nav, goHome button, footer, share buttons, promo blocks
-  // - Keeps: video/iframe player, channel selector buttons, ads
-  static const String _cssToInject = '''
+  // ─── CSS injecté : masque tout sauf la vidéo + sélecteur de chaînes ────────
+  static const String _cssToInject = r'''
     (function() {
       var s = document.createElement('style');
       s.innerHTML = `
-        /* ── Hide navigation / home button ── */
+        /* ── Navigation / home button ── */
         .site-header, .header, #header,
         a[onclick*="goHome"], button[onclick*="goHome"],
         .back-btn, .back-button, #backBtn,
         [onclick="goHome()"], [onclick="goHome(); return false;"] {
           display: none !important;
         }
-
-        /* ── Hide footer ── */
+        /* ── Footer / copyright ── */
         .footer, #footer, footer,
         .modal-footer, .site-footer,
-        .copyright, .copy-right {
-          display: none !important;
-        }
-
-        /* ── Hide share / social buttons ── */
+        .copyright, .copy-right { display: none !important; }
+        /* ── Partage / réseaux sociaux ── */
         .share-btn, .share-buttons, .social-share,
         #shareTwitter, #shareFacebook, #shareWhatsApp,
-        .btn-share, [id*="share"] {
-          display: none !important;
-        }
-
-        /* ── Hide "join room", promo & benefits blocks ── */
+        .btn-share, [id*="share"] { display: none !important; }
+        /* ── Blocs promo / join room ── */
         .benefits-grid, .benefit-card,
         .highlight-box, .cta-buttons,
         .modal, .modal-overlay,
         #chatModal, #shareModal, #tickerModal,
         [id*="room"], [id*="chat"],
         .match-info-section, .info-grid,
-        .embed-section, .description-section {
-          display: none !important;
-        }
-
-        /* ── Hide logo/site name (sport TV) ── */
+        .embed-section, .description-section { display: none !important; }
+        /* ── Logo du site ── */
         #siteLogo, .logo-text, #siteName,
-        .site-logo, .brand-name {
-          display: none !important;
-        }
-
-        /* ── Hide theme toggle ── */
+        .site-logo, .brand-name { display: none !important; }
+        /* ── Bouton thème ── */
         #themeToggle, .theme-toggle { display: none !important; }
-
-        /* ── Tighten spacing for mobile ── */
-        body { padding-top: 0 !important; margin-top: 0 !important; }
+        /* ── Espacement ── */
+        body { padding-top: 0 !important; margin-top: 0 !important;
+               background: #0E1A24 !important; }
         .container { padding: 8px !important; }
-        .match-card { border-radius: 12px !important; }
-
-        /* ── Ensure iframe fills width ── */
+        /* ── Iframe pleine largeur ── */
         #player-container, .player-wrapper, #playerFrame,
         iframe[id*="player"], iframe[src*="frame.php"] {
-          width: 100% !important;
-          max-width: 100% !important;
-          border-radius: 10px !important;
+          width: 100% !important; max-width: 100% !important;
+          border-radius: 0 !important;
+        }
+        /* ── Style des boutons de chaînes (Bein, etc.) ── */
+        .channel-btn, .stream-btn, [class*="channel"], [class*="stream"] {
+          background: #152132 !important;
+          border: 1px solid #E7C16A44 !important;
+          color: #E7C16A !important;
+          border-radius: 8px !important;
+          font-weight: 700 !important;
+        }
+        .channel-btn:hover, .stream-btn:hover,
+        [class*="channel"]:hover, [class*="stream"]:hover {
+          background: #E7C16A22 !important;
+          border-color: #E7C16A !important;
         }
       `;
       document.head.appendChild(s);
 
-      /* ── Also directly hide the goHome logo div ── */
       var logo = document.getElementById('siteLogo');
       if (logo) logo.style.display = 'none';
 
-      /* ── Override goHome to do nothing (prevents redirect) ── */
       window.goHome = function() {
-        console.log('goHome intercepted by Mundialy');
+        console.log('goHome intercepté par Mundialy');
       };
     })();
   ''';
 
+  // ─── Lifecycle ─────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-    // ► Suspendre les notifications (buts, alertes) pendant la lecture live
-    enterLiveWatchMode();
 
+    // ► Bloquer notifications + plein écran
+    enterLiveWatchMode();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    // ► Animation pulsante LIVE
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+
+    // ► Shimmer chargement
+    _shimmerCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+
+    // ► Contrôleur WebView
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent(_chromeAgent)
@@ -126,148 +157,348 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
         onPageStarted: (_) => setState(() => _isLoading = true),
         onPageFinished: (_) {
           setState(() => _isLoading = false);
-          // Inject CSS + JS overrides after page is fully loaded
           _controller.runJavaScript(_cssToInject);
         },
         onNavigationRequest: (request) {
-          final uri = Uri.tryParse(request.url);
-          final host = uri?.host ?? '';
-
-          // Allow: strm01.app, kora-plus (for frame.php iframes), cdn, analytics
-          if (host.contains('strm01.app') ||
-              host.contains('kora-plus.app') ||
-              host.contains('kora-plus.mov') ||
-              host.contains('kora-api') ||
-              host.contains('cdn.kora') ||
-              host.contains('gstatic.com') ||
+          final host = Uri.tryParse(request.url)?.host ?? '';
+          if (host.contains('strm01.app')     ||
+              host.contains('kora-plus.app')  ||
+              host.contains('kora-plus.mov')  ||
+              host.contains('kora-api')       ||
+              host.contains('cdn.kora')       ||
+              host.contains('gstatic.com')    ||
               host.contains('googleapis.com') ||
-              host.contains('googlesyndication.com') ||  // Google ads ✅ kept
-              host.contains('doubleclick.net') ||         // Google ads ✅ kept
-              host.contains('adservice.google')) {         // Google ads ✅ kept
+              host.contains('googlesyndication.com') ||
+              host.contains('doubleclick.net')       ||
+              host.contains('adservice.google')) {
             return NavigationDecision.navigate;
           }
-
-          // Block external redirects (other sites, deep links, etc.)
           setState(() => _blockedRedirects++);
-          debugPrint('[Mundialy WebView] Blocked: ${request.url}');
+          debugPrint('[Mundialy] Bloqué: ${request.url}');
           return NavigationDecision.prevent;
         },
         onWebResourceError: (e) =>
-            debugPrint('[Mundialy WebView] Error: ${e.description}'),
+            debugPrint('[Mundialy WebView] Erreur: ${e.description}'),
       ))
       ..loadRequest(Uri.parse(_streamUrl));
   }
 
   @override
   void dispose() {
-    // ◄ Réactiver les notifications (avec délai de 5s pour éviter les spoilers)
     exitLiveWatchMode();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: SystemUiOverlay.values,
+    );
+    _pulseCtrl.dispose();
+    _shimmerCtrl.dispose();
     super.dispose();
   }
 
+  // ─── Build principal ────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kDarkBg,
-      appBar: _buildAppBar(),
-      body: Stack(
+      body: Column(
         children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading) _buildLoader(),
+          _buildTopBar(),
+          Expanded(
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                if (_isLoading) _buildLoader(),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() => AppBar(
-        backgroundColor: _kDarkBg,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${widget.homeTeam}  vs  ${widget.awayTeam}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.only(right: 5),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF4444),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const Text(
-                  'EN DIRECT',
-                  style: TextStyle(
-                    color: Color(0xFFFF4444),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          // Shield shows blocked redirect count
-          if (_blockedRedirects > 0)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Tooltip(
-                message: '$_blockedRedirects redirection(s) bloquée(s)',
-                child: Icon(Icons.shield_rounded,
-                    color: Colors.green[400], size: 18),
-              ),
-            ),
-          // Reload button
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: _kGold, size: 20),
-            onPressed: () {
-              setState(() => _isLoading = true);
-              _controller.reload();
-            },
-            tooltip: 'Recharger',
+  // ─── Barre supérieure custom ────────────────────────────────────────────────
+  Widget _buildTopBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCardDarker,
+        border: Border(
+          bottom: BorderSide(
+            color: _kGold.withValues(alpha: 0.13),
+            width: 1,
           ),
-        ],
-      );
-
-  Widget _buildLoader() => Container(
-        color: _kDarkBg,
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
             children: [
-              CircularProgressIndicator(
-                color: _kGold,
-                strokeWidth: 3,
+              // ── Bouton Retour ──
+              _buildIconBtn(
+                icon: Icons.arrow_back_ios_new_rounded,
+                onTap: () => Navigator.of(context).pop(),
               ),
-              SizedBox(height: 16),
-              Text(
-                'Chargement du direct...',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  letterSpacing: 0.5,
+              const SizedBox(width: 8),
+
+              // ── Équipe Home ──
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        widget.homeTeam,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    NationFlagBadge(
+                      countryCode: widget.homeCode ?? widget.homeTeam.substring(0, widget.homeTeam.length.clamp(0, 3)),
+                      teamName: widget.homeTeam,
+                      size: 26,
+                    ),
+                  ],
                 ),
+              ),
+
+              // ── Badge LIVE central ──
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: _buildLiveBadge(),
+              ),
+
+              // ── Équipe Away ──
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    NationFlagBadge(
+                      countryCode: widget.awayCode ?? widget.awayTeam.substring(0, widget.awayTeam.length.clamp(0, 3)),
+                      teamName: widget.awayTeam,
+                      size: 26,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        widget.awayTeam,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // ── Actions droite ──
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_blockedRedirects > 0)
+                    Tooltip(
+                      message: '$_blockedRedirects redirection(s) bloquée(s)',
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(Icons.shield_rounded,
+                            color: Colors.green[400], size: 18),
+                      ),
+                    ),
+                  _buildIconBtn(
+                    icon: Icons.refresh_rounded,
+                    color: _kGold,
+                    onTap: () {
+                      setState(() => _isLoading = true);
+                      _controller.reload();
+                    },
+                  ),
+                ],
               ),
             ],
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  // ─── Badge LIVE animé ───────────────────────────────────────────────────────
+  Widget _buildLiveBadge() {
+    return AnimatedBuilder(
+      animation: _pulseAnim,
+      builder: (_, child) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: _kLiveRed.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _kLiveRed.withValues(alpha: _pulseAnim.value),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _kLiveRed.withValues(alpha: _pulseAnim.value * 0.3),
+              blurRadius: 8,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: _kLiveRed.withValues(alpha: _pulseAnim.value),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: _kLiveRed.withValues(alpha: 0.6),
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 5),
+            const Text(
+              'LIVE',
+              style: TextStyle(
+                color: _kLiveRed,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Bouton icône générique ─────────────────────────────────────────────────
+  Widget _buildIconBtn({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color color = Colors.white70,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Icon(icon, color: color, size: 18),
+      ),
+    );
+  }
+
+  // ─── Écran de chargement premium ───────────────────────────────────────────
+  Widget _buildLoader() {
+    return Container(
+      color: _kDarkBg,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Drapeaux + VS
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                NationFlagBadge(
+                  countryCode: widget.homeCode ?? widget.homeTeam.substring(0, widget.homeTeam.length.clamp(0, 3)),
+                  teamName: widget.homeTeam,
+                  size: 48,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [_kGold, _kGoldLight, _kGold],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'VS',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                NationFlagBadge(
+                  countryCode: widget.awayCode ?? widget.awayTeam.substring(0, widget.awayTeam.length.clamp(0, 3)),
+                  teamName: widget.awayTeam,
+                  size: 48,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // ── Noms des équipes
+            Text(
+              '${widget.homeTeam}  ·  ${widget.awayTeam}',
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            // ── Barre de progression gold
+            SizedBox(
+              width: 180,
+              child: AnimatedBuilder(
+                animation: _shimmerCtrl,
+                builder: (_, child) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      backgroundColor: _kCardDark,
+                      valueColor: ColorTween(
+                        begin: _kGold.withValues(alpha: 0.4),
+                        end: _kGoldLight,
+                      ).animate(_shimmerCtrl),
+                      minHeight: 3,
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Connexion au direct...',
+              style: TextStyle(
+                color: Color(0xFF8899AA),
+                fontSize: 12,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
