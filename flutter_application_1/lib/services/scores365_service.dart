@@ -173,6 +173,14 @@ class Scores365Service {
       competitionId: g['competitionId'],
       scoreHome: home['score']?.toInt() == -1 ? null : home['score']?.toInt(),
       scoreAway: away['score']?.toInt() == -1 ? null : away['score']?.toInt(),
+      penaltyHome: () {
+        final v = (home['penaltiesScore'] as num?)?.toInt();
+        return (v != null && v > 0) ? v : null;
+      }(),
+      penaltyAway: () {
+        final v = (away['penaltiesScore'] as num?)?.toInt();
+        return (v != null && v > 0) ? v : null;
+      }(),
       isLive: isLive,
       dateTime: dt,
       statusShort: shortStatus,
@@ -314,14 +322,21 @@ class Scores365Service {
       String type = '';
       String incidentClass = '';
 
-      bool isShootoutStage = ev['stageId'] == 5 || ev['stageId'] == '5';
-      final statusTextLower = (game['statusText']?.toString() ?? '').toLowerCase();
-      if (statusTextLower.contains('penalties') || 
-          statusTextLower.contains('tirs au but') || 
-          statusTextLower.contains('après') ||
-          statusTextLower.contains('pen')) {
-        // If the match went to penalties and gameTime <= 15 (penalty sequence index), it's a shootout event
-        if (ev['gameTime'] != null && ev['gameTime'] <= 15) {
+      // ── Penalty Shootout detection (365Scores WC2026) ──
+      // stageId=11 = penalty shootout stage (confirmed from API analysis)
+      // stageId=10 = extra time, stageId=9 = regular time
+      bool isShootoutStage = ev['stageId'] == 11 || ev['stageId'] == '11';
+
+      // Fallback: if statusText indicates penalties AND gameTime >= 120,
+      // it's very likely a shootout event (WC2026 uses gameTime 121-125 for kicks)
+      if (!isShootoutStage) {
+        final statusTextLower = (game['statusText']?.toString() ?? '').toLowerCase();
+        final gameTimeVal = (ev['gameTime'] as num?)?.toDouble() ?? 0;
+        if ((statusTextLower.contains('penalties') ||
+                statusTextLower.contains('tirs au but') ||
+                statusTextLower.contains('après') ||
+                statusTextLower.contains('pen')) &&
+            gameTimeVal >= 120) {
           isShootoutStage = true;
         }
       }
@@ -352,6 +367,10 @@ class Scores365Service {
       } else if (typeId == 12) {
         type = 'woodwork';
         incidentClass = 'woodwork';
+      } else if (typeId == 6) {
+        // typeId=6 = "Penalty Miss" — directly from 365Scores WC2026 API
+        type = 'penaltyshootout';
+        incidentClass = 'missed';
       } else if (typeId == 13 || (typeId == 14 && isShootoutStage)) {
         type = 'penaltyshootout';
         incidentClass = 'missed';
@@ -476,7 +495,13 @@ class Scores365Service {
     }
     // If we detected a shootout, ensure we have at least 0-0 for the UI to show the penalty score section
     final statusTextLower = (game['statusText']?.toString() ?? '').toLowerCase();
-    if (calcPenaltyHome == null && (statusTextLower.contains('penalties') || statusTextLower.contains('tirs au but'))) {
+    final hasPenaltyStatus = statusTextLower.contains('penalties') ||
+        statusTextLower.contains('tirs au but') ||
+        statusTextLower.contains('after pen') ||   // "After Penalties" (EN 365Scores)
+        statusTextLower.contains('pós-pên') ||      // Portuguese "Pós-pênaltis"
+        statusTextLower.contains('pénalt') ||       // French variant
+        statusTextLower.contains('penalt');         // General fallback
+    if (calcPenaltyHome == null && hasPenaltyStatus) {
       calcPenaltyHome = 0;
       calcPenaltyAway = 0;
     }
