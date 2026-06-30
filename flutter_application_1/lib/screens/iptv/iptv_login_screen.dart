@@ -223,6 +223,10 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // ── Matchs d'aujourd'hui (Kora API) ────────────────
+                  const KoraMatchesSection(),
+                  const SizedBox(height: 28),
+
                   // Icône animée
                   _buildHeroIcon(),
                   const SizedBox(height: 22),
@@ -323,10 +327,6 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                       ],
                     ),
                   ),
-
-                  // ── Matchs en direct (Kora API) ──────────────────────────
-                  const KoraMatchesSection(),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),

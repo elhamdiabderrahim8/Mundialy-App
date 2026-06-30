@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../services/kora_api_service.dart';
 import '../screens/kora_live_webview.dart';
+import 'nation_flag_badge.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
 const Color _kCardDark = Color(0xFF1D2D3B);
@@ -186,14 +187,14 @@ class _KoraMatchesSectionState extends State<KoraMatchesSection> {
         child: Row(
           children: [
             // ── League logo ──
-            _logo(match.leagueLogoUrl, 20),
+            _leagueLogo(match.leagueLogoUrl, 20),
             const SizedBox(width: 10),
 
             // ── Home team ──
             Expanded(
               child: Row(
                 children: [
-                  _logo(match.homeLogoUrl, 26),
+                  _teamFlag(match.homeTeam, match.homeLogoUrl, 36),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
@@ -306,7 +307,7 @@ class _KoraMatchesSectionState extends State<KoraMatchesSection> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  _logo(match.awayLogoUrl, 26),
+                  _teamFlag(match.awayTeam, match.awayLogoUrl, 36),
                 ],
               ),
             ),
@@ -338,18 +339,29 @@ class _KoraMatchesSectionState extends State<KoraMatchesSection> {
     return '${m.homeScore} : ${m.awayScore}';
   }
 
-  Widget _logo(String url, double size) {
+  /// League logo: small rounded image
+  Widget _leagueLogo(String url, double size) {
     if (url.isEmpty) {
-      return Icon(Icons.sports_soccer,
-          size: size, color: Colors.white.withValues(alpha: 0.3));
+      return Icon(Icons.emoji_events_rounded,
+          size: size, color: _kGold.withValues(alpha: 0.6));
     }
     return CachedNetworkImage(
       imageUrl: url,
       width: size,
       height: size,
       fit: BoxFit.contain,
-      errorWidget: (ctx, url, err) => Icon(Icons.sports_soccer,
-          size: size, color: Colors.white.withValues(alpha: 0.3)),
+      errorWidget: (ctx, url, err) => Icon(Icons.emoji_events_rounded,
+          size: size, color: _kGold.withValues(alpha: 0.5)),
+    );
+  }
+
+  /// Team flag: diamond shape matching app style (NationFlagBadge)
+  Widget _teamFlag(String teamName, String logoUrl, double size) {
+    return NationFlagBadge(
+      countryCode: '',
+      size: size,
+      teamName: teamName,
+      imageUrlOverride: logoUrl,
     );
   }
 
