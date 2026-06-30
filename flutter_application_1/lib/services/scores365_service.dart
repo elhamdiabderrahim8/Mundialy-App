@@ -432,6 +432,34 @@ class Scores365Service {
       }
     }
 
+    // Post-process to robustly detect shootout sequence
+    // A shootout sequence occurs when events with elapsed time 1, 2, 3.. appear AFTER events with elapsed time > 45
+    bool inShootout = false;
+    int maxElapsed = 0;
+    for (var i = 0; i < parsedEvents.length; i++) {
+      final ev = parsedEvents[i];
+      final elapsed = ev['time']?['elapsed'] as int? ?? 0;
+      
+      if (elapsed > maxElapsed) {
+        maxElapsed = elapsed;
+      }
+      
+      // If we've advanced deep into the match (e.g. past half time) and time resets to <= 25
+      if (maxElapsed >= 45 && elapsed <= 25) {
+        inShootout = true;
+      }
+
+      if (inShootout) {
+        if (ev['type'] == 'goal' || ev['incidentClass'] == 'penalty' || ev['type'] == 'penaltyshootout') {
+           ev['type'] = 'penaltyshootout';
+           ev['incidentClass'] = 'scored';
+        } else if (ev['type'] == 'missedpenalty' || ev['incidentClass'] == 'missed') {
+           ev['type'] = 'penaltyshootout';
+           ev['incidentClass'] = 'missed';
+        }
+      }
+    }
+
     // Calculate penalty score if it's a shootout
     int? calcPenaltyHome;
     int? calcPenaltyAway;
@@ -597,12 +625,14 @@ class Scores365Service {
         'home': {
           'id': home['id'],
           'name': home['name'],
+          'nameCode': home['nameCode']?.toString() ?? '',
           'logo':
               'https://imagecache.365scores.com/image/upload/f_png,w_48,h_48,c_limit,q_auto:eco,dpr_3,d_Competitors:default1.png/v3/Competitors/${home['id']}',
         },
         'away': {
           'id': away['id'],
           'name': away['name'],
+          'nameCode': away['nameCode']?.toString() ?? '',
           'logo':
               'https://imagecache.365scores.com/image/upload/f_png,w_48,h_48,c_limit,q_auto:eco,dpr_3,d_Competitors:default1.png/v3/Competitors/${away['id']}',
         },
@@ -613,8 +643,18 @@ class Scores365Service {
       },
       'score': {
         'penalty': {
-          'home': home['penaltiesScore']?.toInt() ?? calcPenaltyHome,
-          'away': away['penaltiesScore']?.toInt() ?? calcPenaltyAway,
+          // Only propagate penalty scores when > 0 (avoids false 0-0 shootout section)
+          // or when calcPenaltyHome detected from events (time-reset heuristic)
+          'home': () {
+            final fromApi = (home['penaltiesScore'] as num?)?.toInt();
+            if (fromApi != null && fromApi > 0) return fromApi;
+            return calcPenaltyHome;
+          }(),
+          'away': () {
+            final fromApi = (away['penaltiesScore'] as num?)?.toInt();
+            if (fromApi != null && fromApi > 0) return fromApi;
+            return calcPenaltyAway;
+          }(),
         },
       },
       'lineups': [

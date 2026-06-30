@@ -690,7 +690,12 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _ShootoutTeamLogo(teamId: homeId, code: homeCode),
+              _ShootoutTeamLogo(
+                teamId: homeId,
+                code: homeCode,
+                teamName: homeTeam,
+                logoUrl: _details!.overview.homeLogoUrl,
+              ),
               const SizedBox(width: 16),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -713,7 +718,12 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                 ),
               ),
               const SizedBox(width: 16),
-              _ShootoutTeamLogo(teamId: awayId, code: awayCode),
+              _ShootoutTeamLogo(
+                teamId: awayId,
+                code: awayCode,
+                teamName: awayTeam,
+                logoUrl: _details!.overview.awayLogoUrl,
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -1956,14 +1966,30 @@ Color _eventAccent(MatchEventIcon icon) {
 }
 
 class _ShootoutTeamLogo extends StatelessWidget {
-  const _ShootoutTeamLogo({required this.teamId, required this.code});
+  const _ShootoutTeamLogo({
+    required this.teamId,
+    required this.code,
+    this.teamName,
+    this.logoUrl,
+  });
 
   final int? teamId;
   final String code;
+  final String? teamName;
+  final String? logoUrl;
 
   @override
   Widget build(BuildContext context) {
-    return NationFlagBadge(countryCode: code, size: 48);
+    // Priority: flagcdn via teamName → flagcdn via nameCode → 365scores CDN logo
+    final cdnLogoUrl = teamId != null
+        ? 'https://imagecache.365scores.com/image/upload/f_png,w_48,h_48,c_limit,q_auto:eco,dpr_3,d_Competitors:default1.png/v3/Competitors/$teamId'
+        : logoUrl;
+    return NationFlagBadge(
+      countryCode: code,
+      size: 48,
+      teamName: teamName,
+      imageUrlOverride: cdnLogoUrl,
+    );
   }
 }
 
