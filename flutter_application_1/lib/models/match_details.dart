@@ -208,7 +208,7 @@ class MatchDetails {
           } else if (type == 'penaltyshootout') {
             final isScored = incidentClass == 'scored';
             icon = isScored
-                ? MatchEventIcon.goal
+                ? MatchEventIcon.penaltyGoal
                 : MatchEventIcon.penaltyMissed;
             title = isScored ? "TIR AU BUT MARQUÉ" : "TIR AU BUT MANQUÉ";
             description = json['player']?['name'] ?? 'Joueur';

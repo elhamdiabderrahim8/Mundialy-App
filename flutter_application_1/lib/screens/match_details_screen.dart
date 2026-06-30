@@ -645,10 +645,12 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
     final shootoutEvents = allEvents.where((e) {
       final titleLower = e.title.toLowerCase();
       final detailLower = e.detail.toLowerCase();
+      final minuteUpper = e.minute.toUpperCase();
       return titleLower.contains('(tab)') ||
           detailLower.contains('shootout') ||
-          titleLower.contains('tirs au but') ||
-          (titleLower.contains('penalty') && e.minute.contains('120+'));
+          titleLower.contains('tir au but') || // Singulier pour matcher "TIR AU BUT MARQUÉ/MANQUÉ" (365Scores)
+          titleLower.contains('tirs au but') || // Pluriel pour compatibilité WC2022/SofaScore
+          (titleLower.contains('penalty') && (minuteUpper.contains('120') || minuteUpper.contains('TAB')));
     }).toList();
 
     final homeEvents = shootoutEvents.where((e) => e.teamName == homeTeam).toList();
@@ -818,6 +820,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
           minUpper.contains('TAB') ||
           minUpper.contains('PEN') ||
           (e.title.toLowerCase().contains('penalty') && minute > 120) ||
+          e.title.toLowerCase().contains('tir au but') ||
           e.title.toLowerCase().contains('tirs au but');
       if (isShootout) continue;
 

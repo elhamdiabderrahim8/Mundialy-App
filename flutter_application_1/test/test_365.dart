@@ -3,8 +3,8 @@ import 'package:flutter_application_1/services/scores365_service.dart';
 
 void main() {
   test('Test 365Scores endpoints', () async {
-    print('--- fetchFixtures2026 ---');
-    final fixtures = await Scores365Service.fetchFixtures2026();
+    print('--- fetchFixtures(2026) ---');
+    final fixtures = await Scores365Service.fetchFixtures(2026);
     print('Fixtures count: ${fixtures.length}');
     if (fixtures.isNotEmpty) {
       print(
@@ -16,8 +16,8 @@ void main() {
     final live = await Scores365Service.fetchLiveMatches();
     print('Live matches: ${live.length}');
 
-    print('\n--- fetchStandings2026 ---');
-    final standings = await Scores365Service.fetchStandings2026();
+    print('\n--- fetchStandings(2026) ---');
+    final standings = await Scores365Service.fetchStandings(2026);
     print('Standings groups: ${standings.length}');
     if (standings.isNotEmpty) {
       print(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/iptv_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/kora_matches_section.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
 const Color _kDarkBg = Color(0xFF0E1A24);
@@ -322,6 +323,10 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
                       ],
                     ),
                   ),
+
+                  // ── Matchs en direct (Kora API) ──────────────────────────
+                  const KoraMatchesSection(),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

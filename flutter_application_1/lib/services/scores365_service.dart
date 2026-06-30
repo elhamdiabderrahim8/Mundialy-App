@@ -139,11 +139,35 @@ class Scores365Service {
       awayTeamId: away['id'],
       awayLogoUrl: null,
       phaseLabel: () {
-        String phase = (g['groupName'] != null && g['groupName'].toString().isNotEmpty)
-            ? g['groupName']
-            : (g['roundName'] ?? g['stageName'] ?? 'World Cup');
-        if (phase.toLowerCase().trim() == 'round') return 'Round of 32';
-        return phase;
+        // Use stageNum (like backend) for correct knockout round identification
+        final stageNum = (g['stageNum'] as num?)?.toInt() ?? 0;
+        final groupName = g['groupName']?.toString() ?? '';
+        final roundNum = (g['roundNum'] as num?)?.toInt();
+
+        if (groupName.isNotEmpty) {
+          return groupName; // Group Stage: "Group A", "Group B", etc.
+        }
+
+        // Knockout stages based on stageNum (365Scores convention)
+        switch (stageNum) {
+          case 1:
+            return roundNum != null ? 'Group Stage - $roundNum' : 'Group Stage';
+          case 2:
+            return 'Round of 32';
+          case 3:
+            return 'Round of 16';
+          case 4:
+            return 'Quarter-finals';
+          case 5:
+            return 'Semi-finals';
+          case 6:
+            return 'Final';
+          default:
+            // Fallback to roundName/stageName if stageNum not available
+            final fallback = g['roundName'] ?? g['stageName'] ?? 'World Cup';
+            if (fallback.toLowerCase().trim() == 'round') return 'Round of 32';
+            return fallback;
+        }
       }(),
       source: MatchDataSource.wc2026api,
       competitionId: g['competitionId'],
@@ -290,10 +314,22 @@ class Scores365Service {
       String type = '';
       String incidentClass = '';
 
+      bool isShootoutStage = ev['stageId'] == 5 || ev['stageId'] == '5';
+      final statusTextLower = (game['statusText']?.toString() ?? '').toLowerCase();
+      if (statusTextLower.contains('penalties') || 
+          statusTextLower.contains('tirs au but') || 
+          statusTextLower.contains('après') ||
+          statusTextLower.contains('pen')) {
+        // If the match went to penalties and gameTime <= 15 (penalty sequence index), it's a shootout event
+        if (ev['gameTime'] != null && ev['gameTime'] <= 15) {
+          isShootoutStage = true;
+        }
+      }
+
       if (typeId == 1) {
         final subType =
             ev['eventType']?['subTypeName']?.toString().toLowerCase() ?? '';
-        if (subType.contains('shootout') || ev['stageId'] == 5) {
+        if (subType.contains('shootout') || isShootoutStage) {
           type = 'penaltyshootout';
           incidentClass = 'scored';
         } else {
@@ -316,7 +352,7 @@ class Scores365Service {
       } else if (typeId == 12) {
         type = 'woodwork';
         incidentClass = 'woodwork';
-      } else if (typeId == 13) {
+      } else if (typeId == 13 || (typeId == 14 && isShootoutStage)) {
         type = 'penaltyshootout';
         incidentClass = 'missed';
       } else if (typeId == 14) {
@@ -328,7 +364,7 @@ class Scores365Service {
         type = 'var';
       } else if (typeName.toLowerCase().contains('miss') &&
           typeName.toLowerCase().contains('penalty')) {
-        type = 'penaltyshootout';
+        type = isShootoutStage ? 'penaltyshootout' : 'missedpenalty';
         incidentClass = 'missed';
       }
 
@@ -394,6 +430,27 @@ class Scores365Service {
           'isHome': isHome,
         });
       }
+    }
+
+    // Calculate penalty score if it's a shootout
+    int? calcPenaltyHome;
+    int? calcPenaltyAway;
+    for (var ev in parsedEvents) {
+      if (ev['type'] == 'penaltyshootout' && ev['incidentClass'] == 'scored') {
+        calcPenaltyHome ??= 0;
+        calcPenaltyAway ??= 0;
+        if (ev['isHome']) {
+          calcPenaltyHome++;
+        } else {
+          calcPenaltyAway++;
+        }
+      }
+    }
+    // If we detected a shootout, ensure we have at least 0-0 for the UI to show the penalty score section
+    final statusTextLower = (game['statusText']?.toString() ?? '').toLowerCase();
+    if (calcPenaltyHome == null && (statusTextLower.contains('penalties') || statusTextLower.contains('tirs au but'))) {
+      calcPenaltyHome = 0;
+      calcPenaltyAway = 0;
     }
 
     final List<Map<String, dynamic>> mappedStats = [];
@@ -553,6 +610,12 @@ class Scores365Service {
       'goals': {
         'home': home['score']?.toInt() ?? 0,
         'away': away['score']?.toInt() ?? 0,
+      },
+      'score': {
+        'penalty': {
+          'home': home['penaltiesScore']?.toInt() ?? calcPenaltyHome,
+          'away': away['penaltiesScore']?.toInt() ?? calcPenaltyAway,
+        },
       },
       'lineups': [
         {
