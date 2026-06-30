@@ -247,12 +247,20 @@ class _HomeScreenState extends State<HomeScreen> {
   // --- NAVIGATION ---
   void _onTabTap(int index) {
     if (index > 2) {
+      // Quitter l'onglet Live si on navigue ailleurs
+      if (_selectedTab == 1) exitLiveWatchMode();
       setState(() => _selectedTab = index);
       return;
     }
     if (_selectedTab == index) {
       _showFilterBottomSheet(_selectedTab == 2 ? _matchFilterMode : 0);
       return;
+    }
+    // Gérer le mode lecture live pour l'onglet Live (tab 1)
+    if (index == 1) {
+      enterLiveWatchMode(); // ► Suspendre les notifications en mode Live
+    } else if (_selectedTab == 1) {
+      exitLiveWatchMode(); // ◄ Réactiver si on quitte l'onglet Live
     }
     setState(() {
       _selectedTab = index;

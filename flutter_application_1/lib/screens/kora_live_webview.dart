@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../utils/app_globals.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
 const Color _kDarkBg = Color(0xFF0E1A24);
@@ -115,6 +116,8 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
   @override
   void initState() {
     super.initState();
+    // ► Suspendre les notifications (buts, alertes) pendant la lecture live
+    enterLiveWatchMode();
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -153,6 +156,13 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest> {
             debugPrint('[Mundialy WebView] Error: ${e.description}'),
       ))
       ..loadRequest(Uri.parse(_streamUrl));
+  }
+
+  @override
+  void dispose() {
+    // ◄ Réactiver les notifications (avec délai de 5s pour éviter les spoilers)
+    exitLiveWatchMode();
+    super.dispose();
   }
 
   @override
