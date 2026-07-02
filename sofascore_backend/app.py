@@ -960,6 +960,8 @@ def trigger_goal():
         push_data = {
             'click_action': 'FLUTTER_NOTIFICATION_CLICK',
             'type': 'goal' if data.get('is_goal') else 'event',
+            'title': title,
+            'body': body,
             'homeTeamName': str(data.get('home_team', '')),
             'awayTeamName': str(data.get('away_team', '')),
             'homeScore': str(data.get('home_score', '0')),
@@ -971,9 +973,9 @@ def trigger_goal():
         
         try:
             msg = messaging.Message(
-                notification=messaging.Notification(title=title, body=body),
                 topic='live_matches',
-                data=push_data
+                data=push_data,
+                android=messaging.AndroidConfig(priority='high')
             )
             messaging.send(msg)
             print(f"✅ Push FCM envoyée globalement: {title}")
@@ -1446,20 +1448,15 @@ def send_push_notification():
     fcm_data = {str(k): json.dumps(v) if isinstance(v, (dict, list)) else str(v) for k, v in data.items()}
 
     try:
-        # Pour le design "Senior UI", on n'envoie PAS l'objet 'notification' si c'est un GOAL
-        # Cela force Android à appeler onMessageReceived (Kotlin) même en arrière-plan.
+        # Tous les messages deviennent 100% "data-only" pour que Flutter puisse les bloquer
+        # si l'utilisateur regarde le match en direct.
+        fcm_data['title'] = title
+        fcm_data['body'] = body
+        fcm_data['image'] = image_url
+
         is_custom_ui = data.get('type') in ['GOAL', 'MATCH_START', 'HALF_TIME', 'FULL_TIME']
 
-        notification_obj = None
-        if not is_custom_ui:
-            notification_obj = messaging.Notification(
-                title=title,
-                body=body,
-                image=image_url
-            )
-
         message = messaging.Message(
-            notification=notification_obj,
             data=fcm_data,
             topic=topic,
             android=messaging.AndroidConfig(
@@ -1751,6 +1748,12 @@ def _send_server_push(title, body, extra_data):
 
         # Filter empty and force strings
         fcm_data = {str(k): str(v) for k, v in fcm_payload_obj.items() if v is not None}
+
+        title_text = "BUT ! 🔥" if msg_type in ["GOAL", "goal", "SCORE_CHANGE"] else "Alerte Match"
+        body_text = f"{h_name} vs {a_name}"
+
+        fcm_data['title'] = title_text
+        fcm_data['body'] = body_text
 
         message = messaging.Message(
             data=fcm_data,
