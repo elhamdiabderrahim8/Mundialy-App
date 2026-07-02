@@ -90,27 +90,63 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
         .site-logo, .brand-name { display: none !important; }
         /* ── Bouton thème ── */
         #themeToggle, .theme-toggle { display: none !important; }
-        /* ── Espacement ── */
-        body { padding-top: 0 !important; margin-top: 0 !important;
-               background: #0E1A24 !important; }
+        /* ── Override Theme Variables to remove Purple ── */
+        :root, [data-theme="light"], [data-theme="dark"] {
+          --bg-gradient-start: #0E1A24 !important;
+          --bg-gradient-end: #0E1A24 !important;
+          --card-bg: #0E1A24 !important;
+          --header-bg: #0E1A24 !important;
+          --button-bg-start: #152132 !important;
+          --button-bg-end: #152132 !important;
+          --button-active-start: #E7C16A !important;
+          --button-active-end: #E7C16A !important;
+          --button-shadow: transparent !important;
+          --input-bg: #152132 !important;
+          --input-border: rgba(231, 193, 106, 0.2) !important;
+          --spinner-color: #E7C16A !important;
+          --error-color: #FF4444 !important;
+          --link-color: #E7C16A !important;
+          --text-primary: #ffffff !important;
+        }
+
+        /* ── Espacement & Fond ── */
+        body, html, .container, .player-wrapper, .match-card, .chat-section {
+          padding-top: 0 !important; margin-top: 0 !important;
+          background: #0E1A24 !important;
+          color: #ffffff !important;
+        }
         .container { padding: 8px !important; }
+
         /* ── Iframe pleine largeur ── */
         #player-container, .player-wrapper, #playerFrame,
         iframe[id*="player"], iframe[src*="frame.php"] {
           width: 100% !important; max-width: 100% !important;
           border-radius: 0 !important;
+          border: none !important;
         }
-        /* ── Style des boutons de chaînes (Bein, etc.) ── */
-        .channel-btn, .stream-btn, [class*="channel"], [class*="stream"] {
+
+        /* ── Fix server buttons (.btn-server) ── */
+        .server-buttons {
+          background: #0E1A24 !important;
+          border: none !important;
+          padding: 8px !important;
+        }
+        .channel-btn, .stream-btn, .btn-server, [class*="channel"], [class*="stream"] {
           background: #152132 !important;
-          border: 1px solid #E7C16A44 !important;
+          border: 1px solid rgba(231, 193, 106, 0.4) !important;
           color: #E7C16A !important;
           border-radius: 8px !important;
           font-weight: 700 !important;
+          box-shadow: none !important;
+          background-image: none !important; /* Removes purple gradient */
         }
-        .channel-btn:hover, .stream-btn:hover,
+        .btn-server.active, .channel-btn.active {
+          background: #E7C16A !important;
+          color: #0E1A24 !important;
+        }
+        .channel-btn:hover, .stream-btn:hover, .btn-server:hover,
         [class*="channel"]:hover, [class*="stream"]:hover {
-          background: #E7C16A22 !important;
+          background: rgba(231, 193, 106, 0.2) !important;
           border-color: #E7C16A !important;
         }
       `;
