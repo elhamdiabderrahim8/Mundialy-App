@@ -158,6 +158,42 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
       window.goHome = function() {
         console.log('goHome intercepté par Mundialy');
       };
+
+      // ── Fix Video Player Controls (Clappr) dynamically ──
+      setInterval(function() {
+        var fixCss = `
+          .media-control .media-control-layer[data-controls] .bar-container[data-seekbar] .bar-fill-2[data-seekbar],
+          .media-control .media-control-layer[data-controls] .bar-container[data-volume] .bar-fill-2[data-volume] {
+            background-color: #E7C16A !important;
+          }
+          .media-control .media-control-indicator[data-position] {
+            background-color: #E7C16A !important;
+            box-shadow: 0 0 5px #E7C16A !important;
+          }
+        `;
+        
+        // 1. In main document
+        if (!document.getElementById('mundialy-clappr')) {
+          var style = document.createElement('style');
+          style.id = 'mundialy-clappr';
+          style.innerHTML = fixCss;
+          document.head.appendChild(style);
+        }
+
+        // 2. In same-origin iframes
+        var iframes = document.querySelectorAll('iframe');
+        for (var i = 0; i < iframes.length; i++) {
+          try {
+            var doc = iframes[i].contentDocument || iframes[i].contentWindow.document;
+            if (doc && !doc.getElementById('mundialy-clappr')) {
+              var fstyle = doc.createElement('style');
+              fstyle.id = 'mundialy-clappr';
+              fstyle.innerHTML = fixCss;
+              doc.head.appendChild(fstyle);
+            }
+          } catch(e) {} // Silent ignore for cross-origin iframes
+        }
+      }, 1000);
     })();
   ''';
 
