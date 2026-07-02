@@ -1,83 +1,153 @@
-<div align="center">
-  <img src="flutter_application_1/assets/logo.png" alt="Mundialy Logo" width="150"/>
-  <h1>🏆 Mundialy</h1>
-  <p><b>L'application ultime pour suivre les Coupes du Monde (2022 & 2026) et profiter du contenu IPTV.</b></p>
+# 🏆 Mundialy - World Cup Tracker & IPTV Player
 
-  [![Flutter](https://img.shields.io/badge/Flutter-3.12.0-02569B?style=flat-square&logo=flutter)](https://flutter.dev)
-  [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=flat-square&logo=android)](https://www.android.com/)
-  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+<div align="center">
+  <img src="flutter_application_1/assets/logo.png" alt="Mundialy Logo" width="160"/>
+  <br/>
+  <p><b>A Premium Football Companion App featuring Live World Cup Tracking (2022 & 2026), Real-time Match Analytics, and Integrated IPTV Streaming.</b></p>
+
+  [![Flutter](https://img.shields.io/badge/Flutter-3.12.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+  [![Python Backend](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://www.android.com/)
+  [![Firebase](https://img.shields.io/badge/Firebase-F58220?style=for-the-badge&logo=firebase&logoColor=white)](https://firebase.google.com/)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 </div>
 
-<br/>
-
-## ✨ Fonctionnalités Principales
-
-Mundialy vous permet de plonger au cœur des compétitions internationales de football grâce à une interface riche, fluide et pensée pour les fans.
-
-*   🔴 **Matchs en Direct** : Suivez les scores en temps réel sans avoir à rafraîchir l'écran, avec des animations de but superposées (`Animated Goal Overlay`).
-*   📅 **Historique & Programme** : Parcourez les résultats complets de la Coupe du Monde 2022 et le programme des qualifications pour 2026.
-*   📊 **Statistiques Détaillées** :
-    *   **Classements complets** par groupes.
-    *   **Profils des équipes** : Historique, sélectionneur, et liste complète de l'effectif classée par postes.
-    *   **Profils des joueurs** : Âge, taille, statistiques nationales, caractéristiques physiques et photo officielle.
-*   📺 **Module IPTV Intégré** : Connectez-vous avec vos identifiants pour accéder aux catégories de chaînes et profitez d'un lecteur vidéo natif et fluide.
-*   📰 **Actualités** : Les dernières nouvelles et articles concernant les compétitions (via une interface UI optimisée).
-*   🔔 **Notifications Push** : Ne ratez aucun moment clé grâce à l'intégration complète de Firebase Cloud Messaging (FCM).
-*   🎨 **Thème Dynamique** : Support natif du Mode Sombre (Dark Mode) et du Mode Clair avec une palette de couleurs Premium (Or, Bleu Nuit).
-
 ---
 
-## 📸 Aperçus (Screenshots)
+## 🔗 Live Demo & Interactive Sandbox
 
-| Accueil & Matchs | Profil de l'Équipe | Lecteur IPTV |
-| :---: | :---: | :---: |
-| <img src="https://via.placeholder.com/250x500.png?text=Accueil" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Profil+%C3%89quipe" width="250"> | <img src="https://via.placeholder.com/250x500.png?text=Lecteur+IPTV" width="250"> |
+Experience **Mundialy** instantly in your web browser without installing any APKs. 
 
----
+> [!TIP]
+> **🚀 [Try the Live Interactive Demo on Appetize.io](https://appetize.io)** *(Upload your APK build to Appetize.io to get a shareable URL)*
 
-## 🚀 Installation & Build
-
-### 1. Prérequis
-*   [Flutter SDK](https://docs.flutter.dev/get-started/install) (v3.12.0 ou supérieure)
-*   Java Development Kit (JDK 17 recommandé)
-*   Android Studio / Xcode
-
-### 2. Cloner le projet
-```bash
-git clone https://github.com/elhamdiabderrahim8/Mundialy-App.git
-cd Mundialy-App/flutter_application_1
-```
-
-### 3. Installer les dépendances
-```bash
-flutter pub get
-```
-
-### 4. Compiler pour Android (APK)
-Le projet est configuré pour signer automatiquement l'APK de production avec la signature officielle APKPure (`apkpure-debug.keystore`).
-```bash
-flutter build apk --release --obfuscate --split-debug-info=build/app/outputs/symbols
-```
-
-L'APK sera généré dans `build/app/outputs/flutter-apk/app-release.apk`.
-
----
-
-## 🛠️ Technologies Utilisées
-
-*   **Framework** : [Flutter](https://flutter.dev/) & Dart
-*   **Architecture & State Management** : `Provider`
-*   **Réseau** : `http`, `cronet_http` (avec contournement anti-bot via requêtes résidentielles)
-*   **Vidéo** : `video_player`, `chewie`
-*   **Backend & Data** : Firebase (Notifications), SofaScore API (Données live, joueurs, stats)
-*   **Intégration Continue (CI/CD)** : GitHub Actions (Compilation et Release automatisées)
-
----
-
-## 🤝 Contribution & Maintenance
-
-L'application récupère ses données de football via un bypass direct vers l'API de SofaScore (`SofaDirectService`). En cas de changement de format d'API, le parser `TeamPlayer.fromApi` ou les URLs d'images peuvent nécessiter une mise à jour.
+*Alternatively, scan the QR code below on your Android device to install the application instantly via **Diawi** / **InstallOnAir**:*
 
 <div align="center">
-  <p>Fait avec ❤️ pour les passionnés de Football.</p>
+  <img src="https://via.placeholder.com/150x150.png?text=Diawi+QR+Code" alt="Diawi QR Code Install" width="150"/>
+  <br/>
+  <i>Scan to install the signed release APK</i>
+</div>
+
+---
+
+## ✨ Key Features
+
+Mundialy provides a comprehensive, feature-rich experience for football fans and IPTV viewers, wrapped in a premium Dark/Gold theme.
+
+### ⚽ Football Analytics & Live Matches
+*   ⚡ **Real-Time Live Scores**: Live score tracking with instant match status updates, scores, and events.
+*   🎉 **Animated Goal Overlay**: Dynamic visual notifications (`Animated Goal Overlay`) slide onto the screen whenever a goal is scored.
+*   📊 **Historical Stats (2022)**: Complete database of matches, statistics, and group standings from the Qatar 2022 World Cup.
+*   📅 **Upcoming Matches (2026)**: Track qualifiers and schedules for the upcoming United 2026 World Cup.
+*   👤 **Detailed Profiles**:
+    *   **Team Profiles**: Team squad rosters sorted by positions (Goalkeepers, Defenders, Midfielders, Attackers), manager info, and historical performance.
+    *   **Player Profiles**: Official photos, age, height, physical attributes, and international stats.
+
+### 📺 IPTV Integration
+*   🔑 **Multi-Protocol Login**: Supports connecting to IPTV servers via **Xtream Codes API** or **M3U Playlist URLs**.
+*   📂 **Channel Organization**: Automatic categorization of Live Channels, Movies, and TV Series.
+*   🎥 **Native Video Player**: Integrated video player based on `chewie` and `video_player` with stream quality selectors, picture-in-picture, and custom controls.
+
+### 🔔 Notifications & Monetization
+*   💬 **Firebase Push Notifications**: Real-time push alerts for match kick-offs, goals, and breaking football news using FCM (Firebase Cloud Messaging).
+*   💵 **Start.io Ads Integration**:
+    *   **App-Open Interstitials**: High-revenue full-screen advertisements shown gracefully during app launches and app resume cycles.
+    *   **Native Adaptive Banners**: Non-intrusive ad banners intelligently interspersed within match lists (every 3 matches) and at the bottom of video screens.
+
+---
+
+## 🛠️ Architecture & Project Structure
+
+Mundialy is designed with a decoupled architecture containing a Flutter frontend client and a Python proxy backend to handle secure data fetching.
+
+```
+Mundialy-App/
+├── flutter_application_1/      # 📱 Flutter Mobile Application
+│   ├── lib/
+│   │   ├── models/            # Data models (Match, Team, Player, IPTV)
+│   │   ├── screens/           # UI Screens (Home, MatchDetails, IPTV, etc.)
+│   │   ├── services/          # API services, Start.io SDK wrappers, and lifecycle management
+│   │   ├── widgets/           # Reusable UI widgets (MatchCard, Banners, GoalOverlay)
+│   │   └── main.dart          # App entry point & State Provider initialization
+│   └── assets/                # Local data files, logos, and UI watermarks
+│
+└── sofascore_backend/          # ⚙️ Python Flask API Proxy & Firebase Administration
+    ├── app.py                 # Flask server with curl_cffi for bot protection bypass
+    ├── requirements.txt       # Server dependencies
+    └── serviceAccountKey.json # Firebase Admin SDK credentials (encrypted/private)
+```
+
+---
+
+## 🛡️ Backend Anti-Bot Bypass Mechanism
+
+A standout technical aspect of this project is the **SofaScore API Bypass** located in the backend. 
+SofaScore uses advanced cloud protection (Cloudflare) to block standard HTTP libraries (like Python's `requests` or Flutter's `http`). 
+
+To bypass this without paying for expensive scraping services:
+1. The backend implements `curl_cffi` (Curl Client File Interface), which mimics browser TLS fingerprints (JA3/JA4) and HTTP/2 headers exactly.
+2. The Flutter app queries the Python Flask backend instead of SofaScore directly.
+3. The Flask API proxy forwards the request, bypasses the Cloudflare shield, parses the JSON payload, and feeds the clean data back to the Flutter client instantly.
+
+---
+
+## 🚀 Setup & Installation
+
+### 1. Backend Setup (`sofascore_backend`)
+Prerequisites: Python 3.9+
+
+1. Navigate to the backend directory:
+   ```bash
+   cd sofascore_backend
+   ```
+2. Install the required Python libraries:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the local server:
+   ```bash
+   python app.py
+   ```
+   *The server will run on `http://127.0.0.1:5000`.*
+
+### 2. Mobile Frontend Setup (`flutter_application_1`)
+Prerequisites: Flutter SDK (v3.12.0+), Java Development Kit (JDK 17), Android Studio.
+
+1. Navigate to the Flutter project:
+   ```bash
+   cd flutter_application_1
+   ```
+2. Retrieve the dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Run the app in development mode:
+   ```bash
+   flutter run --dart-define=WC2026_API_KEY=YOUR_FREE_FOOTBALL_API_KEY
+   ```
+
+---
+
+## 📦 Building the Signed APK
+
+The app is pre-configured to automatically sign release builds using the APKPure signature keystore (`apkpure-debug.keystore`).
+
+To build the obfuscated release APK:
+```bash
+flutter build apk --release --obfuscate --split-debug-info=build/app/outputs/symbols --dart-define=WC2026_API_KEY=YOUR_API_KEY
+```
+
+The compiled APK will be generated at:
+`flutter_application_1/build/app/outputs/flutter-apk/app-release.apk`
+
+---
+
+## 🤝 Maintainers & License
+
+*   **Lead Developer**: [elhamdiabderrahim8](https://github.com/elhamdiabderrahim8)
+*   **License**: This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+<div align="center">
+  <p>Made with ❤️ for Football Fans and IPTV Enthusiasts worldwide.</p>
 </div>
