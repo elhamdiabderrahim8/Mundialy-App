@@ -17,6 +17,7 @@ import '../utils/standing_status.dart';
 import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'matches_list_tab.dart';
+import 'matches_tab.dart';
 import 'match_details_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../utils/team_navigation.dart';
@@ -94,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScorersUpdated() {
-    if (_selectedTab == 4 && mounted) {
+    if (_selectedTab == 3 && mounted) { // Tab 3 = Plus/Buteurs
       _refreshScorersOnly();
     }
   }
@@ -252,29 +253,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onTabTap(int index) {
     if (index > 2) {
       // Quitter l'onglet Live si on navigue ailleurs
-      if (_selectedTab == 1) exitLiveWatchMode();
+      if (_selectedTab == 2) exitLiveWatchMode();
       setState(() => _selectedTab = index);
       return;
     }
     if (_selectedTab == index) {
-      _showFilterBottomSheet(_selectedTab == 2 ? _matchFilterMode : 0);
-      return;
+      return; // Déjà sur ce tab, ne rien faire
     }
-    // Gérer le mode lecture live pour l'onglet Live (tab 1)
-    if (index == 1) {
+    // Gérer le mode lecture live pour l'onglet Live (tab 2)
+    if (index == 2) {
       enterLiveWatchMode(); // ► Suspendre les notifications en mode Live
-    } else if (_selectedTab == 1) {
+    } else if (_selectedTab == 2) {
       exitLiveWatchMode(); // ◄ Réactiver si on quitte l'onglet Live
     }
     setState(() {
       _selectedTab = index;
     });
-    // AdMobService.maybeShowInterstitialAfterNavigation(); // Removed in favor of AppOpenAd
-    if (index == 2 && _matchFilterMode == 0) {
-      _jumpToTodayMatchPage();
-    } else if (_pageController.hasClients) {
-      _pageController.jumpToPage(0);
-    }
   }
 
   void _jumpToTodayMatchPage() {
@@ -433,15 +427,13 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildPagedMatchView(textColor, matches, standings);
       case 1:
-        return const MatchesListTab(); // Live View
+        // 🆕 Nouveau tab — Tous les matchs multi-compétitions nationales
+        return const MatchesTab();
       case 2:
-        return _buildCalendrierView(textColor, matches, standings);
+        return const MatchesListTab(); // Live streaming
       case 3:
-        return _buildStandingsView(textColor, standings);
-      case 4:
+        // Tab "Plus" : Buteurs (contenu existant)
         return _buildTopScorersView(textColor);
-      case 5:
-        return _buildBracketView(textColor, matches);
       default:
         return _buildPagedMatchView(textColor, matches, standings);
     }
@@ -1532,25 +1524,21 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
+              icon: const Icon(Icons.home_outlined),
               label: AppLocalizations.of(context)!.home,
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.bolt), label: AppLocalizations.of(context)!.live),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: AppLocalizations.of(context)!.matches,
+            // 🆕 Nouveau tab — Tous matchs toutes compétitions nationales
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.sports_soccer),
+              label: 'Matchs',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.format_list_numbered),
-              label: AppLocalizations.of(context)!.groups,
+              icon: const Icon(Icons.bolt),
+              label: AppLocalizations.of(context)!.live,
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.emoji_events_outlined),
-              label: AppLocalizations.of(context)!.scorers,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_tree_outlined),
-              label: AppLocalizations.of(context)!.bracket,
+              label: 'Plus',
             ),
           ],
         ),

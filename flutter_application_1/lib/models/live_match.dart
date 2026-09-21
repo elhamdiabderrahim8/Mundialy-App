@@ -34,6 +34,7 @@ class LiveMatch {
     this.matchMinute,
     this.periodStart,
     this.periodBaseMinute,
+    this.competitionName,
   });
 
   final String id;
@@ -51,6 +52,7 @@ class LiveMatch {
   final String phaseLabel;
   final MatchDataSource source;
   final int? competitionId;
+  final String? competitionName; // Nom de la compétition (ex: "AFCON Qualification")
   final int? seasonId;
   final int? stageId;
   final int? scoreHome;
@@ -60,11 +62,51 @@ class LiveMatch {
   final bool isLive;
   final DateTime? dateTime;
   final String? streamUrl;
-  final String? statusShort; // 'NS', 'LIVE', 'FT', '1H', '2H', 'HT', 'ET', 'P'
-  final String? statusLong; // e.g. "1st Half", "Halftime", "Ended"
-  final String? matchMinute; // e.g. "45'" for the 45th minute
+  final String? statusShort;
+  final String? statusLong;
+  final String? matchMinute;
   final DateTime? periodStart;
   final int? periodBaseMinute;
+
+  /// Retourne une copie avec les infos de compétition injectées
+  LiveMatch copyWithCompetitionInfo({
+    required int competitionId,
+    required String competitionName,
+  }) {
+    return LiveMatch(
+      id: id,
+      dateLabel: dateLabel,
+      localTime: localTime,
+      city: city,
+      homeTeam: homeTeam,
+      homeCode: homeCode,
+      homeTeamId: homeTeamId,
+      homeLogoUrl: homeLogoUrl,
+      awayTeam: awayTeam,
+      awayCode: awayCode,
+      awayTeamId: awayTeamId,
+      awayLogoUrl: awayLogoUrl,
+      phaseLabel: phaseLabel,
+      source: source,
+      competitionId: competitionId,
+      competitionName: competitionName,
+      seasonId: seasonId,
+      stageId: stageId,
+      scoreHome: scoreHome,
+      scoreAway: scoreAway,
+      penaltyHome: penaltyHome,
+      penaltyAway: penaltyAway,
+      isLive: isLive,
+      dateTime: dateTime,
+      streamUrl: streamUrl,
+      statusShort: statusShort,
+      statusLong: statusLong,
+      matchMinute: matchMinute,
+      periodStart: periodStart,
+      periodBaseMinute: periodBaseMinute,
+    );
+  }
+
 
   /// True if the match is finished
   bool get isFinished =>
