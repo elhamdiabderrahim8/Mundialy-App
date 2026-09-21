@@ -143,20 +143,24 @@ class _HomeScreenState extends State<HomeScreen> {
     _liveTimer?.cancel();
     setState(() => _isLoading = true);
     try {
+      // ✅ Fix 6 — fetchNews retiré du Future.wait principal
+      // Le backend Render (plan gratuit) a un cold-start de 30-60s qui bloquait
+      // tout l'affichage. Les news se chargent maintenant en arrière-plan.
       final results = await Future.wait([
         ApiService.fetchMatches(year: _selectedYear),
         ApiService.fetchStandings(year: _selectedYear),
         ApiService.fetchTopScorers(year: _selectedYear),
-        ApiService.fetchNews(team: _selectedNewsTeam),
       ]);
-      _matches = (results[0] as List?)?.cast<LiveMatch>() ?? [];
+      _matches  = (results[0] as List?)?.cast<LiveMatch>() ?? [];
       _standings = (results[1] as List?)?.cast<GroupStanding>() ?? [];
       _topScorers = (results[2] as List?)?.cast<TopScorer>() ?? [];
-      _newsArticles = (results[3] as List?)?.cast<dynamic>() ?? [];
       if (_matches.isEmpty && _selectedYear == 2022) {
         _matches = getMockMatches();
       }
       _startSilentScoreRefresh();
+
+      // Les news arrivent en arrière-plan sans bloquer l'affichage principal
+      _loadNews();
     } catch (e) {
       debugPrint('💥 Error loading data: $e');
     } finally {

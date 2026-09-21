@@ -14,7 +14,7 @@ plugins {
 
 android {
     namespace = "com.mundialy.football"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,8 +25,8 @@ android {
 
     defaultConfig {
         applicationId = "com.mundialy.football"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
@@ -65,4 +65,11 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
     implementation("jp.wasabeef:glide-transformations:4.3.0")
     implementation("androidx.palette:palette-ktx:1.0.0")
+}
+
+// Force startapp SDK vers la dernière version compatible compileSdk 36
+configurations.all {
+    resolutionStrategy {
+        force("com.startapp:inapp-sdk:4.11.5")
+    }
 }

@@ -164,6 +164,8 @@ class _KoraMatchesSectionState extends State<KoraMatchesSection> {
                   awayTeam: match.awayTeam,
                   homeCode: resolveCountryCode(match.homeTeam),
                   awayCode: resolveCountryCode(match.awayTeam),
+                  edges: match.edges,
+                  edgeDomain: match.edgeDomain,
                 ),
               ))
           : null,

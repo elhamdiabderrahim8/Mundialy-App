@@ -1,4 +1,5 @@
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -13,6 +14,10 @@ const Color _kCardDark    = Color(0xFF152132);
 const Color _kCardDarker  = Color(0xFF0C1620);
 const Color _kLiveRed     = Color(0xFFFF4444);
 
+// Domaines fallback extraits du HTML original de strm01 (toujours actifs)
+const List<String> _kFallbackEdges = ['a13', 'a12', 'a11'];
+const String _kFallbackEdgeDomain  = 'kora-plus.app';
+
 /// Lecteur match en direct — UI identique à l'application Mundialy.
 /// • Plein écran immersif (status bar cachée)
 /// • Notifications suspendues pendant la lecture
@@ -24,6 +29,10 @@ class KoraLiveWebViewTest extends StatefulWidget {
   /// Code ISO‑2 optionnel pour afficher les drapeaux (ex. "FR", "DE")
   final String? homeCode;
   final String? awayCode;
+  /// Liste des codes edge retournés par l'API (ex. ["a12","a13","a14"])
+  final List<String> edges;
+  /// Domaine de streaming retourné par l'API (ex. "kora-plus.li")
+  final String edgeDomain;
 
   const KoraLiveWebViewTest({
     super.key,
@@ -32,6 +41,8 @@ class KoraLiveWebViewTest extends StatefulWidget {
     required this.awayTeam,
     this.homeCode,
     this.awayCode,
+    this.edges = const [],
+    this.edgeDomain = '',
   });
 
   @override
@@ -55,7 +66,17 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
       'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
 
-  String get _streamUrl => 'https://strm01.app/?m=${widget.matchId}&lang=ar';
+  String get _streamUrl {
+    final edgeList = widget.edges.isNotEmpty
+        ? widget.edges
+        : _kFallbackEdges;
+    final domain = widget.edgeDomain.isNotEmpty
+        ? widget.edgeDomain
+        : _kFallbackEdgeDomain;
+    // Sélectionner un edge aléatoire pour la répartition de charge
+    final edge = edgeList[Random().nextInt(edgeList.length)];
+    return 'https://$edge.$domain/frame.php?m=${widget.matchId}&lang=ar';
+  }
 
   // ─── CSS injecté : masque tout sauf la vidéo + sélecteur de chaînes ────────
   static const String _cssToInject = r'''
@@ -233,16 +254,17 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
         },
         onNavigationRequest: (request) {
           final host = Uri.tryParse(request.url)?.host ?? '';
-          if (host.contains('strm01.app')     ||
-              host.contains('kora-plus.app')  ||
-              host.contains('kora-plus.mov')  ||
-              host.contains('kora-api')       ||
-              host.contains('cdn.kora')       ||
-              host.contains('gstatic.com')    ||
-              host.contains('googleapis.com') ||
+          // ── Domaines autorisés : lecteurs kora + CDN publics ──
+          if (host.contains('kora-plus.')      ||  // aXX.kora-plus.li / .app / .mov
+              host.contains('kora-api.')        ||  // ws.kora-api.top, cdn.kora-api.space
+              host.contains('kora-live.')       ||
+              host.contains('gstatic.com')      ||
+              host.contains('googleapis.com')   ||
               host.contains('googlesyndication.com') ||
-              host.contains('doubleclick.net')       ||
-              host.contains('adservice.google')) {
+              host.contains('doubleclick.net')  ||
+              host.contains('adservice.google') ||
+              host.contains('cloudflare')       ||
+              host.contains('jsdelivr.net')) {
             return NavigationDecision.navigate;
           }
           setState(() => _blockedRedirects++);
