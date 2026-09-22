@@ -2,12 +2,12 @@
 // Tab 1 — Tous les matchs de toutes les compétitions nationales masculines
 // Filtrage par : Matches (par date) | Compétition (par continents)
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
 import '../services/scores365_service.dart';
 import '../widgets/competition_badge.dart';
+import '../widgets/continent_competition_picker.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'competition_detail_screen.dart';
 
@@ -30,9 +30,6 @@ class _MatchesTabState extends State<MatchesTab> {
 
   // Filtre compétition
   Competition? _selectedCompetition;
-
-  // Continents dépliés dans le sélecteur de compétition
-  final Set<String> _expandedContinents = {};
 
   // Cache pour ne pas recharger à chaque changement de filtre
   bool _dataLoaded = false;
@@ -326,182 +323,11 @@ class _MatchesTabState extends State<MatchesTab> {
   // Chaque continent (icône SVG de sa carte) se déplie dans la même page
   // pour afficher ses compétitions. Un tap sur une compétition ouvre sa
   // page (matchs, classements, tableau, buteurs).
-  static const List<_ContinentEntry> _continents = [
-    _ContinentEntry(
-      key: 'afrique',
-      label: 'Afrique',
-      asset: 'assets/continents/africa.svg',
-      confederations: [Confederation.caf],
-    ),
-    _ContinentEntry(
-      key: 'europe',
-      label: 'Europe',
-      asset: 'assets/continents/europe.svg',
-      confederations: [Confederation.uefa],
-    ),
-    _ContinentEntry(
-      key: 'asie',
-      label: 'Asie',
-      asset: 'assets/continents/asia.svg',
-      confederations: [Confederation.afc],
-    ),
-    _ContinentEntry(
-      key: 'amerique',
-      label: 'Amérique',
-      asset: 'assets/continents/americas.svg',
-      confederations: [Confederation.concacaf, Confederation.conmebol],
-    ),
-    _ContinentEntry(
-      key: 'monde',
-      label: 'Monde',
-      asset: 'assets/continents/world.svg',
-      confederations: [Confederation.fifa, Confederation.ofc],
-    ),
-  ];
-
-  List<Competition> _competitionsOf(_ContinentEntry continent) {
-    final comps = <Competition>[];
-    for (final conf in continent.confederations) {
-      comps.addAll(CompetitionsCatalog.byConfederation(conf));
-    }
-    comps.sort((a, b) {
-      if (a.isActive != b.isActive) return a.isActive ? -1 : 1;
-      return a.name.compareTo(b.name);
-    });
-    return comps;
-  }
-
   Widget _buildCompetitionPicker(bool isDark) {
-    final textColor = isDark ? Colors.white : Colors.black;
     return Expanded(
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-        itemCount: _continents.length,
-        itemBuilder: (context, i) {
-          final continent = _continents[i];
-          final comps = _competitionsOf(continent);
-          final expanded = _expandedContinents.contains(continent.key);
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.04)
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: expanded
-                    ? _gold.withValues(alpha: 0.6)
-                    : (isDark ? Colors.white10 : Colors.grey.shade300),
-              ),
-            ),
-            child: Column(
-              children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(18),
-                  onTap: () => setState(() {
-                    if (expanded) {
-                      _expandedContinents.remove(continent.key);
-                    } else {
-                      _expandedContinents.add(continent.key);
-                    }
-                  }),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 46,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: _gold.withValues(alpha: 0.14),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: SvgPicture.asset(
-                            continent.asset,
-                            width: 30,
-                            height: 30,
-                            colorFilter: const ColorFilter.mode(
-                                _gold, BlendMode.srcIn),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                continent.label,
-                                style: TextStyle(
-                                    color: textColor,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 16),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${comps.length} compétitions',
-                                style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white54
-                                        : Colors.grey.shade600,
-                                    fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: expanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Icon(Icons.expand_more_rounded,
-                              color: isDark
-                                  ? Colors.white54
-                                  : Colors.grey.shade600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (expanded) ...[
-                  Divider(
-                      height: 1,
-                      thickness: 0.5,
-                      color: isDark ? Colors.white10 : Colors.grey.shade300),
-                  ...comps.map((comp) => ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 2),
-                        leading: CompetitionBadge(
-                          competition: comp,
-                          size: 36,
-                        ),
-                        title: Text(
-                          comp.name,
-                          style: TextStyle(
-                              color: textColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14),
-                        ),
-                        subtitle: comp.isActive
-                            ? const Text('EN COURS',
-                                style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700))
-                            : null,
-                        trailing: const Icon(Icons.chevron_right,
-                            color: Colors.grey),
-                        onTap: () {
-                          // Ouvre la page compétition (matchs, classements,
-                          // tableau, buteurs).
-                          _openCompetition(comp.id);
-                        },
-                      )),
-                  const SizedBox(height: 6),
-                ],
-              ],
-            ),
-          );
-        },
+      child: ContinentCompetitionPicker(
+        isDark: isDark,
+        onSelectCompetition: _openCompetition,
       ),
     );
   }
@@ -524,24 +350,6 @@ class _MatchesTabState extends State<MatchesTab> {
       _openCompetition(match.competitionId!);
     }
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MODÈLE CONTINENT (sélecteur de compétition)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/// Un continent du sélecteur : libellé + icône SVG (carte) + confédérations.
-class _ContinentEntry {
-  const _ContinentEntry({
-    required this.key,
-    required this.label,
-    required this.asset,
-    required this.confederations,
-  });
-  final String key;
-  final String label;
-  final String asset;
-  final List<Confederation> confederations;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

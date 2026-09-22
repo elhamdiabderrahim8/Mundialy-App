@@ -29,6 +29,7 @@ import '../utils/app_globals.dart';
 import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/match_card.dart';
+import '../widgets/continent_competition_picker.dart';
 import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
 import 'news_detail_screen.dart';
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   int _selectedTab = 0;
   int _selectedYear = 2026; // World Cup 2026 par défaut (tournoi en cours)
-  int _matchFilterMode = 0; // 0=Par Date, 1=Par Équipe, 2=Par Groupe
+  int _matchFilterMode = 0; // 0=Matches (par date), 1=Compétition (par continents)
 
   late PageController _pageController;
   java_timer.Timer? _liveTimer;
@@ -561,12 +562,28 @@ class _HomeScreenState extends State<HomeScreen> {
               } else if (_pageController.hasClients) {
                 _pageController.jumpToPage(0);
               }
-            } else {
+            } else if (i == 0) {
               _showFilterBottomSheet(i);
             }
           },
         ),
-        Expanded(child: _buildPagedMatchView(textColor, matches, standings)),
+        if (_matchFilterMode == 1)
+          Expanded(
+            child: ContinentCompetitionPicker(
+              isDark: isDark,
+              onSelectCompetition: (competitionId) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CompetitionDetailScreen(
+                        competitionId: competitionId),
+                  ),
+                );
+              },
+            ),
+          )
+        else
+          Expanded(child: _buildPagedMatchView(textColor, matches, standings)),
       ],
     );
   }
@@ -4249,10 +4266,9 @@ class _MatchFilterBar extends StatelessWidget {
   final int selected;
   final void Function(int) onSelect;
   const _MatchFilterBar({required this.selected, required this.onSelect});
-  static const _labels = ['Par Date', 'Par Équipe', 'Par Compétition'];
+  static const _labels = ['Matches', 'Compétition'];
   static const _icons = [
     Icons.calendar_month_rounded,
-    Icons.groups_rounded,
     Icons.emoji_events_outlined,
   ];
   @override
