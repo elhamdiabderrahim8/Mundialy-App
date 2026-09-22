@@ -151,6 +151,19 @@ class CompetitionsCatalog {
     // CAF — AFRIQUE
     // ──────────────────────────────────────────────────────────
     Competition(
+      id: 167,
+      name: 'Africa Cup of Nations',
+      shortName: 'AFCON',
+      nameForUrl: 'africa-cup-of-nations',
+      confederation: Confederation.caf,
+      category: CompetitionCategory.continental,
+      hasStandings: true,
+      hasBrackets: true,
+      hasStats: true,
+      isActive: true,  // ✅ Actif (matchs en cours sur l'API)
+      flagEmoji: '🌍',
+    ),
+    Competition(
       id: 588,
       name: 'Africa Cup of Nations Qualification',
       shortName: 'AFCON Qual.',
@@ -167,6 +180,32 @@ class CompetitionsCatalog {
     // ──────────────────────────────────────────────────────────
     // UEFA — EUROPE
     // ──────────────────────────────────────────────────────────
+    Competition(
+      id: 6316,
+      name: 'UEFA Euro',
+      shortName: 'Euro',
+      nameForUrl: 'euro',
+      confederation: Confederation.uefa,
+      category: CompetitionCategory.continental,
+      hasStandings: true,
+      hasBrackets: true,
+      hasStats: true,
+      isActive: false,
+      flagEmoji: '🇪🇺',
+    ),
+    Competition(
+      id: 7016,
+      name: 'UEFA Nations League',
+      shortName: 'Nations League',
+      nameForUrl: 'uefa-nations-league',
+      confederation: Confederation.uefa,
+      category: CompetitionCategory.continental,
+      hasStandings: true,
+      hasBrackets: false,
+      hasStats: false,
+      isActive: true,  // ✅ Actif (matchs en cours sur l'API)
+      flagEmoji: '🇪🇺',
+    ),
     Competition(
       id: 6071,
       name: 'European Qualifiers',
@@ -303,6 +342,19 @@ class CompetitionsCatalog {
       hasBrackets: true,
       hasStats: true,
       isActive: false,
+      flagEmoji: '🌎',
+    ),
+    Competition(
+      id: 7165,
+      name: 'CONCACAF Nations League',
+      shortName: 'CONCACAF NL',
+      nameForUrl: 'concacaf-nations-league',
+      confederation: Confederation.concacaf,
+      category: CompetitionCategory.continental,
+      hasStandings: true,
+      hasBrackets: false,
+      hasStats: false,
+      isActive: true,  // ✅ Actif (matchs en cours sur l'API)
       flagEmoji: '🌎',
     ),
     Competition(

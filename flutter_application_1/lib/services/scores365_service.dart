@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import '../data/competitions_catalog.dart';
 import '../models/live_match.dart';
 import '../models/match_details.dart';
 import '../models/standings.dart';
@@ -119,6 +120,37 @@ class Scores365Service {
   //  MÉTHODES GÉNÉRIQUES — Multi-compétitions
   // ============================================================
 
+  /// Vérité de la compétition d'un match : l'API peut servir, pour une
+  /// compétition demandée, des matchs d'une AUTRE compétition (ex: 167 CAN
+  /// → matchs 588 qualifs tant que la saison CAN 2027 n'a pas démarré).
+  /// On garde l'ID réel du match (repli : compétition demandée) pour un
+  /// étiquetage et une navigation honnêtes.
+  static LiveMatch _withTrueCompetitionInfo(
+    LiveMatch m,
+    dynamic g, {
+    required int requestedId,
+    String? requestedName,
+  }) {
+    final trueId = m.competitionId ?? requestedId;
+    final apiName =
+        (g is Map) ? g['competitionDisplayName']?.toString() ?? '' : '';
+    String name;
+    if (trueId == requestedId) {
+      name = (requestedName != null && requestedName.isNotEmpty)
+          ? requestedName
+          : (CompetitionsCatalog.findById(trueId)?.displayName ??
+              (apiName.isNotEmpty ? apiName : (m.competitionName ?? '')));
+    } else {
+      name = CompetitionsCatalog.findById(trueId)?.displayName ??
+          (apiName.isNotEmpty ? apiName : (m.competitionName ?? ''));
+      if (name.isEmpty && requestedName != null) name = requestedName!;
+    }
+    return m.copyWithCompetitionInfo(
+      competitionId: trueId,
+      competitionName: name,
+    );
+  }
+
   /// Fetch les matchs d'une compétition quelconque sur une plage de dates.
   static Future<List<LiveMatch>> fetchMatchesByCompetition({
     required int competitionId,
@@ -135,10 +167,11 @@ class Scores365Service {
     final games = data['games'] as List;
     return games.map((g) {
       final m = _mapToLiveMatch(g);
-      return m.copyWithCompetitionInfo(
-        competitionId: competitionId,
-        competitionName: competitionName ??
-            (g['competitionDisplayName']?.toString() ?? ''),
+      return _withTrueCompetitionInfo(
+        m,
+        g,
+        requestedId: competitionId,
+        requestedName: competitionName,
       );
     }).toList();
   }
@@ -164,11 +197,13 @@ class Scores365Service {
     
     final Map<String, LiveMatch> uniqueMatches = {};
     for (final g in allGames) {
-      final m = _mapToLiveMatch(g).copyWithCompetitionInfo(
-        competitionId: competitionId,
-        competitionName: competitionName ?? (g['competitionDisplayName']?.toString() ?? ''),
+      final m = _mapToLiveMatch(g);
+      uniqueMatches[m.id] = _withTrueCompetitionInfo(
+        m,
+        g,
+        requestedId: competitionId,
+        requestedName: competitionName,
       );
-      uniqueMatches[m.id] = m;
     }
     
     return uniqueMatches.values.toList();
@@ -188,6 +223,44 @@ class Scores365Service {
     if (data == null || data['games'] == null) return [];
     final games = data['games'] as List;
     return games.map((g) => _mapToLiveMatch(g)).toList();
+  }
+
+  /// TOUS les fixtures d'UNE équipe, toutes compétitions confondues, via le
+  /// filtre natif `competitors=` (supporté par results/current/fixtures).
+  /// 3 appels, dédupliqués par ID. Chaque match garde SA compétition
+  /// (nom via catalogue, repli displayName API).
+  /// C'est LA source de vérité de la fiche équipe : fini le cloisonnement
+  /// par tournoi d'entrée (WC vs CAN vs Arab Cup...).
+  static Future<List<LiveMatch>> fetchAllMatchesForTeam({
+    required int teamCompetitorId,
+  }) async {
+    if (teamCompetitorId <= 0) return [];
+    final comp = 'competitors=$teamCompetitorId';
+    final results = await Future.wait([
+      _fetchJson('games/results/?$baseParams&$comp'),
+      _fetchJson('games/current/?$baseParams&$comp'),
+      _fetchJson('games/fixtures/?$baseParams&$comp'),
+    ]);
+    final Map<String, LiveMatch> uniqueMatches = {};
+    for (final data in results) {
+      if (data == null || data['games'] == null) continue;
+      for (final g in (data['games'] as List)) {
+        final m = _mapToLiveMatch(g);
+        final fromCatalog =
+            CompetitionsCatalog.findById(m.competitionId ?? 0)?.displayName;
+        final fromApi = (g is Map)
+            ? g['competitionDisplayName']?.toString() ?? ''
+            : '';
+        final name = (fromCatalog != null && fromCatalog.isNotEmpty)
+            ? fromCatalog
+            : (fromApi.isNotEmpty ? fromApi : (m.competitionName ?? ''));
+        uniqueMatches[m.id] = m.copyWithCompetitionInfo(
+          competitionId: m.competitionId ?? 0,
+          competitionName: name,
+        );
+      }
+    }
+    return uniqueMatches.values.toList();
   }
 
   /// Récupère l'arbre du tournoi (Brackets)

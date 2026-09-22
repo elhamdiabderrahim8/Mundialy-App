@@ -9,6 +9,8 @@ import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../services/scores365_service.dart';
 import '../utils/country_flags.dart';
+import '../utils/standing_status.dart';
+import '../utils/team_navigation.dart';
 import '../widgets/competition_badge.dart';
 import '../widgets/match_card.dart';
 import '../widgets/nation_flag_badge.dart';
@@ -371,11 +373,15 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       itemCount: _standings.length,
       itemBuilder: (context, i) {
         final group = _standings[i];
-        return _GroupStandingCard(group: group, isDark: isDark);
+        return _GroupStandingCard(
+          group: group,
+          isDark: isDark,
+          competitionId: widget.competitionId,
+        );
       },
     );
   }
@@ -539,136 +545,215 @@ class _CompetitionMatchCard extends StatelessWidget {
   }
 }
 
+/// Carte de classement — langage d'origine (avant septembre) :
+/// carte translucide radius 20, header or centré en majuscules,
+/// colonnes Pos/Équipe/MJ/GD/PTS, liseré de statut, points en or.
 class _GroupStandingCard extends StatelessWidget {
-  const _GroupStandingCard({required this.group, required this.isDark});
+  const _GroupStandingCard({
+    required this.group,
+    required this.isDark,
+    required this.competitionId,
+  });
   final GroupStanding group;
   final bool isDark;
+  final int competitionId;
 
   @override
   Widget build(BuildContext context) {
     const gold = _kGold;
-    final cardBg = isDark ? _kCardDark : Colors.white;
+    final textColor =
+        isDark ? Colors.white : const Color(0xFF16324A);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: textColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           // Header groupe
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
               color: gold.withValues(alpha: 0.1),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.leaderboard_rounded,
-                    size: 16, color: gold),
-                const SizedBox(width: 8),
-                Text(
-                  group.groupName,
-                  style: const TextStyle(
-                      color: gold,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13),
+            child: Center(
+              child: Text(
+                group.groupName.toUpperCase(),
+                style: const TextStyle(
+                  color: gold,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
                 ),
-              ],
+              ),
             ),
           ),
           // En-tête colonnes
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Text('ÉQUIPE',
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.white38 : Colors.black38,
-                          fontWeight: FontWeight.w700)),
-                ),
-                for (final h in ['J', '±', 'Pts'])
-                  SizedBox(
-                    width: 28,
-                    child: Text(h,
-                        textAlign: TextAlign.center,
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Pos',
                         style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? Colors.white38 : Colors.black38,
-                            fontWeight: FontWeight.w700)),
-                  ),
+                          color: textColor.withValues(alpha: 0.5),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: Text(
+                        'Équipe',
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.5),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    for (final h in ['MJ', 'GD', 'PTS'])
+                      Expanded(
+                        child: Text(
+                          h,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: textColor.withValues(alpha: 0.5),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Divider(
+                    color: textColor.withValues(alpha: 0.12), height: 20),
+                // Lignes équipes
+                ...group.teams.asMap().entries.map((entry) {
+                  final team = entry.value;
+                  final rank =
+                      team.rank > 0 ? team.rank : entry.key + 1;
+                  return _StandingRow(
+                    rank: rank,
+                    team: team,
+                    isDark: isDark,
+                    competitionId: competitionId,
+                  );
+                }),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _LegendItem(
+                        color: const Color(0xFF2ECC71), label: 'Qualifié'),
+                    const SizedBox(width: 16),
+                    _LegendItem(
+                        color: const Color(0xFFE74C3C), label: 'Éliminé'),
+                  ],
+                ),
               ],
             ),
           ),
-          const Divider(height: 1, thickness: 0.5),
-          // Lignes équipes
-          ...group.teams.asMap().entries.map((entry) {
-            final rank = entry.key + 1;
-            final team = entry.value;
-            final isQ = team.isQualified ?? false;
-            return _StandingRow(
-                rank: rank, team: team, isQ: isQ, isDark: isDark);
-          }),
-          const SizedBox(height: 4),
         ],
       ),
     );
   }
 }
 
-class _StandingRow extends StatelessWidget {
-  const _StandingRow(
-      {required this.rank,
-      required this.team,
-      required this.isQ,
-      required this.isDark});
-  final int rank;
-  final StandingTeam team;
-  final bool isQ;
-  final bool isDark;
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({required this.color, required this.label});
+  final Color color;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
-    final subColor = isDark ? Colors.white54 : Colors.black54;
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-    return Container(
-      decoration: BoxDecoration(
-        border: isQ
-            ? const Border(
-                left: BorderSide(color: Colors.green, width: 3))
-            : null,
+class _StandingRow extends StatelessWidget {
+  const _StandingRow({
+    required this.rank,
+    required this.team,
+    required this.isDark,
+    required this.competitionId,
+  });
+  final int rank;
+  final StandingTeam team;
+  final bool isDark;
+  final int competitionId;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor =
+        isDark ? Colors.white : const Color(0xFF16324A);
+    final status = standingQualification(
+      rank,
+      isQualified: team.isQualified,
+      toQualify: team.toQualify,
+    );
+    final statusColor = standingStatusColor(status);
+
+    return InkWell(
+      onTap: () => openTeamProfile(
+        context,
+        teamName: team.teamName,
+        teamId: team.teamId,
+        competitionId: competitionId,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: statusColor.withValues(alpha: 0.55),
+              width: 3,
+            ),
+          ),
+        ),
         child: Row(
           children: [
-            SizedBox(
-              width: 20,
-              child: Text(
-                '$rank',
-                style: TextStyle(
-                    color: rank == 1 ? _kGold : subColor,
-                    fontWeight:
-                        rank == 1 ? FontWeight.w800 : FontWeight.w500,
-                    fontSize: 12),
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Text(
+                  '$rank',
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 4),
             Expanded(
+              flex: 4,
               child: Row(
                 children: [
                   NationFlagBadge(
@@ -676,40 +761,59 @@ class _StandingRow extends StatelessWidget {
                     size: 24,
                     teamName: team.teamName,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      team.teamName,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: textColor),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          team.teamName,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          standingStatusLabel(status),
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            // Colonnes : J / Diff / Pts
-            for (final entry in [
-              ('J', team.played),
-              ('±', team.goalsDiff),
-              ('Pts', team.points),
-            ])
-              SizedBox(
-                width: entry.$1 == 'Pts' ? 34 : 28,
-                child: Text(
-                  '${entry.$2}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: entry.$1 == 'Pts' ? textColor : subColor,
-                      fontWeight: entry.$1 == 'Pts'
-                          ? FontWeight.w800
-                          : FontWeight.w400),
+            Expanded(
+              child: Text(
+                '${team.played}',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: textColor, fontSize: 12),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                '${team.goalsDiff}',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: textColor, fontSize: 12),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                '${team.points}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _kGold,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
                 ),
               ),
+            ),
           ],
         ),
       ),

@@ -130,11 +130,22 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     });
   }
 
-  /// Charge matchs + classement + effectif pour UNE compétition donnée.
-  /// L'ID 365Scores est global : la même équipe (ex: Tunisie 5104) est
-  /// retrouvée par son ID dans n'importe quelle compétition.
+  /// Charge le profil + TOUS les fixtures de l'équipe (toutes compétitions
+  /// senior : CDM, qualifs, CAN, Arab Cup, amicaux A...) + le classement de
+  /// la compétition d'origine. L'ID 365Scores est global : la même équipe
+  /// (ex: Tunisie 5104) est retrouvée par son ID dans chaque compétition,
+  /// donc la fiche ne dépend plus de la porte d'entrée.
   Future<void> _loadCompetitionData(int compId) async {
     try {
+      // Fixtures natifs de l'ÉQUIPE (toutes compétitions, filtre
+      // competitors=) : la fiche ne dépend plus de la porte d'entrée.
+      final teamMatchesFuture = widget.teamId > 0
+          ? Scores365Service.fetchAllMatchesForTeam(
+              teamCompetitorId: widget.teamId,
+            )
+          : Scores365Service.fetchAllMatchesForCompetition(
+              competitionId: compId,
+            );
       final results = await Future.wait([
         ApiService.fetchTeamProfile(
           teamId: widget.teamId,
@@ -142,18 +153,30 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
           year: widget.year,
           competitionId: compId,
         ),
-        Scores365Service.fetchAllMatchesForCompetition(
-          competitionId: compId,
-        ),
+        teamMatchesFuture,
         Scores365Service.fetchStandingsByCompetition(compId),
       ]);
 
-      final allMatches = results[1] as List<LiveMatch>;
-      final teamMatches = allMatches
+      var allMatches = results[1] as List<LiveMatch>;
+      var teamMatches = allMatches
           .where(
             (m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
           )
           .toList();
+
+      // Repli : si les fixtures natifs échouent, au minimum
+      // la compétition d'origine — jamais une page vide.
+      if (teamMatches.isEmpty) {
+        allMatches = await Scores365Service.fetchAllMatchesForCompetition(
+          competitionId: compId,
+        );
+        teamMatches = allMatches
+            .where(
+              (m) =>
+                  TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
+            )
+            .toList();
+      }
       teamMatches.sort((a, b) => (b.dateTime ?? DateTime(0))
           .compareTo(a.dateTime ?? DateTime(0)));
 
@@ -221,7 +244,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                     _buildStandingCard(isDark),
                     const SizedBox(height: 16),
                   ],
-                  _buildSectionTitle('Matchs du tournoi'),
+                  _buildSectionTitle('Matchs'),
                   const SizedBox(height: 12),
                   _buildMatchesList(isDark),
                   const SizedBox(height: 20),
@@ -543,6 +566,20 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     );
   }
 
+  /// Nom d'une compétition pour les en-têtes de groupes (catalogue,
+  /// repli nom du match sans le suffixe de tour, puis repli générique).
+  String _labelForCompetition(int compId) {
+    final comp = CompetitionsCatalog.findById(compId);
+    if (comp != null) return comp.name;
+    for (final m in _matches) {
+      if ((m.competitionId ?? 0) == compId &&
+          (m.competitionName ?? '').isNotEmpty) {
+        return m.competitionName!.split(' - ').first;
+      }
+    }
+    return 'Autres matchs';
+  }
+
   /// Nom de la compétition consultée (catalogue) ou repli CDM.
   String get _competitionLabel {
     if (widget.competitionId != null && widget.competitionId! > 0) {
@@ -560,19 +597,34 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
       );
     }
 
-    // Mode compétition : une seule section (la vraie compétition).
+    // Mode compétition : TOUS les fixtures, groupés par compétition
+    // (origine en premier). Fini l'exclusivité WC vs CAN vs Arab Cup.
     if (widget.competitionId != null && widget.competitionId! > 0) {
+      final groups = <int, List<LiveMatch>>{};
+      for (final m in _matches) {
+        groups.putIfAbsent(m.competitionId ?? 0, () => []).add(m);
+      }
+      final orderedKeys = groups.keys.toList()
+        ..sort((a, b) {
+          if (a == widget.competitionId) return -1;
+          if (b == widget.competitionId) return 1;
+          return groups[b]!.length.compareTo(groups[a]!.length);
+        });
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTournamentHeader(_competitionLabel, isDark),
-          const SizedBox(height: 12),
-          ..._matches.map(
-            (match) => _TeamMatchCard(
-              match: match,
-              teamId: widget.teamId,
-              isDark: isDark,
+          for (final key in orderedKeys) ...[
+            _buildTournamentHeader(_labelForCompetition(key), isDark),
+            const SizedBox(height: 12),
+            ...groups[key]!.map(
+              (match) => _TeamMatchCard(
+                match: match,
+                teamId: widget.teamId,
+                isDark: isDark,
+              ),
             ),
-          ),
+            const SizedBox(height: 16),
+          ],
         ],
       );
     }
