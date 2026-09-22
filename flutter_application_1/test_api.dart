@@ -1,53 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 
-void main() {
-  final jsonString = '''
-{
-  "fixture": {
-    "id": 855736,
-    "date": "2022-11-20T16:00:00+00:00",
-    "status": {
-      "short": "FT"
-    }
-  },
-  "league": {
-    "round": "Group Stage - 1"
-  },
-  "teams": {
-    "home": {
-      "id": 1569,
-      "name": "Qatar",
-      "logo": "https://media.api-sports.io/football/teams/1569.png"
-    },
-    "away": {
-      "id": 2382,
-      "name": "Ecuador",
-      "logo": "https://media.api-sports.io/football/teams/2382.png"
-    }
-  },
-  "goals": {
-    "home": 0,
-    "away": 2
-  },
-  "score": {
-    "penalty": {
-      "home": null,
-      "away": null
+void main() async {
+  final baseParams = 'appTypeId=5&langId=1&timezoneName=Europe%2FParis&userCountryId=135';
+  
+  Future<void> testComp(int id, String name) async {
+    final url = Uri.parse('https://webws.365scores.com/web/games/?$baseParams&competitions=$id');
+    try {
+      final request = await HttpClient().getUrl(url);
+      request.headers.set('User-Agent', 'Dart/3.0 (dart:io)');
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      final data = jsonDecode(body);
+      final games = data['games'] as List?;
+      print('[$name (ID: $id)] => HTTP ${response.statusCode} | Games count: ${games?.length ?? 0}');
+    } catch (e) {
+      print('[$name (ID: $id)] => Error: $e');
     }
   }
-}
-  ''';
 
-  final json = jsonDecode(jsonString);
-  final fixture = json['fixture'] ?? {};
-  final teams = json['teams'] ?? {};
-  final home = teams['home'] ?? {};
-  final away = teams['away'] ?? {};
-  final goals = json['goals'] ?? {};
-  final score = json['score'] ?? {};
-  final penalty = score['penalty'] ?? {};
-  final status = fixture['status'] ?? {};
-
-  print("homeTeam: ${home['name']}");
-  print("scoreHome: ${goals['home']}");
+  await testComp(67, 'CAN');
+  await testComp(572, 'EURO');
+  await testComp(5930, 'World Cup');
 }

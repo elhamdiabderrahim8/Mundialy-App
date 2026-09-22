@@ -6,6 +6,7 @@ import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
 import '../services/scores365_service.dart';
+import '../widgets/competition_badge.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'competition_detail_screen.dart';
 
@@ -425,17 +426,9 @@ class _MatchesTabState extends State<MatchesTab> {
                 ),
               ),
               ...comps.map((comp) => ListTile(
-                    leading: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: _gold.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(comp.flagEmoji ?? '🏆',
-                            style: const TextStyle(fontSize: 18)),
-                      ),
+                    leading: CompetitionBadge(
+                      competition: comp,
+                      size: 36,
                     ),
                     title: Text(
                       comp.name,
@@ -535,9 +528,10 @@ class _CompetitionGroupHeader extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
         child: Row(
           children: [
-            Text(
-              comp?.flagEmoji ?? '🏆',
-              style: const TextStyle(fontSize: 16),
+            CompetitionBadge(
+              competition: comp,
+              size: 22,
+              iconSize: 12,
             ),
             const SizedBox(width: 8),
             Expanded(

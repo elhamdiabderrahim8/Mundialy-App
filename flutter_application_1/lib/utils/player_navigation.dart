@@ -53,7 +53,9 @@ void openPlayerProfile(
   required String playerName,
   String? teamName,
   String? teamCode,
+  int? teamId,
   int season = 2026,
+  int? competitionId,
   int? shirtNumber,
   String? photoUrl,
   String? position,
@@ -92,6 +94,8 @@ void openPlayerProfile(
           ageLabel: '',
         ),
         season: season,
+        teamId: teamId,
+        competitionId: competitionId,
       ),
     ),
   );

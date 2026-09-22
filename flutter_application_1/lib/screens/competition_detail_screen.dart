@@ -1,5 +1,6 @@
 // lib/screens/competition_detail_screen.dart
 // Page de détail d'une compétition : Matchs | Classements | Buteurs | Tableau
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
@@ -8,7 +9,14 @@ import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../services/scores365_service.dart';
 import '../utils/country_flags.dart';
+import '../widgets/competition_badge.dart';
+import '../widgets/match_card.dart';
 import '../widgets/nation_flag_badge.dart';
+
+// Or champagne de l'app (identité Mundialy — cf. home_screen _kGold).
+const Color _kGold = Color(0xFFE7C16A);
+const Color _kBgDark = Color(0xFF0D1B2A);
+const Color _kCardDark = Color(0xFF1D2D3B);
 
 
 class CompetitionDetailScreen extends StatefulWidget {
@@ -34,10 +42,12 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
   List<LiveMatch> _matches = [];
   List<GroupStanding> _standings = [];
   List<TopScorer> _scorers = [];
+  Map<String, dynamic>? _bracket;
 
   bool _loadingMatches = true;
   bool _loadingStandings = false;
   bool _loadingScorers = false;
+  bool _loadingBracket = false;
   String? _error;
 
   @override
@@ -62,16 +72,8 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
       _error = null;
     });
     try {
-      // Plage large : 2 ans pour capturer archive + futures
-      final now = DateTime.now();
-      final start =
-          '${(now.month).toString().padLeft(2, '0')}/01/${now.year - 1}';
-      final end =
-          '${(now.month).toString().padLeft(2, '0')}/30/${now.year + 1}';
-      final matches = await Scores365Service.fetchMatchesByCompetition(
+      final matches = await Scores365Service.fetchAllMatchesForCompetition(
         competitionId: widget.competitionId,
-        startDate: start,
-        endDate: end,
         competitionName: _competition?.name ?? widget.overrideName,
       );
       if (mounted) {
@@ -118,13 +120,32 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
     }
   }
 
+  Future<void> _loadBracket() async {
+    if (_bracket != null) return;
+    setState(() => _loadingBracket = true);
+    final data = await Scores365Service.fetchBracketsByCompetition(
+        widget.competitionId);
+    if (mounted) {
+      setState(() {
+        _bracket = data;
+        _loadingBracket = false;
+      });
+    }
+  }
+
+  /// Ordre réel des onglets (les onglets sont conditionnels).
+  List<String> get _tabKeys => [
+        'matches',
+        if (_competition?.hasStandings ?? false) 'standings',
+        if (_competition?.hasStats ?? false) 'scorers',
+        if (_competition?.hasBrackets ?? false) 'bracket',
+      ];
+
   String get _title {
     if (_competition != null) return _competition!.name;
     if (widget.overrideName != null) return widget.overrideName!;
     return 'Competition';
   }
-
-  String get _flagEmoji => _competition?.flagEmoji ?? '🏆';
 
   @override
   void dispose() {
@@ -135,11 +156,9 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark ? const Color(0xFF0D1B2A) : const Color(0xFFF4F6F8);
-    final cardColor =
-        isDark ? const Color(0xFF1A2A3A) : Colors.white;
-    const gold = Color(0xFFFFD700);
+    final bgColor = isDark ? _kBgDark : const Color(0xFFF4F6F8);
+    final cardColor = isDark ? _kCardDark : Colors.white;
+    const gold = _kGold;
 
     // Construire les tabs selon les capacités de la compétition
     final tabs = <Tab>[
@@ -159,8 +178,8 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
         elevation: 0,
         title: Row(
           children: [
-            Text(_flagEmoji, style: const TextStyle(fontSize: 22)),
-            const SizedBox(width: 8),
+            CompetitionBadge(competition: _competition, size: 38),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,11 +234,16 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
             labelStyle: const TextStyle(
                 fontWeight: FontWeight.w700, fontSize: 13),
             onTap: (index) {
-              // Charger les données lazy selon l'onglet
-              if (index == 1 && (_competition?.hasStandings ?? false)) {
+              // Charger les données lazy selon le VRAI onglet (ordre variable).
+              final key = (index >= 0 && index < _tabKeys.length)
+                  ? _tabKeys[index]
+                  : '';
+              if (key == 'standings') {
                 _loadStandings();
-              } else if (index == 2 && (_competition?.hasStats ?? false)) {
+              } else if (key == 'scorers') {
                 _loadScorers();
+              } else if (key == 'bracket') {
+                _loadBracket();
               }
             },
             tabs: tabs,
@@ -244,22 +268,23 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
   // ── Onglet Matchs ──────────────────────────────────────────────────
   Widget _buildMatchesTab(bool isDark, Color cardColor) {
     if (_loadingMatches) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
+      return const Center(child: CircularProgressIndicator(color: _kGold));
     }
     if (_error != null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off, size: 48, color: Colors.red),
+            const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.red),
             const SizedBox(height: 12),
             Text('Erreur de chargement',
                 style: TextStyle(color: isDark ? Colors.white : Colors.black)),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: _loadMatches,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              icon: const Icon(Icons.refresh_rounded, color: _kGold),
+              label: const Text('Réessayer',
+                  style: TextStyle(color: _kGold)),
             ),
           ],
         ),
@@ -270,13 +295,25 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('📅', style: TextStyle(fontSize: 48)),
-            const SizedBox(height: 12),
+            Container(
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kGold.withValues(alpha: 0.1),
+                border:
+                    Border.all(color: _kGold.withValues(alpha: 0.25)),
+              ),
+              child: const Icon(Icons.event_busy_rounded,
+                  size: 40, color: _kGold),
+            ),
+            const SizedBox(height: 16),
             Text(
               'Aucun match disponible',
               style: TextStyle(
                   color: isDark ? Colors.white70 : Colors.black54,
-                  fontSize: 16),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
@@ -299,7 +336,7 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadMatches,
-      color: const Color(0xFFFFD700),
+      color: _kGold,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: grouped.length,
@@ -313,9 +350,6 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
               ...dayMatches.map((m) => _CompetitionMatchCard(
                     match: m,
                     isDark: isDark,
-                    cardColor: isDark
-                        ? const Color(0xFF1A2A3A)
-                        : Colors.white,
                   )),
             ],
           );
@@ -327,14 +361,13 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
   // ── Onglet Classements ────────────────────────────────────────────
   Widget _buildStandingsTab(bool isDark) {
     if (_loadingStandings) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
+      return const Center(child: CircularProgressIndicator(color: _kGold));
     }
     if (_standings.isEmpty) {
-      return Center(
-        child: Text(
-          'Classements non disponibles',
-          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-        ),
+      return _EmptyState(
+        icon: Icons.leaderboard_rounded,
+        label: 'Classements non disponibles',
+        isDark: isDark,
       );
     }
     return ListView.builder(
@@ -350,14 +383,13 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
   // ── Onglet Buteurs ────────────────────────────────────────────────
   Widget _buildScorersTab(bool isDark, Color cardColor) {
     if (_loadingScorers) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
+      return const Center(child: CircularProgressIndicator(color: _kGold));
     }
     if (_scorers.isEmpty) {
-      return Center(
-        child: Text(
-          'Buteurs non disponibles',
-          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-        ),
+      return _EmptyState(
+        icon: Icons.sports_soccer_rounded,
+        label: 'Buteurs non disponibles',
+        isDark: isDark,
       );
     }
     return ListView.builder(
@@ -377,20 +409,87 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   // ── Onglet Tableau ────────────────────────────────────────────────
   Widget _buildBracketTab(bool isDark) {
-    return Center(
-      child: Text(
-        'Tableau éliminatoire\nBientôt disponible',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-            color: isDark ? Colors.white54 : Colors.black54, fontSize: 16),
-      ),
+    if (_bracket == null) {
+      if (!_loadingBracket) {
+        // Chargement aussi au swipe (onTap ne couvre que le tap).
+        Future.microtask(_loadBracket);
+      }
+      return const Center(child: CircularProgressIndicator(color: _kGold));
+    }
+    final brackets = _bracket!['brackets'] as List? ?? [];
+    if (brackets.isEmpty) {
+      return _EmptyState(
+        icon: Icons.account_tree_rounded,
+        label: 'Tableau non disponible',
+        isDark: isDark,
+      );
+    }
+    final stages = (brackets.first as Map)['stages'] as List? ?? [];
+    if (stages.isEmpty) {
+      return _EmptyState(
+        icon: Icons.account_tree_rounded,
+        label: 'Tableau non disponible',
+        isDark: isDark,
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: stages.length,
+      itemBuilder: (context, i) {
+        final stage = stages[i] as Map? ?? {};
+        final groups = stage['groups'] as List? ?? [];
+        return _BracketStageCard(
+          stageName: stage['name']?.toString() ?? 'Phase',
+          groups: groups.whereType<Map>().toList(),
+          isDark: isDark,
+        );
+      },
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// WIDGETS INTERNES
+// WIDGETS INTERNES (même langage que l'accueil : or champagne,
+// radius 16, Material rounded icons, ripple sur les zones tactiles)
 // ─────────────────────────────────────────────────────────────────────
+
+/// État vide générique : icône vectorielle dans pastille or (jamais d'emoji).
+class _EmptyState extends StatelessWidget {
+  const _EmptyState(
+      {required this.icon, required this.label, required this.isDark});
+  final IconData icon;
+  final String label;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _kGold.withValues(alpha: 0.1),
+              border: Border.all(color: _kGold.withValues(alpha: 0.25)),
+            ),
+            child: Icon(icon, size: 40, color: _kGold),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            label,
+            style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black54,
+                fontSize: 15,
+                fontWeight: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _DateHeader extends StatelessWidget {
   const _DateHeader({required this.date, required this.isDark});
@@ -401,180 +500,40 @@ class _DateHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
-      child: Text(
-        date,
-        style: TextStyle(
-          color: isDark ? Colors.white70 : Colors.black54,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_month_rounded, size: 15, color: _kGold),
+          const SizedBox(width: 6),
+          Text(
+            date,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.black54,
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
+/// Carte strictement identique à l'accueil : délègue à [MatchCard].
 class _CompetitionMatchCard extends StatelessWidget {
-  const _CompetitionMatchCard({
-    required this.match,
-    required this.isDark,
-    required this.cardColor,
-  });
+  const _CompetitionMatchCard({required this.match, required this.isDark});
   final LiveMatch match;
   final bool isDark;
-  final Color cardColor;
 
   @override
   Widget build(BuildContext context) {
-    final isLive = match.isLive;
-    final isFinished = match.isFinished;
-
-    return GestureDetector(
-      onTap: () {
-        // Navigation vers MatchDetailScreen (à implémenter)
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: isLive
-              ? Border.all(color: Colors.red.withValues(alpha: 0.5), width: 1.5)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // Équipe domicile
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    NationFlagBadge(
-                      countryCode: match.homeCode,
-                      size: 32,
-                      teamName: match.homeTeam,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      match.homeTeam,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              // Score / Heure
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  children: [
-                    if (isLive || isFinished) ...[
-                      Row(
-                        children: [
-                          Text(
-                            '${match.scoreHome ?? '-'}',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                            ),
-                          ),
-                          const Text(' – ',
-                              style: TextStyle(fontSize: 18, color: Colors.grey)),
-                          Text(
-                            '${match.scoreAway ?? '-'}',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isLive
-                              ? Colors.red.withValues(alpha: 0.15)
-                              : Colors.grey.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          isLive
-                              ? (match.matchMinute ?? 'LIVE')
-                              : 'FT',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isLive ? Colors.red : Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ] else ...[
-                      Text(
-                        match.localTime,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFFFFD700),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'NS',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.white38 : Colors.black38,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              // Équipe extérieure
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    NationFlagBadge(
-                      countryCode: match.awayCode,
-                      size: 32,
-                      teamName: match.awayTeam,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      match.awayTeam,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                      ),
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: MatchCard(
+        match: match,
+        year: match.dateTime?.year ?? 2026,
+        // Même formule que l'accueil (home_screen).
+        textColor: isDark ? Colors.white : Colors.black87,
       ),
     );
   }
@@ -587,14 +546,14 @@ class _GroupStandingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFFFD700);
-    final cardBg = isDark ? const Color(0xFF1A2A3A) : Colors.white;
+    const gold = _kGold;
+    final cardBg = isDark ? _kCardDark : Colors.white;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
@@ -611,11 +570,12 @@ class _GroupStandingCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: gold.withValues(alpha: 0.1),
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.group, size: 16, color: gold),
+                const Icon(Icons.leaderboard_rounded,
+                    size: 16, color: gold),
                 const SizedBox(width: 8),
                 Text(
                   group.groupName,
@@ -640,7 +600,7 @@ class _GroupStandingCard extends StatelessWidget {
                           color: isDark ? Colors.white38 : Colors.black38,
                           fontWeight: FontWeight.w700)),
                 ),
-                for (final h in ['J', 'G', 'N', 'P', 'BP', 'BC', 'Diff', 'Pts'])
+                for (final h in ['J', '±', 'Pts'])
                   SizedBox(
                     width: 28,
                     child: Text(h,
@@ -701,7 +661,7 @@ class _StandingRow extends StatelessWidget {
               child: Text(
                 '$rank',
                 style: TextStyle(
-                    color: rank == 1 ? const Color(0xFFFFD700) : subColor,
+                    color: rank == 1 ? _kGold : subColor,
                     fontWeight:
                         rank == 1 ? FontWeight.w800 : FontWeight.w500,
                     fontSize: 12),
@@ -757,6 +717,108 @@ class _StandingRow extends StatelessWidget {
   }
 }
 
+class _BracketStageCard extends StatelessWidget {
+  const _BracketStageCard({
+    required this.stageName,
+    required this.groups,
+    required this.isDark,
+  });
+  final String stageName;
+  final List<Map> groups;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    const gold = _kGold;
+    final cardBg = isDark ? _kCardDark : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.1),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_tree_rounded,
+                    size: 16, color: gold),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    stageName,
+                    style: const TextStyle(
+                        color: gold,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (groups.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Phase directe (matchs dans l\'onglet Matchs)',
+                style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 12),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: groups.map((g) {
+                  final name = g['name']?.toString() ?? 'Groupe';
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: gold.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: textColor),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ScorerTile extends StatelessWidget {
   const _ScorerTile({
     required this.rank,
@@ -772,12 +834,22 @@ class _ScorerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+    final rankColor = rank == 1
+        ? _kGold
+        : rank == 2
+            ? const Color(0xFFE0E0E0)
+            : rank == 3
+                ? const Color(0xFFCD7F32)
+                : Colors.grey;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
+        border: rank == 1
+            ? Border.all(color: _kGold.withValues(alpha: 0.4))
+            : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
@@ -793,7 +865,7 @@ class _ScorerTile extends StatelessWidget {
             child: Text(
               '$rank',
               style: TextStyle(
-                color: rank <= 3 ? const Color(0xFFFFD700) : Colors.grey,
+                color: rankColor,
                 fontWeight: FontWeight.w800,
                 fontSize: rank == 1 ? 18 : 14,
               ),
@@ -801,10 +873,50 @@ class _ScorerTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          NationFlagBadge(
-            countryCode: resolveCountryCode(scorer.teamName),
-            size: 28,
-            teamName: scorer.teamName,
+          // Avatar joueur (photo 365Scores, initiale en repli)
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _kGold.withValues(alpha: 0.12),
+              border: Border.all(
+                  color: _kGold.withValues(alpha: 0.3)),
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: scorer.bestPhotoUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: scorer.bestPhotoUrl!,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Center(
+                      child: Text(
+                        scorer.playerName.isNotEmpty
+                            ? scorer.playerName
+                                .substring(0, 1)
+                                .toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      scorer.playerName.isNotEmpty
+                          ? scorer.playerName
+                              .substring(0, 1)
+                              .toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -818,29 +930,50 @@ class _ScorerTile extends StatelessWidget {
                       fontSize: 14,
                       color: textColor),
                 ),
-                Text(
-                  scorer.teamName,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? Colors.white54 : Colors.black54),
+                Row(
+                  children: [
+                    NationFlagBadge(
+                      countryCode:
+                          resolveCountryCode(scorer.teamName),
+                      size: 14,
+                      teamName: scorer.teamName,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        scorer.assists > 0
+                            ? '${scorer.teamName} • ${scorer.assists} passes'
+                            : scorer.teamName,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: isDark
+                                ? Colors.white54
+                                : Colors.black54),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+              color: _kGold.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                const Text('⚽', style: TextStyle(fontSize: 14)),
+                const Icon(Icons.sports_soccer_rounded,
+                    size: 14, color: _kGold),
                 const SizedBox(width: 4),
                 Text(
                   '${scorer.goals}',
                   style: const TextStyle(
-                    color: Color(0xFFFFD700),
+                    color: _kGold,
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),

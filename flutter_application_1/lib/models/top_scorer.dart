@@ -36,8 +36,51 @@ class TopScorer {
     return null;
   }
 
-  // for 365Scores API
+  // for 365Scores API — supporte 2 formats :
+  //  A) nouveau format stats/ : {entity:{id,name,competitorId,imageVersion...},
+  //     stats:[{typeId:1,value:"10"},{typeId:2,value:"3"}], secondaryStatName:...}
+  //  B) ancien format plat : {athleteId, athleteName, competitorName, value...}
   factory TopScorer.fromJson(Map<String, dynamic> json) {
+    // ── Format A : ligne athletesStats (endpoint stats/) ──
+    final entity = json['entity'];
+    if (entity is Map) {
+      final statsList = json['stats'] as List? ?? [];
+      int readStat(int typeId) {
+        for (final s in statsList) {
+          if (s is Map && (s['typeId'] == typeId)) {
+            final v = s['value'];
+            if (v is num) return v.toInt();
+            return int.tryParse(v?.toString() ?? '') ?? 0;
+          }
+        }
+        return 0;
+      }
+
+      final id = (entity['id'] as num?)?.toInt() ?? 0;
+      final imgVer = entity['imageVersion'] ?? 1;
+      return TopScorer(
+        playerId: id,
+        playerName: entity['name']?.toString() ??
+            entity['shortName']?.toString() ??
+            '',
+        // teamName/teamCode résolus par le service via la table competitors ;
+        // en fallback on garde l'ID pour ne jamais afficher vide.
+        teamName: json['resolvedTeamName']?.toString() ??
+            entity['competitorId']?.toString() ??
+            '',
+        teamCode: json['resolvedTeamCode']?.toString() ??
+            entity['competitorId']?.toString() ??
+            '',
+        jerseyNum: null,
+        goals: readStat(1),
+        assists: readStat(2),
+        matches: 0, // non fourni par stats/ (voir service : fusion possible)
+        photoUrl:
+            'https://imagecache.365scores.com/image/upload/f_auto,q_auto,c_fill,w_300,h_300/v$imgVer/Athletes/$id',
+      );
+    }
+
+    // ── Format B : ancien format plat (compat) ──
     final id = json['athleteId'] ?? json['id'] ?? 0;
     return TopScorer(
       playerId: id,

@@ -413,7 +413,7 @@ class CompetitionsCatalog {
       category: CompetitionCategory.continental,
       hasStandings: true,
       hasBrackets: true,
-      hasStats: false,
+      hasStats: true,
       isActive: false,
       flagEmoji: '🌙',
     ),

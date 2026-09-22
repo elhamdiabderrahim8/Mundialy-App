@@ -8,14 +8,19 @@ void openTeamProfile(
   required String teamName,
   int? teamId,
   int year = 2026,
+  int? competitionId,
 }) {
   final resolvedId = TeamResolver.resolve(teamName, hintId: teamId);
   if (resolvedId <= 0) return;
 
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) =>
-          TeamProfileScreen(teamId: resolvedId, teamName: teamName, year: year),
+      builder: (_) => TeamProfileScreen(
+        teamId: resolvedId,
+        teamName: teamName,
+        year: year,
+        competitionId: competitionId,
+      ),
     ),
   );
 }

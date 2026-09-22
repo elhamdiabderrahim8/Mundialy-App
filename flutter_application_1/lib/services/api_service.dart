@@ -538,6 +538,7 @@ class ApiService {
     required int teamId,
     String? teamName,
     int? year,
+    int? competitionId,
   }) async {
     try {
       final resolvedId = TeamResolver.resolve(teamName ?? '', hintId: teamId);
@@ -577,6 +578,42 @@ class ApiService {
       final List<TeamPlayer> squad = playersData.map((p) {
         return TeamPlayer.fromApi(p, teamName ?? '');
       }).toList();
+
+      // Enrichir les numéros (-1 côté squads/) via les members du dernier
+      // match joué, quand la compétition est connue (ID 365 global).
+      if (competitionId != null &&
+          competitionId > 0 &&
+          resolvedId > 0 &&
+          squad.any((p) => p.shirtNumber == null)) {
+        final numbers = await Scores365Service.fetchShirtNumbers(
+          teamCompetitorId: resolvedId,
+          competitionId: competitionId,
+        );
+        if (numbers.isNotEmpty) {
+          for (int i = 0; i < squad.length; i++) {
+            final p = squad[i];
+            final real = numbers[p.id];
+            if (p.shirtNumber == null && real != null) {
+              squad[i] = TeamPlayer(
+                id: p.id,
+                name: p.name,
+                position: p.position,
+                shirtNumber: real,
+                photoUrl: p.photoUrl,
+                nationality: p.nationality,
+                nationalityCode: p.nationalityCode,
+                ageLabel: p.ageLabel,
+                height: p.height,
+                weight: p.weight,
+                injured: p.injured,
+              );
+            }
+          }
+          debugPrint(
+            '🔍 fetchTeamProfile: numéros enrichis (${numbers.length} trouvés)',
+          );
+        }
+      }
 
       debugPrint(
         '🔍 fetchTeamProfile: parsed ${squad.length} players, positions: ${squad.map((p) => p.position).toSet()}',
@@ -651,24 +688,31 @@ class ApiService {
     if (cached != null && cached.isNotEmpty) return cached;
 
     try {
-      List<TopScorer> scorers = await ScorerCalculationService.getStoredScorers(year: season);
-      
-      // Si l'algorithme local n'a encore rien (premier lancement), on essaie l'API
-      if (scorers.isEmpty) {
-        if (season == 2022) {
-          try {
-            final raw = await rootBundle.loadString('assets/data/topscorers_2022.json');
-            final decoded = jsonDecode(raw);
-            final List list = decoded['response'] ?? [];
-            scorers = list.asMap().entries.map((e) => TopScorer.fromApi(e.value, e.key + 1)).toList();
-          } catch (e) {
-            debugPrint('Error loading 2022 topscorers: $e');
-          }
-        } else {
+      // ✅ Priorité à l'API 365Scores (format stats/ corrigé : fusion Goals+Assists).
+      // Le calcul local ne sert que de fallback si l'API est vide/hors-ligne.
+      List<TopScorer> scorers = [];
+      if (season == 2022) {
+        try {
+          final raw = await rootBundle.loadString('assets/data/topscorers_2022.json');
+          final decoded = jsonDecode(raw);
+          final List list = decoded['response'] ?? [];
+          scorers = list.asMap().entries.map((e) => TopScorer.fromApi(e.value, e.key + 1)).toList();
+        } catch (e) {
+          debugPrint('Error loading 2022 topscorers: $e');
+        }
+        if (scorers.isEmpty) {
           scorers = await Scores365Service.fetchTopScorers(
             season,
             Scores365Service.wcCompetitionId,
           );
+        }
+      } else {
+        scorers = await Scores365Service.fetchTopScorers(
+          season,
+          Scores365Service.wcCompetitionId,
+        );
+        if (scorers.isEmpty) {
+          scorers = await ScorerCalculationService.getStoredScorers(year: season);
         }
       }
 

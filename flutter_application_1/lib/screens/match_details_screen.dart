@@ -516,6 +516,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                   teamId: match.homeTeamId,
                   heroTag: 'logo_home_${match.id}',
                   year: _tournamentSeason,
+                  competitionId: match.competitionId,
                 ),
               ),
               Expanded(
@@ -572,6 +573,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                   teamId: match.awayTeamId,
                   heroTag: 'logo_away_${match.id}',
                   year: _tournamentSeason,
+                  competitionId: match.competitionId,
                 ),
               ),
             ],
@@ -850,6 +852,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
             lineups: _matchLineups,
             cardColor: cardColor,
             textColor: textColor,
+            competitionId: match.competitionId,
           ),
         ),
       );
@@ -1120,6 +1123,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                                     teamName: lineup.teamName,
                                     teamCode: lineup.teamCode,
                                     season: _tournamentSeason,
+                                    competitionId: widget.match.competitionId,
                                     shirtNumber: player.number,
                                     position: player.role,
                                     lineups: _matchLineups,
@@ -1169,6 +1173,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                           teamName: lineup.teamName,
                           teamCode: lineup.teamCode,
                           season: _tournamentSeason,
+                          competitionId: widget.match.competitionId,
                           shirtNumber: player.number,
                           position: player.role,
                           lineups: _matchLineups,
@@ -1461,6 +1466,7 @@ class _TeamMiniCard extends StatelessWidget {
     this.teamId,
     this.heroTag,
     this.year = 2022,
+    this.competitionId,
   });
 
   final String name;
@@ -1469,6 +1475,7 @@ class _TeamMiniCard extends StatelessWidget {
   final int? teamId;
   final String? heroTag;
   final int year;
+  final int? competitionId;
 
   @override
   Widget build(BuildContext context) {
@@ -1476,7 +1483,7 @@ class _TeamMiniCard extends StatelessWidget {
     final nameColor = isDark ? Colors.white : const Color(0xFF16324A);
 
     return InkWell(
-      onTap: teamId == null ? null : () => openTeamProfile(context, teamName: name, teamId: teamId, year: year),
+      onTap: teamId == null ? null : () => openTeamProfile(context, teamName: name, teamId: teamId, year: year, competitionId: competitionId),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1572,6 +1579,7 @@ class _EventTile extends StatelessWidget {
     required this.lineups,
     required this.cardColor,
     required this.textColor,
+    this.competitionId,
   });
 
   final MatchEvent event;
@@ -1579,6 +1587,7 @@ class _EventTile extends StatelessWidget {
   final List<TeamLineup> lineups;
   final Color cardColor;
   final Color textColor;
+  final int? competitionId;
 
   bool _canOpenPlayer(String name, int? id) {
     if (id != null && id > 0) return true;
@@ -1628,7 +1637,7 @@ class _EventTile extends StatelessWidget {
                     ),
                     if (event.teamId != null)
                       GestureDetector(
-                        onTap: () => openTeamProfile(context, teamName: event.teamName, teamId: event.teamId, year: year),
+                        onTap: () => openTeamProfile(context, teamName: event.teamName, teamId: event.teamId, year: year, competitionId: competitionId),
                         child: NationFlagBadge(
                           countryCode: event.teamCode.isNotEmpty ? event.teamCode : resolveCountryCode(event.teamName),
                           teamName: event.teamName,
@@ -1646,8 +1655,10 @@ class _EventTile extends StatelessWidget {
                               playerId: event.playerId ?? 0,
                               playerName: event.scorerName,
                               teamName: event.teamName,
+                              teamId: event.teamId,
                               teamCode: event.teamCode,
                               season: year,
+                              competitionId: competitionId,
                               lineups: lineups,
                             )
                         : null,
@@ -1670,8 +1681,10 @@ class _EventTile extends StatelessWidget {
                                 playerId: event.assistantId ?? 0,
                                 playerName: event.assistant!,
                                 teamName: event.teamName,
+                                teamId: event.teamId,
                                 teamCode: event.teamCode,
                                 season: year,
+                                competitionId: competitionId,
                                 lineups: lineups,
                               )
                           : null,
@@ -1711,8 +1724,10 @@ class _EventTile extends StatelessWidget {
                                       playerId: event.playerInId ?? 0,
                                       playerName: event.playerIn!,
                                       teamName: event.teamName,
+                                      teamId: event.teamId,
                                       teamCode: event.teamCode,
                                       season: year,
+                                      competitionId: competitionId,
                                       lineups: lineups,
                                     )
                                 : null,
@@ -1727,8 +1742,10 @@ class _EventTile extends StatelessWidget {
                                       playerId: event.playerOutId ?? 0,
                                       playerName: event.playerOut!,
                                       teamName: event.teamName,
+                                      teamId: event.teamId,
                                       teamCode: event.teamCode,
                                       season: year,
+                                      competitionId: competitionId,
                                       lineups: lineups,
                                     )
                                 : null,

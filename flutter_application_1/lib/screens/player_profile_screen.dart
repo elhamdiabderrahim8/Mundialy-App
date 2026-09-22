@@ -8,7 +8,9 @@ import '../widgets/nation_flag_badge.dart';
 import '../widgets/loading_skeletons.dart';
 import '../utils/country_flags.dart';
 import '../models/top_scorer.dart';
+import '../services/scores365_service.dart';
 import '../utils/player_resolver.dart';
+import '../utils/team_resolver.dart';
 import 'match_details_screen.dart';
 
 const _kGold = Color(0xFFE7C16A);
@@ -17,10 +19,17 @@ class PlayerProfileScreen extends StatefulWidget {
   final dynamic entity; // TeamPlayer ou TeamCoach ou TopScorer
   final int season;
 
+  /// Équipe + compétition d'origine (IDs 365Scores) : timeline et stats
+  /// du VRAI tournoi au lieu d'une recherche par nom dans la CDM.
+  final int? teamId;
+  final int? competitionId;
+
   const PlayerProfileScreen({
     super.key,
     required this.entity,
     this.season = 2026,
+    this.teamId,
+    this.competitionId,
   });
 
   @override
@@ -31,6 +40,10 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
   Map<String, dynamic>? _statsData;
   bool _statsLoading = true;
   TeamPlayer? _resolvedTeamPlayer;
+
+  /// Buts/passes du tournoi via l'endpoint stats/ (par athleteId).
+  int? _tournamentGoals;
+  int? _tournamentAssists;
 
   List<LiveMatch> _teamMatches = [];
   Map<String, MatchDetails> _matchDetails = {};
@@ -70,11 +83,104 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
       }
     }
 
+    // D: buts/passes du VRAI tournoi (endpoint stats/, jointure athleteId).
+    final compId = widget.competitionId;
+    if (compId != null && compId > 0 && id > 0) {
+      try {
+        final scorers =
+            await Scores365Service.fetchTopScorersByCompetition(compId);
+        final found = scorers.where((s) => s.playerId == id);
+        if (found.isNotEmpty && mounted) {
+          setState(() {
+            _tournamentGoals = found.first.goals;
+            _tournamentAssists = found.first.assists;
+          });
+        }
+      } catch (_) {}
+    }
+
     _loadMatchTimeline();
+  }
+
+  /// Timeline sur la VRAIE compétition : matchs filtrés par ID d'équipe
+  /// (jamais par nom exact), détails comme avant (match par athleteId).
+  Future<void> _loadCompetitionTimeline(int compId) async {
+    final id = widget.entity is TopScorer
+        ? (widget.entity as TopScorer).playerId
+        : _asInt(widget.entity.id);
+
+    String teamName = '';
+    if (widget.entity is TeamPlayer) {
+      teamName = (widget.entity as TeamPlayer).nationality ?? '';
+    } else if (widget.entity is TopScorer) {
+      teamName = (widget.entity as TopScorer).teamName;
+    }
+    if (teamName.isEmpty && _statsData != null) {
+      final attr = _asMap(_statsData!['attributes']);
+      teamName = attr['nationality']?.toString() ?? '';
+    }
+
+    final teamId = (widget.teamId != null && widget.teamId! > 0)
+        ? widget.teamId!
+        : TeamResolver.resolve(teamName);
+
+    final allMatches =
+        await Scores365Service.fetchAllMatchesForCompetition(
+      competitionId: compId,
+    );
+    final filtered = allMatches
+        .where((m) => TeamResolver.isTeamInMatch(m, teamId, teamName))
+        .toList();
+    filtered.sort((a, b) =>
+        (b.dateTime ?? DateTime.now()).compareTo(a.dateTime ?? DateTime.now()));
+
+    if (mounted) {
+      setState(() {
+        _teamMatches = filtered;
+      });
+    }
+
+    for (final m in filtered) {
+      if (m.isFinished || m.isLive) {
+        final details = await ApiService.fetchMatchDetails(m);
+        if (details != null && mounted) {
+          setState(() {
+            _matchDetails[m.id] = details;
+          });
+        }
+      }
+    }
+    // Le joueur peut ne pas être dans le top buteurs : calculer depuis
+    // la timeline (buts comptés par athleteId dans les cartes).
+    if (mounted && _tournamentGoals == null && id > 0) {
+      int g = 0;
+      int a = 0;
+      for (final d in _matchDetails.values) {
+        for (final event in d.summary.events) {
+          if (event.playerId == id &&
+              event.icon == MatchEventIcon.goal) {
+            g++;
+          }
+          if (event.assistantId == id) a++;
+        }
+      }
+      if (g > 0 || a > 0) {
+        setState(() {
+          _tournamentGoals = g;
+          _tournamentAssists = a;
+        });
+      }
+    }
   }
 
   Future<void> _loadMatchTimeline() async {
     try {
+      // D: compétition connue → sa timeline (filtre ID), pas la CDM.
+      final compId = widget.competitionId;
+      if (compId != null && compId > 0) {
+        await _loadCompetitionTimeline(compId);
+        return;
+      }
       final allMatches = await ApiService.fetchMatches(year: widget.season);
       
       String teamName = '';
@@ -104,10 +210,9 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
             }
           } catch (_) {}
         }
-        final normTeam = teamName.toLowerCase().trim();
-        final filtered = allMatches.where((m) => 
-          m.homeTeam.toLowerCase().trim() == normTeam || 
-          m.awayTeam.toLowerCase().trim() == normTeam
+        final legacyTeamId = TeamResolver.resolve(teamName);
+        final filtered = allMatches.where((m) =>
+          TeamResolver.isTeamInMatch(m, legacyTeamId, teamName)
         ).toList();
         
         filtered.sort((a, b) => (b.dateTime ?? DateTime.now()).compareTo(a.dateTime ?? DateTime.now()));
@@ -325,6 +430,52 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
                   ),
           ),
           
+          // --- STATS TOURNOI (endpoint stats/, jointure athleteId) ---
+          if (_tournamentGoals != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'STATISTIQUES DU TOURNOI',
+                      style: TextStyle(
+                        color: _kGold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _TournamentStatPill(
+                            label: 'Buts',
+                            value: '${_tournamentGoals ?? 0}',
+                            icon: Icons.sports_soccer_rounded,
+                            highlight: true,
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _TournamentStatPill(
+                            label: 'Passes décisives',
+                            value: '${_tournamentAssists ?? 0}',
+                            icon: Icons.swap_calls_rounded,
+                            highlight: false,
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // --- MATCH TIMELINE ---
           if (_timelineLoading && _teamMatches.isEmpty)
             const SliverToBoxAdapter(
@@ -613,6 +764,67 @@ class _InfoRow extends StatelessWidget {
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TournamentStatPill extends StatelessWidget {
+  const _TournamentStatPill({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.highlight,
+    required this.isDark,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final bool highlight;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: highlight
+            ? _kGold.withValues(alpha: 0.16)
+            : (isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : const Color(0xFFF7F2E8)),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon,
+              size: 18, color: highlight ? _kGold : _kGold.withValues(alpha: 0.7)),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: highlight
+                  ? _kGold
+                  : (isDark ? Colors.white : const Color(0xFF16324A)),
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isDark ? Colors.white54 : const Color(0xFF6D7F8C),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

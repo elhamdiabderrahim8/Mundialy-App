@@ -52,6 +52,8 @@ class TeamPlayer {
     // --- Shirt number ---
     // SofaScore uses 'shirtNumber', API-SPORTS uses 'number'
     num ??= player['shirtNumber'] ?? json['shirtNumber'] ?? json['number'];
+    // 365Scores renvoie -1 quand inconnu → null (masqué + trié en fin).
+    if (num == -1) num = null;
 
     // --- Age ---
     // SofaScore provides dateOfBirthTimestamp (unix seconds)

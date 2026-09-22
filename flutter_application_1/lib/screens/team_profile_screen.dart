@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../data/competitions_catalog.dart';
 import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/team_player.dart';
 import '../models/team_profile.dart';
 import '../services/api_service.dart';
+import '../services/scores365_service.dart';
 import '../utils/country_flags.dart';
 import '../utils/standing_status.dart';
 import '../utils/team_resolver.dart';
@@ -20,11 +22,16 @@ class TeamProfileScreen extends StatefulWidget {
     required this.teamId,
     required this.teamName,
     this.year = 2022,
+    this.competitionId,
   });
 
   final int teamId;
   final String teamName;
   final int year;
+
+  /// Compétition d'origine (ID 365Scores global). Quand elle est connue, les
+  /// matchs et le classement viennent de CETTE compétition — pas de la CDM.
+  final int? competitionId;
 
   @override
   State<TeamProfileScreen> createState() => _TeamProfileScreenState();
@@ -49,7 +56,15 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    // On charge l'édition consultée + les matchs 2022 si on consulte 2026
+    // B: si la compétition d'origine est connue (ID 365 global, ex: CAN,
+    // Arab Cup), on charge SES matchs / SON classement — jamais la CDM.
+    final compId = widget.competitionId;
+    if (compId != null && compId > 0) {
+      await _loadCompetitionData(compId);
+      return;
+    }
+
+    // Chemin historique CDM (inchangé).
     final futures = <Future>[
       ApiService.fetchTeamProfile(
         teamId: widget.teamId,
@@ -113,6 +128,67 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
       _standingRow = standingRow;
       _isLoading = false;
     });
+  }
+
+  /// Charge matchs + classement + effectif pour UNE compétition donnée.
+  /// L'ID 365Scores est global : la même équipe (ex: Tunisie 5104) est
+  /// retrouvée par son ID dans n'importe quelle compétition.
+  Future<void> _loadCompetitionData(int compId) async {
+    try {
+      final results = await Future.wait([
+        ApiService.fetchTeamProfile(
+          teamId: widget.teamId,
+          teamName: widget.teamName,
+          year: widget.year,
+          competitionId: compId,
+        ),
+        Scores365Service.fetchAllMatchesForCompetition(
+          competitionId: compId,
+        ),
+        Scores365Service.fetchStandingsByCompetition(compId),
+      ]);
+
+      final allMatches = results[1] as List<LiveMatch>;
+      final teamMatches = allMatches
+          .where(
+            (m) => TeamResolver.isTeamInMatch(m, widget.teamId, widget.teamName),
+          )
+          .toList();
+      teamMatches.sort((a, b) => (b.dateTime ?? DateTime(0))
+          .compareTo(a.dateTime ?? DateTime(0)));
+
+      final standings = results[2] as List<GroupStanding>;
+      GroupStanding? teamStanding;
+      StandingTeam? standingRow;
+      for (final group in standings) {
+        for (final team in group.teams) {
+          if (TeamResolver.isSameTeam(
+            team.teamName,
+            team.teamId,
+            widget.teamName,
+            widget.teamId,
+          )) {
+            teamStanding = group;
+            standingRow = team;
+            break;
+          }
+        }
+        if (standingRow != null) break;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _profile = results[0] as TeamProfile?;
+        _matches = teamMatches;
+        _matches2022Extra = [];
+        _teamStanding = teamStanding;
+        _standingRow = standingRow;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -255,7 +331,7 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
               Expanded(
                 child: _InfoTile(
                   label: 'Édition',
-                  value: 'Coupe du Monde ${widget.year}',
+                  value: _competitionLabel,
                   isDark: isDark,
                 ),
               ),
@@ -467,11 +543,37 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
     );
   }
 
+  /// Nom de la compétition consultée (catalogue) ou repli CDM.
+  String get _competitionLabel {
+    if (widget.competitionId != null && widget.competitionId! > 0) {
+      final comp = CompetitionsCatalog.findById(widget.competitionId!);
+      if (comp != null) return comp.name;
+    }
+    return 'Coupe du Monde ${widget.year}';
+  }
+
   Widget _buildMatchesList(bool isDark) {
     if (_matches.isEmpty && _matches2022Extra.isEmpty) {
       return _buildEmptyCard(
         isDark: isDark,
         message: 'Aucun match trouvé pour cette équipe.',
+      );
+    }
+
+    // Mode compétition : une seule section (la vraie compétition).
+    if (widget.competitionId != null && widget.competitionId! > 0) {
+      return Column(
+        children: [
+          _buildTournamentHeader(_competitionLabel, isDark),
+          const SizedBox(height: 12),
+          ..._matches.map(
+            (match) => _TeamMatchCard(
+              match: match,
+              teamId: widget.teamId,
+              isDark: isDark,
+            ),
+          ),
+        ],
       );
     }
 
@@ -601,7 +703,9 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
                       playerName: player.name,
                       teamName: widget.teamName,
                       teamCode: _profile?.code,
+                      teamId: widget.teamId,
                       season: widget.year,
+                      competitionId: widget.competitionId,
                       shirtNumber: player.shirtNumber,
                       photoUrl: player.photoUrl,
                       position: player.position,

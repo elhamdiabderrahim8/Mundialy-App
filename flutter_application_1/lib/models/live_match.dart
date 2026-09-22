@@ -72,6 +72,7 @@ class LiveMatch {
   LiveMatch copyWithCompetitionInfo({
     required int competitionId,
     required String competitionName,
+    DateTime? dateTime,
   }) {
     return LiveMatch(
       id: id,
@@ -97,7 +98,7 @@ class LiveMatch {
       penaltyHome: penaltyHome,
       penaltyAway: penaltyAway,
       isLive: isLive,
-      dateTime: dateTime,
+      dateTime: dateTime ?? this.dateTime,
       streamUrl: streamUrl,
       statusShort: statusShort,
       statusLong: statusLong,
