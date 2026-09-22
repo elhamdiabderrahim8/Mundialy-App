@@ -2,7 +2,7 @@ name: flutter_application_1
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.0.6+6
+version: 2.0.7+7
 
 environment:
   sdk: ^3.12.0
@@ -25,6 +25,7 @@ dependencies:
   video_player: ^2.11.1
   chewie: ^1.14.1
   cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.0
   cronet_http: 1.8.0
   shimmer: ^3.0.0
   showcaseview: ^5.1.0
@@ -50,6 +51,11 @@ flutter:
     - assets/mundialy_logo.png
     - assets/trophy_watermark.png
     - assets/trophy_pitch.png
+    - assets/continents/africa.svg
+    - assets/continents/europe.svg
+    - assets/continents/asia.svg
+    - assets/continents/americas.svg
+    - assets/continents/world.svg
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,7 +1,8 @@
 // lib/screens/matches_tab.dart
 // Tab 1 — Tous les matchs de toutes les compétitions nationales masculines
-// Filtrage par : Date | Équipe | Compétition
+// Filtrage par : Matches (par date) | Compétition (par continents)
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
@@ -10,7 +11,7 @@ import '../widgets/competition_badge.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'competition_detail_screen.dart';
 
-enum MatchFilterMode { byDate, byTeam, byCompetition }
+enum MatchFilterMode { byDate, byCompetition }
 
 class MatchesTab extends StatefulWidget {
   const MatchesTab({super.key});
@@ -27,12 +28,11 @@ class _MatchesTabState extends State<MatchesTab> {
   bool _loading = false;
   String? _error;
 
-  // Filtre équipe
-  String? _selectedTeamName;
-  int? _selectedTeamId;
-
   // Filtre compétition
   Competition? _selectedCompetition;
+
+  // Continents dépliés dans le sélecteur de compétition
+  final Set<String> _expandedContinents = {};
 
   // Cache pour ne pas recharger à chaque changement de filtre
   bool _dataLoaded = false;
@@ -101,11 +101,6 @@ class _MatchesTabState extends State<MatchesTab> {
     switch (_filterMode) {
       case MatchFilterMode.byDate:
         return _allMatches;
-      case MatchFilterMode.byTeam:
-        if (_selectedTeamId == null) return [];
-        return _allMatches.where((m) =>
-            m.homeTeamId == _selectedTeamId ||
-            m.awayTeamId == _selectedTeamId).toList();
       case MatchFilterMode.byCompetition:
         if (_selectedCompetition == null) return [];
         return _allMatches
@@ -114,7 +109,7 @@ class _MatchesTabState extends State<MatchesTab> {
     }
   }
 
-  // Grouper les matchs par date puis par compétition (pour mode "Par Date")
+  // Grouper les matchs par date puis par compétition (mode "Matches")
   Map<String, Map<String, List<LiveMatch>>> get _groupedByDateAndComp {
     final map = <String, Map<String, List<LiveMatch>>>{};
     for (final m in _filteredMatches) {
@@ -123,24 +118,6 @@ class _MatchesTabState extends State<MatchesTab> {
       map.putIfAbsent(date, () => {}).putIfAbsent(comp, () => []).add(m);
     }
     return map;
-  }
-
-  // Liste unique de toutes les équipes pour le sélecteur
-  List<({int id, String name, String code})> get _allTeams {
-    final seen = <int, ({int id, String name, String code})>{};
-    for (final m in _allMatches) {
-      if (m.homeTeamId != null) {
-        seen[m.homeTeamId!] =
-            (id: m.homeTeamId!, name: m.homeTeam, code: m.homeCode);
-      }
-      if (m.awayTeamId != null) {
-        seen[m.awayTeamId!] =
-            (id: m.awayTeamId!, name: m.awayTeam, code: m.awayCode);
-      }
-    }
-    final list = seen.values.toList();
-    list.sort((a, b) => a.name.compareTo(b.name));
-    return list;
   }
 
   @override
@@ -153,9 +130,7 @@ class _MatchesTabState extends State<MatchesTab> {
       body: Column(
         children: [
           _buildFilterBar(isDark),
-          if (_filterMode == MatchFilterMode.byTeam && _selectedTeamId == null)
-            _buildTeamPicker(isDark)
-          else if (_filterMode == MatchFilterMode.byCompetition &&
+          if (_filterMode == MatchFilterMode.byCompetition &&
               _selectedCompetition == null)
             _buildCompetitionPicker(isDark)
           else
@@ -177,8 +152,6 @@ class _MatchesTabState extends State<MatchesTab> {
               child: GestureDetector(
                 onTap: () => setState(() {
                   _filterMode = mode;
-                  _selectedTeamName = null;
-                  _selectedTeamId = null;
                   _selectedCompetition = null;
                 }),
                 child: AnimatedContainer(
@@ -221,11 +194,9 @@ class _MatchesTabState extends State<MatchesTab> {
   String _modeLabel(MatchFilterMode mode) {
     switch (mode) {
       case MatchFilterMode.byDate:
-        return 'Par Date';
-      case MatchFilterMode.byTeam:
-        return 'Par Équipe';
+        return 'Matches';
       case MatchFilterMode.byCompetition:
-        return 'Par Compétition';
+        return 'Compétition';
     }
   }
 
@@ -287,14 +258,12 @@ class _MatchesTabState extends State<MatchesTab> {
     switch (_filterMode) {
       case MatchFilterMode.byDate:
         return _buildByDateView(isDark);
-      case MatchFilterMode.byTeam:
-        return _buildSimpleMatchList(isDark);
       case MatchFilterMode.byCompetition:
         return _buildSimpleMatchList(isDark);
     }
   }
 
-  // Mode "Par Date" : groupé date → compétition
+  // Mode "Matches" : groupé date → compétition
   Widget _buildByDateView(bool isDark) {
     final grouped = _groupedByDateAndComp;
     final dates = grouped.keys.toList();
@@ -352,107 +321,185 @@ class _MatchesTabState extends State<MatchesTab> {
     );
   }
 
-  // ── Sélecteur d'équipe ────────────────────────────────────────────
-  Widget _buildTeamPicker(bool isDark) {
-    final teams = _allTeams;
-    if (_loading) {
-      return const Expanded(
-          child: Center(child: CircularProgressIndicator(color: _gold)));
+  // ── Sélecteur de compétition : continents → compétitions ────────────
+  //
+  // Chaque continent (icône SVG de sa carte) se déplie dans la même page
+  // pour afficher ses compétitions. Un tap sur une compétition ouvre sa
+  // page (matchs, classements, tableau, buteurs).
+  static const List<_ContinentEntry> _continents = [
+    _ContinentEntry(
+      key: 'afrique',
+      label: 'Afrique',
+      asset: 'assets/continents/africa.svg',
+      confederations: [Confederation.caf],
+    ),
+    _ContinentEntry(
+      key: 'europe',
+      label: 'Europe',
+      asset: 'assets/continents/europe.svg',
+      confederations: [Confederation.uefa],
+    ),
+    _ContinentEntry(
+      key: 'asie',
+      label: 'Asie',
+      asset: 'assets/continents/asia.svg',
+      confederations: [Confederation.afc],
+    ),
+    _ContinentEntry(
+      key: 'amerique',
+      label: 'Amérique',
+      asset: 'assets/continents/americas.svg',
+      confederations: [Confederation.concacaf, Confederation.conmebol],
+    ),
+    _ContinentEntry(
+      key: 'monde',
+      label: 'Monde',
+      asset: 'assets/continents/world.svg',
+      confederations: [Confederation.fifa, Confederation.ofc],
+    ),
+  ];
+
+  List<Competition> _competitionsOf(_ContinentEntry continent) {
+    final comps = <Competition>[];
+    for (final conf in continent.confederations) {
+      comps.addAll(CompetitionsCatalog.byConfederation(conf));
     }
-    return Expanded(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              'Sélectionner une équipe',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black54,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: teams.length,
-              itemBuilder: (context, i) {
-                final t = teams[i];
-                return ListTile(
-                  leading: NationFlagBadge(
-                      countryCode: t.code, size: 36, teamName: t.name),
-                  title: Text(
-                    t.name,
-                    style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.w600),
-                  ),
-                  onTap: () => setState(() {
-                    _selectedTeamId = t.id;
-                    _selectedTeamName = t.name;
-                  }),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
+    comps.sort((a, b) {
+      if (a.isActive != b.isActive) return a.isActive ? -1 : 1;
+      return a.name.compareTo(b.name);
+    });
+    return comps;
   }
 
-  // ── Sélecteur de compétition ─────────────────────────────────────
   Widget _buildCompetitionPicker(bool isDark) {
-    final grouped = CompetitionsCatalog.groupedByConfederation;
+    final textColor = isDark ? Colors.white : Colors.black;
     return Expanded(
       child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 24),
-        itemCount: grouped.length,
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+        itemCount: _continents.length,
         itemBuilder: (context, i) {
-          final conf = grouped.keys.elementAt(i);
-          final comps = grouped[conf]!;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                child: Text(
-                  conf,
-                  style: const TextStyle(
-                    color: _gold,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                    letterSpacing: 1,
+          final continent = _continents[i];
+          final comps = _competitionsOf(continent);
+          final expanded = _expandedContinents.contains(continent.key);
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: expanded
+                    ? _gold.withValues(alpha: 0.6)
+                    : (isDark ? Colors.white10 : Colors.grey.shade300),
+              ),
+            ),
+            child: Column(
+              children: [
+                InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  onTap: () => setState(() {
+                    if (expanded) {
+                      _expandedContinents.remove(continent.key);
+                    } else {
+                      _expandedContinents.add(continent.key);
+                    }
+                  }),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: _gold.withValues(alpha: 0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: SvgPicture.asset(
+                            continent.asset,
+                            width: 30,
+                            height: 30,
+                            colorFilter: const ColorFilter.mode(
+                                _gold, BlendMode.srcIn),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                continent.label,
+                                style: TextStyle(
+                                    color: textColor,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${comps.length} compétitions',
+                                style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.grey.shade600,
+                                    fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: expanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(Icons.expand_more_rounded,
+                              color: isDark
+                                  ? Colors.white54
+                                  : Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              ...comps.map((comp) => ListTile(
-                    leading: CompetitionBadge(
-                      competition: comp,
-                      size: 36,
-                    ),
-                    title: Text(
-                      comp.name,
-                      style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14),
-                    ),
-                    subtitle: comp.isActive
-                        ? const Text('EN COURS',
-                            style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700))
-                        : null,
-                    trailing: const Icon(Icons.chevron_right,
-                        color: Colors.grey),
-                    onTap: () {
-                      // Ouvre directement la page compétition
-                      _openCompetition(comp.id);
-                    },
-                  )),
-              const Divider(height: 1, thickness: 0.5),
-            ],
+                if (expanded) ...[
+                  Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      color: isDark ? Colors.white10 : Colors.grey.shade300),
+                  ...comps.map((comp) => ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 2),
+                        leading: CompetitionBadge(
+                          competition: comp,
+                          size: 36,
+                        ),
+                        title: Text(
+                          comp.name,
+                          style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14),
+                        ),
+                        subtitle: comp.isActive
+                            ? const Text('EN COURS',
+                                style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700))
+                            : null,
+                        trailing: const Icon(Icons.chevron_right,
+                            color: Colors.grey),
+                        onTap: () {
+                          // Ouvre la page compétition (matchs, classements,
+                          // tableau, buteurs).
+                          _openCompetition(comp.id);
+                        },
+                      )),
+                  const SizedBox(height: 6),
+                ],
+              ],
+            ),
           );
         },
       ),
@@ -477,6 +524,24 @@ class _MatchesTabState extends State<MatchesTab> {
       _openCompetition(match.competitionId!);
     }
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODÈLE CONTINENT (sélecteur de compétition)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Un continent du sélecteur : libellé + icône SVG (carte) + confédérations.
+class _ContinentEntry {
+  const _ContinentEntry({
+    required this.key,
+    required this.label,
+    required this.asset,
+    required this.confederations,
+  });
+  final String key;
+  final String label;
+  final String asset;
+  final List<Confederation> confederations;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
