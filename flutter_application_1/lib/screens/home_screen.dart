@@ -369,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final Color textColor = isDark ? Colors.white : Colors.black87;
 
-    if (_selectedTab == 1) {
+    if (_selectedTab == 2) {
       return Scaffold(
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
