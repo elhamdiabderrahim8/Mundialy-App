@@ -16,6 +16,7 @@ import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
 import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
+import 'competition_detail_screen.dart';
 
 const Color kGold = Color(0xFFE7C16A);
 const Color _kPasserColor = Color(0xFF38BDF8);
@@ -442,6 +443,41 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                if (match.competitionName != null &&
+                    match.competitionName!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  InkWell(
+                    onTap: match.competitionId == null
+                        ? null
+                        : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CompetitionDetailScreen(
+                                  competitionId: match.competitionId!,
+                                  overrideName: match.competitionName,
+                                ),
+                              ),
+                            ),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      child: Text(
+                        match.competitionName!,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: match.competitionId != null
+                              ? kGold
+                              : textColor.withValues(alpha: 0.55),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 2),
                 Text(
                   match.isLive ? 'EN DIRECT • ${match.statusDisplay}' : match.statusDisplay,

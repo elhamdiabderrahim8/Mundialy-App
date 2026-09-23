@@ -48,22 +48,25 @@ class MatchCard extends StatelessWidget {
 
   Widget _buildLiveCard(BuildContext context, bool isDark) {
     final String scoreText = match.scoreHome != null
-        ? '${match.scoreHome}  -  ${match.scoreAway}'
-        : '–  –';
+        ? '${match.scoreHome} - ${match.scoreAway}'
+        : '– –';
     final String? penaltyText =
         (match.penaltyHome != null && match.penaltyAway != null)
-        ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)'
-        : null;
+            ? '(${match.penaltyHome}-${match.penaltyAway} tab)'
+            : null;
+    final Color cardBg = isDark ? const Color(0xFF1A1A2E) : Colors.white;
+    final Color teamColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+    final Color scoreColor = isDark ? Colors.redAccent : const Color(0xFFC62828);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.redAccent.withValues(alpha: 0.6), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.redAccent.withValues(alpha: 0.12),
+            color: Colors.redAccent.withValues(alpha: isDark ? 0.12 : 0.08),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -106,69 +109,77 @@ class MatchCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                // ── Teams + Score Row ──
+                // ── Teams + Score Row (même densité que la carte terminée) ──
                 Row(
                   children: [
-                    // Home team name
                     Expanded(
-                      child: GestureDetector(
-                        onTap: match.homeTeamId == null
-                            ? null
-                            : () => openTeamProfile(
-                                context,
-                                teamName: match.homeTeam,
-                                teamId: match.homeTeamId,
-                                year: match.dateTime?.year ?? 2026,
-                                competitionId: match.competitionId,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: match.homeTeamId == null
+                                  ? null
+                                  : () => openTeamProfile(
+                                      context,
+                                      teamName: match.homeTeam,
+                                      teamId: match.homeTeamId,
+                                      year: match.dateTime?.year ?? 2026,
+                                      competitionId: match.competitionId,
+                                    ),
+                              child: Text(
+                                match.homeTeam,
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  color: teamColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                        child: Text(
-                          match.homeTeam,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 8),
+                          Hero(
+                            tag: 'logo_home_${match.id}',
+                            child: NationFlagBadge(
+                              countryCode: match.homeCode,
+                              teamName: match.homeTeam,
+                              size: 24,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    // Home flag
-                    Hero(
-                      tag: 'logo_home_${match.id}',
-                      child: NationFlagBadge(
-                        countryCode: match.homeCode,
-                        teamName: match.homeTeam,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Score
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      transitionBuilder: (child, anim) => FadeTransition(
-                        opacity: anim,
-                        child: ScaleTransition(scale: anim, child: child),
-                      ),
+                    SizedBox(
+                      width: 80,
                       child: Column(
-                        key: ValueKey(scoreText),
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            scoreText,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 400),
+                            transitionBuilder: (child, anim) => FadeTransition(
+                              opacity: anim,
+                              child: ScaleTransition(scale: anim, child: child),
+                            ),
+                            child: Text(
+                              scoreText,
+                              key: ValueKey(scoreText),
+                              style: TextStyle(
+                                color: scoreColor,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
                           if (penaltyText != null)
                             Text(
                               penaltyText,
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.55)
+                                    : Colors.black.withValues(alpha: 0.45),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -176,40 +187,43 @@ class MatchCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    // Away flag
-                    Hero(
-                      tag: 'logo_away_${match.id}',
-                      child: NationFlagBadge(
-                        countryCode: match.awayCode,
-                        teamName: match.awayTeam,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Away team name
                     Expanded(
-                      child: GestureDetector(
-                        onTap: match.awayTeamId == null
-                            ? null
-                            : () => openTeamProfile(
-                                context,
-                                teamName: match.awayTeam,
-                                teamId: match.awayTeamId,
-                                year: match.dateTime?.year ?? 2026,
-                                competitionId: match.competitionId,
-                              ),
-                        child: Text(
-                          match.awayTeam,
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Hero(
+                            tag: 'logo_away_${match.id}',
+                            child: NationFlagBadge(
+                              countryCode: match.awayCode,
+                              teamName: match.awayTeam,
+                              size: 24,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: match.awayTeamId == null
+                                  ? null
+                                  : () => openTeamProfile(
+                                      context,
+                                      teamName: match.awayTeam,
+                                      teamId: match.awayTeamId,
+                                      year: match.dateTime?.year ?? 2026,
+                                      competitionId: match.competitionId,
+                                    ),
+                              child: Text(
+                                match.awayTeam,
+                                style: TextStyle(
+                                  color: teamColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

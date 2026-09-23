@@ -144,6 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingAllMatches = false;
           _allMatchesLoaded = true;
         });
+        // Dès que la liste Matchs est prête, on démarre le polling scores
+        _startSilentScoreRefresh();
       }
     } catch (e) {
       debugPrint("DEBUG: Error in _loadAllMatches: $e");
@@ -262,48 +264,94 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   java_timer.Timer? _silentRefreshTimer;
+  bool _scorePollBusy = false;
 
-  void _startSilentScoreRefresh() {
-    _silentRefreshTimer?.cancel();
+  bool _hasLiveOrToday(List<LiveMatch> source) {
     final now = DateTime.now();
-    final hasLiveOrTodayMatches = _matches.any((m) {
+    return source.any((m) {
       if (m.isLive) return true;
       final dt = m.dateTime;
       if (dt == null) return false;
       return dt.year == now.year && dt.month == now.month && dt.day == now.day;
     });
-    if (!hasLiveOrTodayMatches || _selectedYear == 2022) return;
-    // Refresh silencieux toutes les 15 secondes pour le dynamisme
+  }
+
+  /// Met à jour une liste en place : scores / statuts remplacés par [fresh]
+  /// sans casser l'identité des objets affichés ailleurs.
+  List<LiveMatch> _mergeFreshScores(List<LiveMatch> current, List<LiveMatch> fresh) {
+    if (fresh.isEmpty) return current;
+    final freshById = {for (final m in fresh) m.id: m};
+    var changed = false;
+    final merged = current.map((m) {
+      final f = freshById[m.id];
+      if (f == null) return m;
+      if (m.scoreHome != f.scoreHome ||
+          m.scoreAway != f.scoreAway ||
+          m.isLive != f.isLive ||
+          m.statusShort != f.statusShort ||
+          m.matchMinute != f.matchMinute) {
+        changed = true;
+        return f;
+      }
+      return m;
+    }).toList();
+    // Ajouter les nouveaux matchs live du jour absents de la liste
+    for (final f in fresh) {
+      if (!current.any((m) => m.id == f.id)) {
+        merged.add(f);
+        changed = true;
+      }
+    }
+    return changed ? merged : current;
+  }
+
+  void _startSilentScoreRefresh() {
+    _silentRefreshTimer?.cancel();
+    if (_selectedYear == 2022) return;
+    // 12 s : réactif sans spammer le WAF 365Scores.
+    // Toujours actif (pas conditionné aux lives) : un match peut demarrer
+    // après le chargement initial.
     _silentRefreshTimer = java_timer.Timer.periodic(
-      const Duration(seconds: 15),
+      const Duration(seconds: 12),
       (_) async {
-        if (!mounted) return;
+        if (!mounted || _scorePollBusy) return;
+        // Inutile de poller s'il n'y a rien d'intéressant à suivre
+        if (!_hasLiveOrToday(_matches) && !_hasLiveOrToday(_allMatches)) {
+          return;
+        }
+        _scorePollBusy = true;
         try {
-          final freshMatches = await ApiService.fetchMatches(
+          final freshLives = await ApiService.fetchLiveMatches();
+          final freshHome = await ApiService.fetchMatches(
             year: _selectedYear,
             forceRefresh: true,
           );
-          if (mounted && freshMatches.isNotEmpty) {
-            bool scoreChanged = false;
-            for (var fresh in freshMatches) {
-              final old = _matches.firstWhere(
-                (m) => m.id == fresh.id,
-                orElse: () => fresh,
-              );
-              if (old.scoreHome != fresh.scoreHome ||
-                  old.scoreAway != fresh.scoreAway) {
-                scoreChanged = true;
-                break;
-              }
-            }
 
-            if (scoreChanged) {
-              HapticFeedback.heavyImpact();
-            }
+          if (!mounted) return;
 
-            setState(() => _matches = freshMatches);
+          final nextMatches = _mergeFreshScores(
+            _matches,
+            freshHome.isEmpty ? freshLives : freshHome,
+          );
+          final nextAll = _mergeFreshScores(
+            _allMatches,
+            freshLives.isNotEmpty ? freshLives : freshHome,
+          );
+
+          final scoreChanged =
+              !identical(nextMatches, _matches) || !identical(nextAll, _allMatches);
+          if (scoreChanged) {
+            HapticFeedback.heavyImpact();
+            setState(() {
+              _matches = nextMatches;
+              _allMatches = nextAll;
+            });
           }
-        } catch (_) {}
+        } catch (_) {
+          // Réseau / WAF : on réessaiera au tick suivant
+        } finally {
+          _scorePollBusy = false;
+        }
       },
     );
   }
