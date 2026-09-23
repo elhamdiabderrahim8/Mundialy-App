@@ -52,6 +52,7 @@ flutter:
     - assets/trophy_watermark.png
     - assets/trophy_pitch.png
     - assets/competitions/caf.png
+    - assets/competitions/uefa_nations_league.png
     - assets/continents/africa.svg
     - assets/continents/europe.svg
     - assets/continents/asia.svg
