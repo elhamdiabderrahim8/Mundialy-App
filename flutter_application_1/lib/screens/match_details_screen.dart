@@ -16,8 +16,6 @@ import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
 import '../utils/player_navigation.dart';
 import '../utils/team_navigation.dart';
-import '../models/match_news.dart';
-import '../services/scores365_service.dart';
 
 const Color kGold = Color(0xFFE7C16A);
 const Color _kPasserColor = Color(0xFF38BDF8);

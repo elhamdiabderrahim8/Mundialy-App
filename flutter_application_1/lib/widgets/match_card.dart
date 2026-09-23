@@ -8,7 +8,6 @@ import '../services/api_service.dart';
 import '../utils/app_routes.dart';
 import '../utils/lang_utils.dart';
 import '../utils/team_navigation.dart';
-import '../screens/competition_detail_screen.dart';
 import '../screens/match_details_screen.dart';
 import 'bouncing_card.dart';
 import 'fade_slide_entrance.dart';
@@ -81,42 +80,6 @@ class MatchCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (match.competitionName != null && match.competitionName!.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      if (match.competitionId != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CompetitionDetailScreen(
-                              competitionId: match.competitionId!,
-                              overrideName: match.competitionName,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: kMatchCardGold.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            match.competitionName!,
-                            style: TextStyle(
-                              color: isDark ? kMatchCardGold : const Color(0xFFB8860B),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                 // Top section: Pulse + minute + épingler ──
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -299,38 +262,6 @@ class MatchCard extends StatelessWidget {
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  if (match.competitionName != null && match.competitionName!.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        if (match.competitionId != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CompetitionDetailScreen(
-                                competitionId: match.competitionId!,
-                                overrideName: match.competitionName,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: kMatchCardGold.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          match.competitionName!,
-                          style: TextStyle(
-                            color: isDark ? kMatchCardGold : const Color(0xFFB8860B),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
                   // Top row: status + phase
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

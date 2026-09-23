@@ -21,7 +21,6 @@ import '../utils/standing_status.dart';
 import '../utils/mock_matches_data.dart';
 import '../widgets/nation_flag_badge.dart';
 import 'matches_list_tab.dart';
-import 'matches_tab.dart';
 import 'match_details_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../utils/team_navigation.dart';
@@ -29,6 +28,7 @@ import '../utils/app_globals.dart';
 import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/match_card.dart';
+import '../widgets/competition_badge.dart';
 import '../widgets/continent_competition_picker.dart';
 import '../widgets/inline_adaptive_banner.dart';
 import '../widgets/loading_skeletons.dart';
@@ -83,58 +83,44 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoadingAllMatches = true;
     });
 
-    // Le système est en 2026, mais l'API 365Scores n'a pas encore de matchs pour 2026.
-    // On va donc interroger l'API pour 2024, et décaler virtuellement les matchs en 2026
-    // pour qu'ils s'affichent dans notre beau calendrier !
+    // Fenêtre réelle autour d'aujourd'hui (pas de décalage artificiel d'année).
     final now = DateTime.now();
-    final realNow = DateTime(now.year - 2, now.month, now.day);
-    final start = _formatDate(realNow.subtract(const Duration(days: 15)));
-    final end = _formatDate(realNow.add(const Duration(days: 15)));
+    final start = _formatDate(now.subtract(const Duration(days: 15)));
+    final end = _formatDate(now.add(const Duration(days: 15)));
 
     final toFetch = CompetitionsCatalog.all;
 
     try {
       final results = <LiveMatch>[];
-      
+
       // Fetch sequentially in small batches to avoid 365Scores Web Filter / Rate limit blocks!
       final batchSize = 3;
       for (var i = 0; i < toFetch.length; i += batchSize) {
         final batch = toFetch.sublist(i, i + batchSize > toFetch.length ? toFetch.length : i + batchSize);
         final futures = batch.map((comp) => Scores365Service.fetchMatchesByCompetition(
           competitionId: comp.id,
+          startDate: start,
+          endDate: end,
           competitionName: comp.name,
         ));
-        
+
         final batchResults = await Future.wait(futures.map((f) => f.catchError((_) => <LiveMatch>[])));
         for (final list in batchResults) {
           results.addAll(list);
         }
-        
+
         // Pause pour ne pas spammer l'API (Fortinet WAF)
         await Future.delayed(const Duration(milliseconds: 400));
       }
 
+      // Dates API telles quelles : statut/score et calendrier restent cohérents.
       var all = results;
-      
-      // Patch pour afficher ces matchs réels de 2024 dans notre interface de 2026
-      all = all.map((m) {
-        if (m.dateTime != null) {
-          final dt = m.dateTime!;
-          final patchedDate = DateTime(2026, dt.month, dt.day, dt.hour, dt.minute);
-          return m.copyWithCompetitionInfo(
-            competitionId: m.competitionId ?? 0,
-            competitionName: m.competitionName ?? '',
-            dateTime: patchedDate,
-          );
-        }
-        return m;
-      }).toList();
       all.sort((a, b) =>
           (b.dateTime ?? DateTime(0)).compareTo(a.dateTime ?? DateTime(0)));
 
       if (all.isEmpty) {
         debugPrint('⚠️ API returned 0 matches (Network block?), using mock fallback');
-        final todayMock = DateTime(2026, DateTime.now().month, DateTime.now().day, 20, 0);
+        final todayMock = DateTime(now.year, now.month, now.day, 20, 0);
         all = [
           LiveMatch(
             id: '9991', dateLabel: 'Aujourd\'hui', localTime: '20:00', city: 'London',
@@ -846,6 +832,55 @@ class _HomeScreenState extends State<HomeScreen> {
     return widgets;
   }
 
+  void _openCompetition(int competitionId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CompetitionDetailScreen(competitionId: competitionId),
+      ),
+    );
+  }
+
+  /// Groupe une liste de matchs par compétition (nom). L'ordre des groupes
+  /// suit le premier match rencontré, les matchs gardent leur ordre.
+  Map<String, List<LiveMatch>> _groupByCompetition(List<LiveMatch> matches) {
+    final map = <String, List<LiveMatch>>{};
+    for (final m in matches) {
+      final key = (m.competitionName?.isNotEmpty == true)
+          ? m.competitionName!
+          : 'Autres';
+      map.putIfAbsent(key, () => []).add(m);
+    }
+    return map;
+  }
+
+  /// Construit : header compétition (logo + nom + compteur, cliquable)
+  /// puis les cartes (sans nom de compétition dessus).
+  List<Widget> _buildCompetitionGroups(
+      List<LiveMatch> matches, Color textColor) {
+    final grouped = _groupByCompetition(matches);
+    final widgets = <Widget>[];
+    for (final entry in grouped.entries) {
+      final first = entry.value.first;
+      widgets.add(
+        _CompetitionGroupHeader(
+          name: entry.key,
+          competitionId: first.competitionId,
+          matchCount: entry.value.length,
+          onTap: first.competitionId != null
+              ? () => _openCompetition(first.competitionId!)
+              : null,
+        ),
+      );
+      for (final m in entry.value) {
+        widgets.add(
+          _MatchCard(match: m, year: _selectedYear, textColor: textColor),
+        );
+      }
+    }
+    return widgets;
+  }
+
   Widget _buildPagedMatchView(Color textColor, List<LiveMatch> matches, List<GroupStanding> standings) {
     if (_selectedTab == 1 && _matchFilterMode == 0) {
       return _buildPagedDateMatchView(textColor, matches, standings);
@@ -951,7 +986,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
 
-        // Live matches section
+        // Live matches section → groupés par compétition
         if (liveMatches.isNotEmpty) {
           items.add(
             _StatusSectionHeader(
@@ -960,14 +995,10 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.redAccent,
             ),
           );
-          for (final m in liveMatches) {
-            items.add(
-              _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-            );
-          }
+          items.addAll(_buildCompetitionGroups(liveMatches, textColor));
         }
 
-        // Upcoming matches section
+        // Upcoming matches section → groupés par compétition
         if (upcomingMatches.isNotEmpty) {
           items.add(
             _StatusSectionHeader(
@@ -976,17 +1007,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: _kGold,
             ),
           );
-          for (var i = 0; i < upcomingMatches.length; i++) {
-            final m = upcomingMatches[i];
-            items.add(
-              _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-            );
-            if (i == 2 && upcomingMatches.length >= 5) {
-              items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
-            }
+          items.addAll(_buildCompetitionGroups(upcomingMatches, textColor));
+          if (upcomingMatches.length >= 5) {
+            items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
           }
         }
-        // Finished matches section
+        // Finished matches section → groupés par compétition
         if (finishedMatches.isNotEmpty) {
           items.add(
             _StatusSectionHeader(
@@ -995,11 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.grey,
             ),
           );
-          for (final m in finishedMatches) {
-            items.add(
-              _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-            );
-          }
+          items.addAll(_buildCompetitionGroups(finishedMatches, textColor));
         }
 
         return ListView(
@@ -1116,11 +1138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.redAccent,
               ),
             );
-            for (final m in liveMatches) {
-              items.add(
-                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-              );
-            }
+            items.addAll(_buildCompetitionGroups(liveMatches, textColor));
           }
           if (upcomingMatches.isNotEmpty) {
             items.add(
@@ -1130,14 +1148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: _kGold,
               ),
             );
-            for (var i = 0; i < upcomingMatches.length; i++) {
-              final m = upcomingMatches[i];
-              items.add(
-                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-              );
-              if (i == 2 && upcomingMatches.length >= 5) {
-                items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
-              }
+            items.addAll(_buildCompetitionGroups(upcomingMatches, textColor));
+            if (upcomingMatches.length >= 5) {
+              items.add(const InlineAdaptiveBanner(horizontalMargin: 0));
             }
           }
           if (finishedMatches.isNotEmpty) {
@@ -1148,11 +1161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.grey,
               ),
             );
-            for (final m in finishedMatches) {
-              items.add(
-                _MatchCard(match: m, year: _selectedYear, textColor: textColor),
-              );
-            }
+            items.addAll(_buildCompetitionGroups(finishedMatches, textColor));
           }
         }
 
@@ -1880,6 +1889,87 @@ class _MatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MatchCard(match: match, year: year, textColor: textColor);
+  }
+}
+
+/// Header de groupe compétition : logo + nom + compteur, cliquable vers
+/// la page compétition. Le nom n'est plus répété sur les cartes.
+class _CompetitionGroupHeader extends StatelessWidget {
+  const _CompetitionGroupHeader({
+    required this.name,
+    required this.competitionId,
+    required this.matchCount,
+    required this.onTap,
+  });
+  final String name;
+  final int? competitionId;
+  final int matchCount;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final comp = competitionId != null
+        ? CompetitionsCatalog.findById(competitionId!)
+        : null;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
+        ),
+        child: Row(
+          children: [
+            CompetitionBadge(competition: comp, size: 26, iconSize: 14),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                name,
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF1A2A3A),
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(right: 6),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: _kGold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$matchCount',
+                style: const TextStyle(
+                  color: _kGold,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+            if (onTap != null)
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 12,
+                color: isDark ? Colors.white38 : Colors.black38,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

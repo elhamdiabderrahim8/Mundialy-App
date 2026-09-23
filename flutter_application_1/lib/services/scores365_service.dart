@@ -9,7 +9,6 @@ import '../models/live_match.dart';
 import '../models/match_details.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
-import '../models/match_news.dart';
 import '../utils/country_flags.dart';
 import '../utils/lang_utils.dart';
 
@@ -43,13 +42,13 @@ class Scores365Service {
   // ── Fonction de décodage isolée (tourne dans un thread séparé) ───────────
   static Map<String, dynamic>? _decodeJson(List<int> bytes) {
     try {
-      // Tenter la décompression gzip si nécessaire
-      List<int> decoded;
-      try {
-        decoded = GZipCodec().decode(bytes);
-      } catch (_) {
-        decoded = bytes; // Déjà non compressé
-      }
+      // Magic bytes gzip (0x1f 0x8b) : évite un try/catch coûteux
+      // sur chaque réponse non compressée.
+      final List<int> decoded = (bytes.length >= 2 &&
+              bytes[0] == 0x1f &&
+              bytes[1] == 0x8b)
+          ? GZipCodec().decode(bytes)
+          : bytes;
       final str = utf8.decode(decoded, allowMalformed: true);
       return jsonDecode(str) as Map<String, dynamic>?;
     } catch (_) {
@@ -85,7 +84,7 @@ class Scores365Service {
 
   static Future<List<LiveMatch>> fetchLiveMatches() async {
     final data = await _fetchJson(
-      'games/current/?$baseParams&competitions=$wcCompetitionId&showOdds=true',
+      'games/current/?$baseParams&competitions=$wcCompetitionId',
     );
     if (data == null || data['games'] == null) return [];
 
@@ -209,22 +208,6 @@ class Scores365Service {
     return uniqueMatches.values.toList();
   }
 
-  static Future<List<LiveMatch>> fetchMatchesForMultipleCompetitions({
-    required List<int> competitionIds,
-    String? startDate,
-    String? endDate,
-  }) async {
-    final compString = competitionIds.join(',');
-    String endpoint = 'games/?$baseParams&competitions=$compString';
-    if (startDate != null && endDate != null) {
-      endpoint += '&startDate=$startDate&endDate=$endDate';
-    }
-    final data = await _fetchJson(endpoint);
-    if (data == null || data['games'] == null) return [];
-    final games = data['games'] as List;
-    return games.map((g) => _mapToLiveMatch(g)).toList();
-  }
-
   /// TOUS les fixtures d'UNE équipe, toutes compétitions confondues, via le
   /// filtre natif `competitors=` (supporté par results/current/fixtures).
   /// 3 appels, dédupliqués par ID. Chaque match garde SA compétition
@@ -271,23 +254,6 @@ class Scores365Service {
     );
     if (data == null || data['brackets'] == null) return null;
     return data;
-  }
-
-  /// Fetch les matchs live d'une compétition quelconque.
-  static Future<List<LiveMatch>> fetchLiveMatchesByCompetition(
-      int competitionId) async {
-    final data = await _fetchJson(
-      'games/current/?$baseParams&competitions=$competitionId&showOdds=true',
-    );
-    if (data == null || data['games'] == null) return [];
-    final games = data['games'] as List;
-    return games
-        .where((g) => (g['statusGroup'] as int? ?? 0) == 3)
-        .map((g) => _mapToLiveMatch(g).copyWithCompetitionInfo(
-              competitionId: competitionId,
-              competitionName: g['competitionDisplayName']?.toString() ?? '',
-            ))
-        .toList();
   }
 
   /// Fetch les classements d'une compétition quelconque.
@@ -471,25 +437,6 @@ class Scores365Service {
     }
     return scorers;
   }
-
-  /// Extrait les buteurs depuis la réponse API (compat : délègue au parser réel).
-  static List<TopScorer> _extractTopScorers(Map<String, dynamic> data) {
-    return parseAthletesStats(data);
-  }
-
-
-  /// Fetch les métadonnées d'une compétition (nom, saisons, hasStandings...).
-  static Future<Map<String, dynamic>?> fetchCompetitionMeta(
-      int competitionId) async {
-    final data = await _fetchJson(
-      'competitions/?$baseParams&competitions=$competitionId&withSeasons=true&withBestOdds=true&isDashboard=true',
-    );
-    if (data == null) return null;
-    final comps = data['competitions'] as List?;
-    if (comps == null || comps.isEmpty) return null;
-    return comps.first as Map<String, dynamic>?;
-  }
-
 
   static LiveMatch _mapToLiveMatch(Map<String, dynamic> g) {
     final home = g['homeCompetitor'] ?? {};
@@ -1200,53 +1147,7 @@ class Scores365Service {
     }
     final data = await _fetchJson(endpoint);
     if (data == null || data['standings'] == null) return [];
-
-    final standings = data['standings'] as List;
-    if (standings.isEmpty) return [];
-
-    final rows = standings[0]['rows'] as List? ?? [];
-    if (rows.isEmpty) return [];
-
-    final Map<int, List<dynamic>> groupedRows = {};
-    for (var r in rows) {
-      final gNum = r['groupNum'] as int? ?? 1;
-      groupedRows.putIfAbsent(gNum, () => []);
-      groupedRows[gNum]!.add(r);
-    }
-
-    final List<GroupStanding> groups = [];
-
-    groupedRows.forEach((groupNum, groupRows) {
-      final groupName = 'Group ${String.fromCharCode(64 + groupNum)}';
-
-      final teams = groupRows.map((r) {
-        final comp = r['competitor'] ?? {};
-        return StandingTeam.fromApi({
-          'team': {'id': comp['id'], 'name': comp['name']},
-          'rank': r['position']?.toInt(),
-          'points': r['points']?.toInt(),
-          'isQualified': comp['isQualified'],
-          'toQualify': comp['toQualify'],
-          'all': {
-            'played': r['gamePlayed']?.toInt() ?? 0,
-            'win': r['gamesWon']?.toInt() ?? 0,
-            'draw': r['gamesEven']?.toInt() ?? 0,
-            'lose': r['gamesLost']?.toInt() ?? 0,
-            'goals': {
-              'for': r['for']?.toInt() ?? 0,
-              'against': r['against']?.toInt() ?? 0,
-            },
-          },
-          'goalsDiff': r['ratio']?.toInt() ?? 0,
-        });
-      }).toList();
-
-      groups.add(
-        GroupStanding(groupName: groupName, teams: teams.cast<StandingTeam>()),
-      );
-    });
-
-    return groups;
+    return _extractGroupStandings(data);
   }
 
   // ============================================================
@@ -1469,15 +1370,6 @@ class Scores365Service {
   }
 
 
-  static Future<Map<String, dynamic>?> fetchPlayerNationalStats(
-    int playerId,
-  ) async => null;
-  static Future<Map<String, dynamic>?> fetchPlayerCharacteristics(
-    int playerId,
-  ) async => null;
-  static Future<Map<String, dynamic>?> fetchPlayerAttributes(
-    int playerId,
-  ) async => null;
   static Future<Map<String, dynamic>?> fetchPlayerStats(
     int playerId,
     int seasonId,
@@ -1515,22 +1407,5 @@ class Scores365Service {
     if (data == null) return [];
     // Parser unique : fusion Goals + Assists, résolution noms d'équipes.
     return parseAthletesStats(data);
-  }
-
-  static Future<List<MatchNews>> fetchMatchNews(int matchId) async {
-    final url = 'news/?$baseParams&gameId=$matchId';
-    final data = await _fetchJson(url);
-    if (data == null || data['news'] == null) return [];
-
-    // Parse newsSources to map
-    final Map<int, String> sourcesMap = {};
-    if (data['newsSources'] != null) {
-      for (final source in data['newsSources']) {
-        sourcesMap[source['id']] = source['name'];
-      }
-    }
-
-    final newsList = data['news'] as List;
-    return newsList.map((item) => MatchNews.fromJson(item, sourcesMap)).toList();
   }
 }

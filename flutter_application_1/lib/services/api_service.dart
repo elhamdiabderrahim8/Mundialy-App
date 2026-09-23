@@ -655,20 +655,13 @@ class ApiService {
           ? GlobalConfig.season2022Id
           : GlobalConfig.season2026Id;
 
-      final results = await Future.wait([
-        Scores365Service.fetchPlayerNationalStats(playerId),
-        Scores365Service.fetchPlayerCharacteristics(playerId),
-        Scores365Service.fetchPlayerAttributes(playerId),
-        Scores365Service.fetchPlayerStats(playerId, seasonId),
-      ]);
-      final data = {
-        'nationalStats': results[0],
-        'characteristics': results[1],
-        'attributes': results[2],
-        'tournamentStats': results[3],
-      };
-      _setCache(cacheKey, data);
-      return data;
+      // fetchPlayerStats renvoie déjà {characteristics, attributes,
+      // nationalStats, tournamentStats} — pas de stubs ni de nesting.
+      final data = await Scores365Service.fetchPlayerStats(playerId, seasonId);
+      if (data != null) {
+        _setCache(cacheKey, data);
+        return data;
+      }
     } catch (e) {
       debugPrint('❌ fetchPlayerStats Error: $e');
     }

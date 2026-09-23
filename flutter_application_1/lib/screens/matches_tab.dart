@@ -58,17 +58,29 @@ class _MatchesTabState extends State<MatchesTab> {
     final toFetch = CompetitionsCatalog.all;
 
     try {
-      final results = await Future.wait(
-        toFetch.map((comp) => Scores365Service.fetchMatchesByCompetition(
+      // Même batching que home_screen : évite le rate-limit 365Scores (WAF).
+      final results = <LiveMatch>[];
+      const batchSize = 3;
+      for (var i = 0; i < toFetch.length; i += batchSize) {
+        final batch = toFetch.sublist(
+            i, i + batchSize > toFetch.length ? toFetch.length : i + batchSize);
+        final futures = batch.map((comp) =>
+            Scores365Service.fetchMatchesByCompetition(
               competitionId: comp.id,
               startDate: start,
               endDate: end,
               competitionName: comp.name,
-            ).catchError((_) => <LiveMatch>[])),
-        eagerError: false,
-      );
+            ).catchError((_) => <LiveMatch>[]));
+        final batchResults = await Future.wait(futures);
+        for (final list in batchResults) {
+          results.addAll(list);
+        }
+        if (i + batchSize < toFetch.length) {
+          await Future.delayed(const Duration(milliseconds: 400));
+        }
+      }
 
-      final all = results.expand((list) => list).toList();
+      final all = results;
       all.sort((a, b) =>
           (b.dateTime ?? DateTime(0)).compareTo(a.dateTime ?? DateTime(0)));
 
@@ -283,6 +295,7 @@ class _MatchesTabState extends State<MatchesTab> {
                   name: compEntry.key,
                   isDark: isDark,
                   competitionId: compEntry.value.first.competitionId,
+                  matchCount: compEntry.value.length,
                   onTap: compEntry.value.first.competitionId != null
                       ? () => _openCompetition(compEntry.value.first.competitionId!)
                       : null,
@@ -290,6 +303,7 @@ class _MatchesTabState extends State<MatchesTab> {
                 ...compEntry.value.map((m) => _MatchCard(
                     match: m,
                     isDark: isDark,
+                    showCompetitionLabel: false,
                     onTap: () => _openMatch(m))),
               ],
             ],
@@ -300,20 +314,49 @@ class _MatchesTabState extends State<MatchesTab> {
   }
 
   // Mode simple (équipe ou compétition sélectionnée)
+  // ── CORRIGÉ : un seul header compétition en haut (logo + nom + cliquable),
+  // plus aucun nom de compétition répété sur les cartes.
   Widget _buildSimpleMatchList(bool isDark) {
-    final matches = _filteredMatches;
+    final matches = List<LiveMatch>.from(_filteredMatches)
+      ..sort((a, b) => (a.dateTime ?? DateTime(0))
+          .compareTo(b.dateTime ?? DateTime(0)));
+    final comp = _selectedCompetition;
+    final first = matches.isNotEmpty ? matches.first : null;
+    final compId = comp?.id ?? first?.competitionId;
+    final compName = comp?.name ??
+        first?.competitionName ??
+        'Compétition';
+
     return RefreshIndicator(
       onRefresh: _loadAllMatches,
       color: _gold,
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 24),
-        itemCount: matches.length,
-        itemBuilder: (context, i) => _MatchCard(
-          match: matches[i],
-          isDark: isDark,
-          showCompetitionLabel: true,
-          onTap: () => _openMatch(matches[i]),
-        ),
+        itemCount: matches.length + 1,
+        itemBuilder: (context, i) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 4),
+              child: _CompetitionGroupHeader(
+                name: compName,
+                isDark: isDark,
+                competitionId: compId,
+                matchCount: matches.length,
+                onTap: compId != null
+                    ? () => _openCompetition(compId)
+                    : null,
+              ),
+            );
+          }
+          final m = matches[i - 1];
+          return _MatchCard(
+            match: m,
+            isDark: isDark,
+            // Jamais de label compétition sur la carte : il est dans le header.
+            showCompetitionLabel: false,
+            onTap: () => _openMatch(m),
+          );
+        },
       ),
     );
   }
@@ -384,11 +427,13 @@ class _CompetitionGroupHeader extends StatelessWidget {
     required this.isDark,
     this.competitionId,
     this.onTap,
+    this.matchCount,
   });
   final String name;
   final bool isDark;
   final int? competitionId;
   final VoidCallback? onTap;
+  final int? matchCount;
 
   @override
   Widget build(BuildContext context) {
@@ -397,26 +442,57 @@ class _CompetitionGroupHeader extends StatelessWidget {
         : null;
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+        margin: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.04)
+              : Colors.black.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
+        ),
         child: Row(
           children: [
             CompetitionBadge(
               competition: comp,
-              size: 22,
-              iconSize: 12,
+              size: 26,
+              iconSize: 14,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 name,
                 style: TextStyle(
                   color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   fontSize: 13,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (matchCount != null)
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$matchCount',
+                  style: const TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
             if (onTap != null)
               Icon(
                 Icons.arrow_forward_ios,
@@ -435,6 +511,9 @@ class _MatchCard extends StatelessWidget {
     required this.match,
     required this.isDark,
     required this.onTap,
+    // Conservé pour compatibilité d'appel, mais ignoré :
+    // le nom de compétition ne s'affiche JAMAIS sur la carte,
+    // il est uniquement dans le _CompetitionGroupHeader cliquable.
     this.showCompetitionLabel = false,
   });
   final LiveMatch match;
@@ -474,18 +553,6 @@ class _MatchCard extends StatelessWidget {
               const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Column(
             children: [
-              if (showCompetitionLabel && match.competitionName != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    match.competitionName!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.white38 : Colors.black38,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               Row(
                 children: [
                   // Équipe domicile
