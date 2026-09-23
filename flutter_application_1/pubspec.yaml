@@ -51,8 +51,31 @@ flutter:
     - assets/mundialy_logo.png
     - assets/trophy_watermark.png
     - assets/trophy_pitch.png
+    - assets/competitions/afcon.png
+    - assets/competitions/afc_u17.png
+    - assets/competitions/afc_u23.png
+    - assets/competitions/agcff_u20.png
+    - assets/competitions/agcff_u23.png
+    - assets/competitions/arabcup.png
+    - assets/competitions/asian_qualifiers.png
     - assets/competitions/caf.png
+    - assets/competitions/cnl.png
+    - assets/competitions/concacaf_qualifiers.png
+    - assets/competitions/conmebol_qualifiers.png
+    - assets/competitions/copaamerica.png
+    - assets/competitions/copacentro.png
+    - assets/competitions/euro.png
+    - assets/competitions/euro_qualifiers.png
+    - assets/competitions/euro_u17.png
+    - assets/competitions/euro_u19.png
+    - assets/competitions/euro_u21.png
+    - assets/competitions/goldcup.png
+    - assets/competitions/gulfcup.png
+    - assets/competitions/olympics.png
     - assets/competitions/unl.png
+    - assets/competitions/waff_u23.png
+    - assets/competitions/wcu17.png
+    - assets/competitions/worldcup.png
     - assets/continents/africa.svg
     - assets/continents/europe.svg
     - assets/continents/asia.svg
