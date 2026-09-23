@@ -37,23 +37,54 @@ class CompetitionBadge extends StatelessWidget {
 
   static const Color gold = Color(0xFFE7C16A);
 
+  /// Logos officiels par confédération (assets natifs, pas d'images externes
+  /// collées : rendus en médaillon circulaire, anneau or, même géométrie que
+  /// les badges vectoriels).
+  static const Map<Confederation, String> _confederationLogos = {
+    Confederation.caf: 'assets/competitions/caf.png',
+  };
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final logoAsset = competition == null
+        ? null
+        : _confederationLogos[competition!.confederation];
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: gold.withValues(alpha: isDark ? 0.12 : 0.18),
+        color: logoAsset != null
+            ? const Color(0xFF0D1B2A)
+            : gold.withValues(alpha: isDark ? 0.12 : 0.18),
         shape: BoxShape.circle,
         border: Border.all(color: gold.withValues(alpha: 0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Icon(
-        competitionIcon(
-            competition?.category ?? CompetitionCategory.continental),
-        size: iconSize ?? size * 0.5,
-        color: isDark ? gold : const Color(0xFF16324A),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: logoAsset != null
+          ? Image.asset(
+              logoAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                competitionIcon(
+                    competition?.category ?? CompetitionCategory.continental),
+                size: iconSize ?? size * 0.5,
+                color: isDark ? gold : const Color(0xFF16324A),
+              ),
+            )
+          : Icon(
+              competitionIcon(
+                  competition?.category ?? CompetitionCategory.continental),
+              size: iconSize ?? size * 0.5,
+              color: isDark ? gold : const Color(0xFF16324A),
+            ),
     );
   }
 }
