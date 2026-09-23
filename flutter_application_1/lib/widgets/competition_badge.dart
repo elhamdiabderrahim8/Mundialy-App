@@ -3,6 +3,7 @@
 // pas d'emoji comme icône structurelle). Même langage que le reste de l'app :
 // pastille or champagne + Material rounded icon selon la catégorie.
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/competition.dart';
 
 /// Icône vectorielle associée à la catégorie de compétition.
@@ -51,8 +52,8 @@ class CompetitionBadge extends StatelessWidget {
   static const Map<int, String> _competitionLogos = {
     5930: 'assets/competitions/worldcup.png', // FIFA World Cup
     5582: 'assets/competitions/wcu17.png', // U17 World Cup
-    167: 'assets/competitions/afcon.png', // Africa Cup of Nations
-    588: 'assets/competitions/afcon.png', // AFCON Qualification
+    167: 'assets/competitions/afcon2025.svg', // CAN 2025 (logo officiel, trophée seul)
+    588: 'assets/competitions/afcon2025.svg', // Qualifs CAN (marque CAN)
     6071: 'assets/competitions/euro_qualifiers.png', // European Qualifiers
     591: 'assets/competitions/euro_u21.png', // Euro U21
     328: 'assets/competitions/euro_u17.png', // Euro U17
@@ -103,15 +104,13 @@ class CompetitionBadge extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: logoAsset != null
-          ? Image.asset(
-              logoAsset,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                competitionIcon(
-                    competition?.category ?? CompetitionCategory.continental),
-                size: iconSize ?? size * 0.5,
-                color: isDark ? gold : const Color(0xFF16324A),
-              ),
+          ? _LogoImage(
+              asset: logoAsset,
+              size: size,
+              iconSize: iconSize,
+              isDark: isDark,
+              category:
+                  competition?.category ?? CompetitionCategory.continental,
             )
           : Icon(
               competitionIcon(
@@ -119,6 +118,49 @@ class CompetitionBadge extends StatelessWidget {
               size: iconSize ?? size * 0.5,
               color: isDark ? gold : const Color(0xFF16324A),
             ),
+    );
+  }
+}
+
+/// Image de logo : SVG officiel (couleurs d'origine, ex: trophée CAN) ou
+/// PNG médaillon, avec repli icône vectorielle si l'asset est absent.
+class _LogoImage extends StatelessWidget {
+  const _LogoImage({
+    required this.asset,
+    required this.size,
+    required this.iconSize,
+    required this.isDark,
+    required this.category,
+  });
+
+  final String asset;
+  final double size;
+  final double? iconSize;
+  final bool isDark;
+  final CompetitionCategory category;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Icon(
+      competitionIcon(category),
+      size: iconSize ?? size * 0.5,
+      color: isDark
+          ? CompetitionBadge.gold
+          : const Color(0xFF16324A),
+    );
+    if (asset.endsWith('.svg')) {
+      return SvgPicture.asset(
+        asset,
+        width: size * 0.72,
+        height: size * 0.72,
+        fit: BoxFit.contain,
+        placeholderBuilder: (_) => fallback,
+      );
+    }
+    return Image.asset(
+      asset,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => fallback,
     );
   }
 }
