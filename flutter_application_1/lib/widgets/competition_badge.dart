@@ -42,7 +42,7 @@ class CompetitionBadge extends StatelessWidget {
   /// collées : rendus en médaillon circulaire, anneau or, même géométrie que
   /// les badges vectoriels).
   static const Map<Confederation, String> _confederationLogos = {
-    Confederation.caf: 'assets/competitions/caf.png',
+    Confederation.caf: 'assets/competitions/caf_flat.png',
   };
 
   /// Logos par compétition (prioritaires sur la confédération) : une
