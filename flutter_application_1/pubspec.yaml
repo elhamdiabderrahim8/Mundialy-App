@@ -52,28 +52,30 @@ flutter:
     - assets/trophy_watermark.png
     - assets/trophy_pitch.png
     - assets/competitions/afcon2025.svg
+    - assets/competitions/afc_road26.svg
     - assets/competitions/afc_u17.png
     - assets/competitions/afc_u23.png
     - assets/competitions/agcff_u20.png
-    - assets/competitions/agcff_u23.png
     - assets/competitions/arabcup.png
+    - assets/competitions/asiancup.svg
     - assets/competitions/asian_qualifiers.png
     - assets/competitions/caf_flat.png
-    - assets/competitions/cnl.png
-    - assets/competitions/concacaf_qualifiers.png
-    - assets/competitions/conmebol_qualifiers.png
-    - assets/competitions/copaamerica.png
-    - assets/competitions/copacentro.png
+    - assets/competitions/cnl.svg
+    - assets/competitions/concacaf_qualifiers.svg
+    - assets/competitions/conmebol.svg
+    - assets/competitions/copaamerica.svg
+    - assets/competitions/copacentro.svg
     - assets/competitions/euro.png
     - assets/competitions/euro_qualifiers.png
-    - assets/competitions/euro_u17.png
-    - assets/competitions/euro_u19.png
+    - assets/competitions/euro_u17.svg
+    - assets/competitions/euro_u19.svg
     - assets/competitions/euro_u21.png
-    - assets/competitions/goldcup.png
-    - assets/competitions/gulfcup.png
-    - assets/competitions/olympics.png
-    - assets/competitions/unl.png
-    - assets/competitions/waff_u23.png
+    - assets/competitions/goldcup.svg
+    - assets/competitions/gulfcup.svg
+    - assets/competitions/gulf_u23.svg
+    - assets/competitions/olympics.svg
+    - assets/competitions/unl.svg
+    - assets/competitions/waff.svg
     - assets/competitions/wcu17.png
     - assets/competitions/worldcup.png
     - assets/continents/africa.svg

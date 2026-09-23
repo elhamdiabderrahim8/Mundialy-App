@@ -54,27 +54,29 @@ class CompetitionBadge extends StatelessWidget {
     5582: 'assets/competitions/wcu17.png', // U17 World Cup
     167: 'assets/competitions/afcon2025.svg', // CAN 2025 (logo officiel, trophée seul)
     588: 'assets/competitions/afcon2025.svg', // Qualifs CAN (marque CAN)
+    605: 'assets/competitions/afc_road26.svg', // Qualifs CDM AFC
     6071: 'assets/competitions/euro_qualifiers.png', // European Qualifiers
     591: 'assets/competitions/euro_u21.png', // Euro U21
-    328: 'assets/competitions/euro_u17.png', // Euro U17
-    467: 'assets/competitions/euro_u19.png', // Euro U19
-    595: 'assets/competitions/copaamerica.png', // Copa América
-    589: 'assets/competitions/goldcup.png', // CONCACAF Gold Cup
-    5471: 'assets/competitions/copacentro.png', // Copa Centroamericana
+    328: 'assets/competitions/euro_u17.svg', // Euro U17
+    467: 'assets/competitions/euro_u19.svg', // Euro U19
+    595: 'assets/competitions/copaamerica.svg', // Copa América
+    589: 'assets/competitions/goldcup.svg', // CONCACAF Gold Cup
+    5471: 'assets/competitions/copacentro.svg', // Copa Centroamericana
+    6196: 'assets/competitions/asiancup.svg', // Asian Cup
     5472: 'assets/competitions/asian_qualifiers.png', // Asian Cup Qual.
     6332: 'assets/competitions/afc_u23.png', // AFC U23 Asian Cup
     7960: 'assets/competitions/afc_u17.png', // AFC U17 Asian Cup
     7674: 'assets/competitions/arabcup.png', // FIFA Arab Cup
-    5452: 'assets/competitions/gulfcup.png', // Arabian Gulf Cup
+    5452: 'assets/competitions/gulfcup.svg', // Arabian Gulf Cup
     8814: 'assets/competitions/agcff_u20.png', // Gulf Cup U20
-    8950: 'assets/competitions/agcff_u23.png', // Gulf Cup U23
-    7957: 'assets/competitions/waff_u23.png', // WAFF U23
-    6370: 'assets/competitions/olympics.png', // Olympics Football Men
+    8950: 'assets/competitions/gulf_u23.svg', // Gulf Cup U23
+    7957: 'assets/competitions/waff.svg', // WAFF U23
+    6370: 'assets/competitions/olympics.svg', // Olympics Football Men
     6316: 'assets/competitions/euro.png', // UEFA Euro
-    7016: 'assets/competitions/unl.png', // UEFA Nations League
-    7165: 'assets/competitions/cnl.png', // CONCACAF Nations League
-    611: 'assets/competitions/concacaf_qualifiers.png', // CONCACAF WC Qual.
-    613: 'assets/competitions/conmebol_qualifiers.png', // CONMEBOL WC Qual.
+    7016: 'assets/competitions/unl.svg', // UEFA Nations League
+    7165: 'assets/competitions/cnl.svg', // CONCACAF Nations League
+    611: 'assets/competitions/concacaf_qualifiers.svg', // CONCACAF WC Qual.
+    613: 'assets/competitions/conmebol.svg', // CONMEBOL WC Qual.
   };
 
   @override
