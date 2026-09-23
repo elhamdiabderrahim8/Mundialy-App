@@ -149,11 +149,17 @@ class _LogoImage extends StatelessWidget {
           : const Color(0xFF16324A),
     );
     if (asset.endsWith('.svg')) {
+      // SVG monochromes (currentColor) teintés or champagne, exactement
+      // comme les icônes de continents : pièce native de l'app.
       return SvgPicture.asset(
         asset,
         width: size * 0.72,
         height: size * 0.72,
         fit: BoxFit.contain,
+        colorFilter: ColorFilter.mode(
+          isDark ? CompetitionBadge.gold : const Color(0xFF8A6D2B),
+          BlendMode.srcIn,
+        ),
         placeholderBuilder: (_) => fallback,
       );
     }
