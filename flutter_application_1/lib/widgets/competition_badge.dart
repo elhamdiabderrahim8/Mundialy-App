@@ -37,14 +37,18 @@ class CompetitionBadge extends StatelessWidget {
 
   static const Color gold = Color(0xFFE7C16A);
 
-  /// Logos officiels par compétition (ID 365Scores), puis par confédération.
-  /// Assets natifs retraités (médaillon circulaire) : rendus en médaillon,
-  /// anneau or, même géométrie que les badges vectoriels.
-  static const Map<int, String> _competitionLogos = {
-    7016: 'assets/competitions/uefa_nations_league.png', // UEFA Nations League
-  };
+  /// Logos officiels par confédération (assets natifs, pas d'images externes
+  /// collées : rendus en médaillon circulaire, anneau or, même géométrie que
+  /// les badges vectoriels).
   static const Map<Confederation, String> _confederationLogos = {
     Confederation.caf: 'assets/competitions/caf.png',
+  };
+
+  /// Logos par compétition (prioritaires sur la confédération) : une
+  /// compétition a sa marque propre, distincte de sa confédération
+  /// (ex: Nations League ≠ UEFA).
+  static const Map<int, String> _competitionLogos = {
+    7016: 'assets/competitions/unl.png', // UEFA Nations League
   };
 
   @override
