@@ -142,13 +142,24 @@ class MatchCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Hero(
-                            tag: 'logo_home_${match.id}',
-                            child: NationFlagBadge(
-                              countryCode: match.homeCode,
-                              teamName: match.homeTeam,
-                              size: 24,
-                            ),
-                          ),
+      tag: 'logo_home_${match.id}',
+      flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) => Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.homeCode,
+          teamName: match.homeTeam,
+          size: 24,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.homeCode,
+          teamName: match.homeTeam,
+          size: 24,
+        ),
+      ),
+    ),
                         ],
                       ),
                     ),
@@ -192,13 +203,24 @@ class MatchCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Hero(
-                            tag: 'logo_away_${match.id}',
-                            child: NationFlagBadge(
-                              countryCode: match.awayCode,
-                              teamName: match.awayTeam,
-                              size: 24,
-                            ),
-                          ),
+      tag: 'logo_away_${match.id}',
+      flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) => Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.awayCode,
+          teamName: match.awayTeam,
+          size: 24,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.awayCode,
+          teamName: match.awayTeam,
+          size: 24,
+        ),
+      ),
+    ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: GestureDetector(
@@ -369,13 +391,24 @@ class MatchCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Hero(
-                              tag: 'logo_home_${match.id}',
-                              child: NationFlagBadge(
-                                countryCode: match.homeCode,
-                                teamName: match.homeTeam,
-                                size: 24,
-                              ),
-                            ),
+      tag: 'logo_home_${match.id}',
+      flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) => Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.homeCode,
+          teamName: match.homeTeam,
+          size: 24,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.homeCode,
+          teamName: match.homeTeam,
+          size: 24,
+        ),
+      ),
+    ),
                           ],
                         ),
                       ),
@@ -428,13 +461,24 @@ class MatchCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Hero(
-                              tag: 'logo_away_${match.id}',
-                              child: NationFlagBadge(
-                                countryCode: match.awayCode,
-                                teamName: match.awayTeam,
-                                size: 24,
-                              ),
-                            ),
+      tag: 'logo_away_${match.id}',
+      flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) => Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.awayCode,
+          teamName: match.awayTeam,
+          size: 24,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: NationFlagBadge(
+          countryCode: match.awayCode,
+          teamName: match.awayTeam,
+          size: 24,
+        ),
+      ),
+    ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: GestureDetector(

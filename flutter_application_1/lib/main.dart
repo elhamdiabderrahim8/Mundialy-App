@@ -294,80 +294,61 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
     return Material(
       color: Colors.transparent,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A2F3F), Color(0xFF0E1A24)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(18),
+          color: const Color(0xE6000000), // Semi-transparent black
+          borderRadius: BorderRadius.circular(32),
           border: Border.all(
-            color: const Color(0xFFE7C16A).withValues(alpha: 0.45),
-            width: 1.2,
+            color: Colors.white.withOpacity(0.15),
+            width: 1.0,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        // Wrap with SingleChildScrollView to prevent any RenderFlex overflow
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // HEADER (Close + Resize)
+              // Header & Actions
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 6,
+                        height: 6,
                         decoration: const BoxDecoration(
                           color: Colors.redAccent,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Text(
-                        'EN DIRECT',
-                        style: TextStyle(
+                      Text(
+                        minute.isNotEmpty ? "$minute'" : "LIVE",
+                        style: const TextStyle(
                           color: Colors.redAccent,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
                         ),
                       ),
-                      if (minute.isNotEmpty &&
-                          _shape != WidgetShape.compact) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          "$minute'",
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 9,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       GestureDetector(
                         onTap: _cycleShape,
-                        child: const Icon(
-                          Icons.aspect_ratio,
-                          color: Colors.white70,
-                          size: 16,
+                        child: Icon(
+                          _shape == WidgetShape.compact ? Icons.unfold_more : Icons.unfold_less,
+                          color: Colors.white54,
+                          size: 18,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -375,211 +356,73 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
                         onTap: () => FlutterOverlayWindow.closeOverlay(),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.grey,
-                          size: 16,
+                          color: Colors.white54,
+                          size: 18,
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-              if (_shape != WidgetShape.compact) const SizedBox(height: 8),
-
-              // CONTENT
+              if (_shape != WidgetShape.compact) const SizedBox(height: 12),
+              
+              // MAIN CONTENT
               if (_shape == WidgetShape.compact)
-                // COMPACT MODE
                 Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(top: 8),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Text(
-                          home,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      Text(
+                        homeCode,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                       ),
+                      const SizedBox(width: 12),
                       Text(
                         score,
-                        style: const TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: const TextStyle(color: Color(0xFFE7C16A), fontWeight: FontWeight.w900, fontSize: 16),
                       ),
-                      Expanded(
-                        child: Text(
-                          away,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.right,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      const SizedBox(width: 12),
+                      Text(
+                        awayCode,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                     ],
                   ),
                 )
-              else if (_shape == WidgetShape.rectangle)
-                // RECTANGLE MODE (Standard)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          NationFlagBadge(countryCode: homeCode, size: 24),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              home,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Text(
-                        score,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              away,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
-                              ),
-                              textAlign: TextAlign.right,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          NationFlagBadge(countryCode: awayCode, size: 24),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
               else
-                // SQUARE MODE (Large)
-                Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Column(
-                          children: [
-                            NationFlagBadge(countryCode: homeCode, size: 50),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: 80,
-                              child: Text(
-                                home,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              score,
-                              style: const TextStyle(
-                                color: Color(0xFFD4AF37),
-                                fontSize: 32,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            if (minute.isNotEmpty)
-                              Container(
-                                margin: const EdgeInsets.only(top: 4),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  "$minute'",
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            NationFlagBadge(countryCode: awayCode, size: 50),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: 80,
-                              child: Text(
-                                away,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Text(
+                        home,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(width: 16),
+                    Text(
+                      score,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        away,
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
             ],
@@ -587,5 +430,6 @@ class _FloatingScoreOverlayState extends State<_FloatingScoreOverlay> {
         ),
       ),
     );
+
   }
 }

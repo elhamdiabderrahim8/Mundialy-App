@@ -249,10 +249,10 @@ class ApiService {
       _matchStates[m.id] = _MatchState(currentHome, currentAway, currentStatus);
     }
 
-    _updateOverlayIfActive(matches);
+    updateOverlayIfActive(matches);
   }
 
-  static Future<void> _updateOverlayIfActive(List<LiveMatch> matches) async {
+  static Future<void> updateOverlayIfActive(List<LiveMatch> matches) async {
     try {
       if (await FlutterOverlayWindow.isActive() && pinnedMatchId != null) {
         final matchToUpdate = matches

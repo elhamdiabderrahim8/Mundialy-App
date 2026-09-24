@@ -2,12 +2,16 @@
 // Tab 1 — Tous les matchs de toutes les compétitions nationales masculines
 // Filtrage par : Matches (par date) | Compétition (par continents)
 import 'package:flutter/material.dart';
+
+import 'dart:async';
 import '../constants/app_colors.dart';
+
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
 import '../services/scores365_service.dart';
 import '../utils/app_routes.dart';
+import '../services/api_service.dart';
 import '../widgets/competition_badge.dart';
 import '../widgets/continent_competition_picker.dart';
 import '../widgets/loading_skeletons.dart';
@@ -26,7 +30,12 @@ class MatchesTab extends StatefulWidget {
 }
 
 class _MatchesTabState extends State<MatchesTab> {
+  
   MatchFilterMode _filterMode = MatchFilterMode.byDate;
+  DateTime _selectedDate = DateTime.now();
+  Timer? _liveTimer;
+  final Map<int, bool> _isCompetitionExpanded = {};
+
 
   List<LiveMatch> _allMatches = [];
   bool _loading = false;
@@ -47,12 +56,63 @@ class _MatchesTabState extends State<MatchesTab> {
 
   static const Color _gold = AppColors.secondary;
 
+  
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
     _loadAllMatches();
+    _liveTimer = Timer.periodic(const Duration(seconds: 30), (_) => _fetchLiveUpdates());
   }
+
+  Future<void> _fetchLiveUpdates() async {
+    if (_loading || !_dataLoaded) return;
+    try {
+      final now = DateTime.now();
+      final todayStr = _formatDate(now);
+      if (_formatDate(_selectedDate) != todayStr) return; // Only update if today is selected
+
+      final toFetch = CompetitionsCatalog.all;
+      final results = <LiveMatch>[];
+      const batchSize = 5; // Faster batch
+      
+      for (var i = 0; i < toFetch.length; i += batchSize) {
+        final batchEnd = i + batchSize > toFetch.length ? toFetch.length : i + batchSize;
+        final batch = toFetch.sublist(i, batchEnd);
+        final futures = batch.map((comp) =>
+            Scores365Service.fetchMatchesByCompetition(
+              competitionId: comp.id,
+              startDate: todayStr,
+              endDate: todayStr,
+              competitionName: comp.name,
+            ).catchError((_) => <LiveMatch>[]));
+        final batchResults = await Future.wait(futures);
+        for (final list in batchResults) {
+          results.addAll(list);
+        }
+      }
+
+
+      if (mounted) {
+        setState(() {
+          // Merge updates silently
+          for (final newMatch in results) {
+            final index = _allMatches.indexWhere((m) => m.id == newMatch.id);
+            if (index != -1) {
+              _allMatches[index] = newMatch;
+            } else {
+              _allMatches.add(newMatch);
+            }
+          }
+        });
+      }
+      
+      // Update Pinned Match Overlay if active
+      ApiService.updateOverlayIfActive(results);
+    } catch (_) {}
+
+  }
+
 
   void _onScroll() {
     if (!mounted) return;
@@ -62,9 +122,12 @@ class _MatchesTabState extends State<MatchesTab> {
     }
   }
 
+  
   @override
   void dispose() {
+    _liveTimer?.cancel();
     _scrollController.removeListener(_onScroll);
+
     _scrollController.dispose();
     super.dispose();
   }
@@ -79,9 +142,11 @@ class _MatchesTabState extends State<MatchesTab> {
     });
 
     final now = DateTime.now();
-    final start = _formatDate(now.subtract(const Duration(days: 30)));
-    final end = _formatDate(now.add(const Duration(days: 30)));
+    
+    final start = _formatDate(_selectedDate);
+    final end = _formatDate(_selectedDate);
     final toFetch = CompetitionsCatalog.all;
+
 
     try {
       final results = <LiveMatch>[];
@@ -296,83 +361,140 @@ class _MatchesTabState extends State<MatchesTab> {
     );
   }
 
+  
   Widget _buildFilterBar(bool isDark) {
     return Material(
       color: isDark ? const Color(0xFF1A242D) : Colors.white,
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Row(
-            children: [
-              for (final mode in MatchFilterMode.values)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Semantics(
-                      button: true,
-                      selected: _filterMode == mode,
-                      label: _modeLabel(mode),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => setState(() {
-                          _filterMode = mode;
-                          if (mode == MatchFilterMode.byDate) {
-                            _selectedCompetition = null;
-                            _selectedCompetitionId = null;
-                          }
-                        }),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          height: 44,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: _filterMode == mode
-                                ? _gold.withValues(alpha: 0.15)
-                                : Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              child: Row(
+                children: [
+                  for (final mode in MatchFilterMode.values)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: Semantics(
+                          button: true,
+                          selected: _filterMode == mode,
+                          label: _modeLabel(mode),
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _filterMode == mode
-                                  ? _gold
-                                  : (isDark
-                                      ? Colors.white24
-                                      : Colors.grey.shade300),
-                              width: _filterMode == mode ? 1.5 : 1,
-                            ),
-                          ),
-                          child: Text(
-                            _modeLabel(mode),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _filterMode == mode
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                              color: _filterMode == mode
-                                  ? _gold
-                                  : (isDark ? Colors.white54 : Colors.grey),
+                            onTap: () => setState(() {
+                              _filterMode = mode;
+                              if (mode == MatchFilterMode.byDate) {
+                                _selectedCompetition = null;
+                                _selectedCompetitionId = null;
+                              }
+                            }),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: _filterMode == mode
+                                    ? _gold.withValues(alpha: 0.15)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: _filterMode == mode
+                                      ? _gold
+                                      : (isDark ? Colors.white24 : Colors.grey.shade300),
+                                  width: _filterMode == mode ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Text(
+                                _modeLabel(mode),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _filterMode == mode ? FontWeight.w700 : FontWeight.w400,
+                                  color: _filterMode == mode ? _gold : (isDark ? Colors.white54 : Colors.grey),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-            ],
-          ),
+                ],
+              ),
+            ),
+            if (_filterMode == MatchFilterMode.byDate) _buildDatePicker(isDark),
+          ],
         ),
       ),
     );
   }
 
-  String _modeLabel(MatchFilterMode mode) {
-    switch (mode) {
-      case MatchFilterMode.byDate:
-        return 'Matches';
-      case MatchFilterMode.byCompetition:
-        return 'Compétition';
-    }
+  Widget _buildDatePicker(bool isDark) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Generate dates: 7 days before, 7 days after
+    final dates = List.generate(15, (index) => today.subtract(Duration(days: 7 - index)));
+    
+    return SizedBox(
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: dates.length,
+        itemBuilder: (context, index) {
+          final date = dates[index];
+          final isSelected = _selectedDate.year == date.year && _selectedDate.month == date.month && _selectedDate.day == date.day;
+          
+          return GestureDetector(
+            onTap: () {
+              if (!isSelected) {
+                setState(() => _selectedDate = date);
+                _loadAllMatches();
+              }
+            },
+            child: Container(
+              width: 50,
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected ? _gold : (isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _dayLabelShort(date),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.black87 : (isDark ? Colors.white54 : Colors.black54),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${date.day}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.black : (isDark ? Colors.white : Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
+
+  String _dayLabelShort(DateTime day) {
+    const weekdays = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
+    return weekdays[day.weekday - 1];
+  }
+
 
   Widget _buildMatchList(bool isDark) {
     if (_loading && _allMatches.isEmpty) {
@@ -493,88 +615,61 @@ class _MatchesTabState extends State<MatchesTab> {
     );
   }
 
+  
   Widget _buildByDateView(bool isDark) {
     final grouped = _groupedByDayAndComp;
-    final days = grouped.keys.toList()
-      ..sort((a, b) => a.compareTo(b));
+    final days = grouped.keys.toList()..sort((a, b) => a.compareTo(b));
 
-    // Index du jour "aujourd'hui" pour le bouton flottant
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final todayIndex = days.indexOf(today);
-    final showTodayFab = _dataLoaded && _showTodayFab && todayIndex >= 0;
-
-    return Stack(
-      children: [
-        RefreshIndicator(
-          color: _gold,
-          onRefresh: _loadAllMatches,
-          child: ListView.builder(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 80),
-            itemCount: days.length,
-            itemBuilder: (context, di) {
-              final day = days[di];
-              final compGroups = grouped[day]!;
-              final isToday = day == today;
-              _dayKeys.putIfAbsent(day, () => GlobalKey());
-              return KeyedSubtree(
-                key: _dayKeys[day],
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _DateSectionHeader(
-                      date: _dayLabel(day),
-                      isDark: isDark,
-                      isToday: isToday,
-                    ),
-                    for (final compEntry in compGroups.entries) ...[
-                      _CompetitionGroupHeader(
-                        name: compEntry.key,
-                        isDark: isDark,
-                        competitionId: compEntry.value.first.competitionId,
-                        matchCount: compEntry.value.length,
-                        onTap: compEntry.value.first.competitionId != null
-                            ? () => _openCompetition(
-                                compEntry.value.first.competitionId!)
-                            : null,
-                      ),
-                      ...compEntry.value.map((m) => _MatchCard(
+    return RefreshIndicator(
+      color: _gold,
+      onRefresh: _loadAllMatches,
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 80),
+        itemCount: days.length,
+        itemBuilder: (context, di) {
+          final day = days[di];
+          final compGroups = grouped[day]!;
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final compEntry in compGroups.entries) ...[
+                _CompetitionGroupHeader(
+                  name: compEntry.key,
+                  isDark: isDark,
+                  competitionId: compEntry.value.first.competitionId,
+                  matchCount: compEntry.value.length,
+                  isExpanded: _isCompetitionExpanded[compEntry.value.first.competitionId ?? 0] ?? true,
+                  onToggle: () {
+                    final cid = compEntry.value.first.competitionId ?? 0;
+                    setState(() {
+                      _isCompetitionExpanded[cid] = !(_isCompetitionExpanded[cid] ?? true);
+                    });
+                  },
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: (_isCompetitionExpanded[compEntry.value.first.competitionId ?? 0] ?? true)
+                      ? Column(
+                          children: compEntry.value.map((m) => _MatchCard(
                             match: m,
                             isDark: isDark,
                             onTap: () => _openMatch(m),
-                          )),
-                    ],
-                  ],
+                          )).toList(),
+                        )
+                      : const SizedBox.shrink(),
                 ),
-              );
-            },
-          ),
-        ),
-        if (showTodayFab)
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: Semantics(
-              button: true,
-              label: "Revenir à aujourd'hui",
-              child: FloatingActionButton.small(
-                heroTag: 'matches_tab_today',
-                backgroundColor: isDark ? const Color(0xFF1A2A3D) : Colors.white,
-                foregroundColor: isDark ? Colors.white : AppColors.ink,
-                elevation: 3,
-                onPressed: () {
-                  _jumpedToToday = false;
-                  _jumpToToday();
-                },
-                child: const Icon(Icons.calendar_today_rounded, size: 18),
-              ),
-            ),
-          ),
-      ],
+              ],
+            ],
+          );
+        },
+      ),
     );
   }
+
 
   Widget _buildSimpleMatchList(bool isDark) {
     final matches = List<LiveMatch>.from(_filteredMatches)
@@ -754,6 +849,7 @@ class _DateSectionHeader extends StatelessWidget {
   }
 }
 
+
 class _CompetitionGroupHeader extends StatelessWidget {
   const _CompetitionGroupHeader({
     required this.name,
@@ -761,19 +857,22 @@ class _CompetitionGroupHeader extends StatelessWidget {
     this.competitionId,
     this.onTap,
     this.matchCount,
+    this.isExpanded = true,
+    this.onToggle,
   });
   final String name;
   final bool isDark;
   final int? competitionId;
   final VoidCallback? onTap;
   final int? matchCount;
+  final bool isExpanded;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
     final comp = competitionId != null
         ? CompetitionsCatalog.findById(competitionId!)
         : null;
-    final canTap = onTap != null;
 
     final child = Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 6),
@@ -824,32 +923,34 @@ class _CompetitionGroupHeader extends StatelessWidget {
                 ),
               ),
             ),
-          if (canTap)
-            Icon(
+          AnimatedRotation(
+            turns: isExpanded ? 0.25 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
               Icons.arrow_forward_ios,
-              size: 12,
-              color: isDark ? Colors.white38 : Colors.black38,
+              size: 14,
+              color: isDark ? Colors.white54 : Colors.black54,
             ),
+          ),
         ],
       ),
     );
 
-    if (!canTap) return child;
-
     return Semantics(
       button: true,
-      label: '$name, ${matchCount ?? 0} matchs. Ouvrir la compétition',
+      label: '$name, ${matchCount ?? 0} matchs.',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
+          onTap: onToggle, // Toggle instead of navigation
           child: child,
         ),
       ),
     );
   }
 }
+
 
 class _MatchCard extends StatelessWidget {
   const _MatchCard({
