@@ -73,29 +73,15 @@ class _MatchesTabState extends State<MatchesTab> {
       if (_formatDate(_selectedDate) != todayStr) return; // Only update if today is selected
 
       final toFetch = CompetitionsCatalog.all;
-      final results = <LiveMatch>[];
-      const batchSize = 5; // Faster batch
-      
-      for (var i = 0; i < toFetch.length; i += batchSize) {
-        final batchEnd = i + batchSize > toFetch.length ? toFetch.length : i + batchSize;
-        final batch = toFetch.sublist(i, batchEnd);
-        final futures = batch.map((comp) =>
-            Scores365Service.fetchMatchesByCompetition(
-              competitionId: comp.id,
-              startDate: todayStr,
-              endDate: todayStr,
-              competitionName: comp.name,
-            ).catchError((_) => <LiveMatch>[]));
-        final batchResults = await Future.wait(futures);
-        for (final list in batchResults) {
-          results.addAll(list);
-        }
-      }
-
+      final allCompIds = toFetch.map((c) => c.id).toList();
+      final results = await Scores365Service.fetchMatchesForMultipleCompetitions(
+        competitionIds: allCompIds,
+        startDate: todayStr,
+        endDate: todayStr,
+      );
 
       if (mounted) {
         setState(() {
-          // Merge updates silently
           for (final newMatch in results) {
             final index = _allMatches.indexWhere((m) => m.id == newMatch.id);
             if (index != -1) {
@@ -107,10 +93,8 @@ class _MatchesTabState extends State<MatchesTab> {
         });
       }
       
-      // Update Pinned Match Overlay if active
       ApiService.updateOverlayIfActive(results);
     } catch (_) {}
-
   }
 
 
@@ -122,12 +106,10 @@ class _MatchesTabState extends State<MatchesTab> {
     }
   }
 
-  
   @override
   void dispose() {
     _liveTimer?.cancel();
     _scrollController.removeListener(_onScroll);
-
     _scrollController.dispose();
     super.dispose();
   }
@@ -141,50 +123,28 @@ class _MatchesTabState extends State<MatchesTab> {
       _jumpedToToday = false;
     });
 
-    final now = DateTime.now();
-    
     final start = _formatDate(_selectedDate);
     final end = _formatDate(_selectedDate);
     final toFetch = CompetitionsCatalog.all;
 
-
     try {
-      final results = <LiveMatch>[];
-      const batchSize = 3;
-      final totalBatches = (toFetch.length + batchSize - 1) ~/ batchSize;
-      setState(() => _totalComps = toFetch.length);
-
-      for (var i = 0; i < toFetch.length; i += batchSize) {
-        final batchEnd =
-            i + batchSize > toFetch.length ? toFetch.length : i + batchSize;
-        final batch = toFetch.sublist(i, batchEnd);
-        final futures = batch.map((comp) =>
-            Scores365Service.fetchMatchesByCompetition(
-              competitionId: comp.id,
-              startDate: start,
-              endDate: end,
-              competitionName: comp.name,
-            ).catchError((_) => <LiveMatch>[]));
-        final batchResults = await Future.wait(futures);
-        for (final list in batchResults) {
-          results.addAll(list);
-        }
-        if (mounted) {
-          setState(() => _loadedComps = batchEnd);
-        }
-        final batchIndex = i ~/ batchSize + 1;
-        if (batchIndex < totalBatches) {
-          await Future.delayed(const Duration(milliseconds: 400));
-        }
+      final allCompIds = toFetch.map((c) => c.id).toList();
+      final results = await Scores365Service.fetchMatchesForMultipleCompetitions(
+        competitionIds: allCompIds,
+        startDate: start,
+        endDate: end,
+      );
+      
+      if (mounted) {
+        setState(() => _loadedComps = toFetch.length);
       }
 
-      final all = results;
-      all.sort((a, b) =>
+      results.sort((a, b) =>
           (a.dateTime ?? DateTime(0)).compareTo(b.dateTime ?? DateTime(0)));
 
       if (mounted) {
         setState(() {
-          _allMatches = all;
+          _allMatches = results;
           _loading = false;
           _dataLoaded = true;
         });
