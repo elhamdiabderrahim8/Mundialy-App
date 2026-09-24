@@ -166,7 +166,34 @@ class Scores365Service {
     if (data == null || data['games'] == null) return [];
     
     final games = data['games'] as List;
-    return games.map((g) => _mapToLiveMatch(g)).toList();
+    
+    // Deduplicate by match ID — the API can return the same match
+    // under multiple requested competition IDs (e.g. AFCON id=167
+    // returns AFCON Qualification id=588 matches when the main
+    // tournament hasn't started yet).
+    final Map<String, LiveMatch> uniqueMatches = {};
+    for (final g in games) {
+      final m = _mapToLiveMatch(g);
+      // Use the TRUE competitionId from the API response, not the requested one
+      final trueCompId = m.competitionId;
+      final catalogComp = trueCompId != null
+          ? CompetitionsCatalog.findById(trueCompId)
+          : null;
+      final apiName = (g is Map)
+          ? g['competitionDisplayName']?.toString() ?? ''
+          : '';
+      final resolvedName = catalogComp?.displayName ??
+          (apiName.isNotEmpty ? apiName : (m.competitionName ?? ''));
+      
+      final resolved = m.copyWithCompetitionInfo(
+        competitionId: trueCompId ?? 0,
+        competitionName: resolvedName,
+      );
+      // Keep only one copy per match ID
+      uniqueMatches[resolved.id] = resolved;
+    }
+    
+    return uniqueMatches.values.toList();
   }
 
   static Future<List<LiveMatch>> fetchMatchesByCompetition({
