@@ -6,7 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'firebase_options.dart';
-import 'constants/app_colors.dart';
+import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
 import 'services/startapp_service.dart';
@@ -195,102 +195,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  ThemeData _buildLightTheme() {
-    const seed = AppColors.primary;
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: Brightness.light,
-      primary: seed,
-      secondary: AppColors.secondary,
-      surface: AppColors.surface,
-    );
-
-    return ThemeData(
-      brightness: Brightness.light,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.background,
-      useMaterial3: true,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: AppColors.primary,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      cardTheme: CardThemeData(
-        color: AppColors.surface.withValues(alpha: 0.96),
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      ),
-      dividerColor: const Color(0xFFD8C8A8),
-      iconTheme: const IconThemeData(color: AppColors.primary),
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: AppColors.secondary,
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        ),
-      ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: Colors.white,
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: const Color(0xFF5B6B79),
-        elevation: 8,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 10),
-      ),
-      textTheme: ThemeData.light().textTheme.apply(
-        bodyColor: AppColors.primary,
-        displayColor: AppColors.primary,
-      ),
-    );
-  }
-
-  ThemeData _buildDarkTheme() {
-    const seed = AppColors.primary;
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: Brightness.dark,
-    );
-
-    return ThemeData(
-      brightness: Brightness.dark,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: AppColors.ink,
-      useMaterial3: true,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      cardTheme: CardThemeData(
-        color: const Color(0xFF162634),
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      ),
-      iconTheme: const IconThemeData(color: Colors.white),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: Colors.white54,
-        type: BottomNavigationBarType.fixed,
-      ),
-      dividerColor: Colors.white12,
-      textTheme: ThemeData.dark().textTheme.apply(
-        bodyColor: Colors.white,
-        displayColor: Colors.white,
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -300,8 +204,10 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: globalNavigatorKey,
       title: 'Mundialy',
       themeMode: themeProvider.themeMode,
-      theme: _buildLightTheme(),
-      darkTheme: _buildDarkTheme(),
+      // Thème consolidé (DS + guide UI/UX) : AppTheme réplique les
+      // builders historiques à l'identique + ThemeExtension.
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       debugShowCheckedModeBanner: false,
       // Localization support: FR / EN / AR
       localizationsDelegates: const [

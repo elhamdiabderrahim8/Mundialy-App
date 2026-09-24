@@ -1,24 +1,25 @@
 // lib/screens/competition_detail_screen.dart
 // Page de détail d'une compétition : Matchs | Classements | Buteurs | Tableau
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
 import '../models/standings.dart';
 import '../models/top_scorer.dart';
 import '../services/scores365_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/country_flags.dart';
 import '../utils/standing_status.dart';
 import '../utils/team_navigation.dart';
 import '../widgets/competition_badge.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/loading_skeletons.dart';
 import '../widgets/match_card.dart';
 import '../widgets/nation_flag_badge.dart';
-
-// Or champagne de l'app (identité Mundialy — cf. home_screen _kGold).
-const Color _kGold = Color(0xFFE7C16A);
-const Color _kBgDark = Color(0xFF0D1B2A);
-const Color _kCardDark = Color(0xFF1D2D3B);
+import '../widgets/player_avatar.dart';
+import '../widgets/status_badge.dart';
 
 
 class CompetitionDetailScreen extends StatefulWidget {
@@ -157,10 +158,12 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? _kBgDark : const Color(0xFFF4F6F8);
-    final cardColor = isDark ? _kCardDark : Colors.white;
-    const gold = _kGold;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    // Cartes : token du thème (surface / 0xFF162634) — plus de hex en dur.
+    final cardColor =
+        theme.cardTheme.color ?? (isDark ? AppColors.ink : AppColors.surface);
+    final gold = theme.colorScheme.secondary; // or champagne (DS §1)
 
     // Construire les tabs selon les capacités de la compétition
     final tabs = <Tab>[
@@ -174,9 +177,9 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
     ];
 
     return Scaffold(
-      backgroundColor: bgColor,
+      // Fond : token du thème (background / ink) — plus de hex en dur.
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1A242D) : Colors.white,
+        // DS §4 : appbar transparente, texte primary / blanc.
         elevation: 0,
         title: Row(
           children: [
@@ -188,10 +191,9 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
                 children: [
                   Text(
                     _title,
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : const Color(0xFF1A2A3A),
+                      color: isDark ? Colors.white : AppColors.primary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -199,30 +201,19 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
                   if (_competition != null)
                     Text(
                       _competition!.confederationLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.white54 : Colors.grey,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                 ],
               ),
             ),
             if (_competition?.isActive ?? false)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
-                ),
-                child: const Text(
-                  'EN COURS',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              StatusBadge(
+                label: 'EN COURS',
+                // Fallback = même util que les lignes de classement (valeur unique).
+                color: theme.extension<MatchColors>()?.win ??
+                    standingStatusColor(StandingQualification.qualified),
               ),
           ],
         ),
@@ -232,9 +223,10 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
             controller: _tabController,
             indicatorColor: gold,
             labelColor: gold,
-            unselectedLabelColor: isDark ? Colors.white54 : Colors.grey,
-            labelStyle: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 13),
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+            labelStyle: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
             onTap: (index) {
               // Charger les données lazy selon le VRAI onglet (ordre variable).
               final key = (index >= 0 && index < _tabKeys.length)
@@ -269,64 +261,49 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   // ── Onglet Matchs ──────────────────────────────────────────────────
   Widget _buildMatchesTab(bool isDark, Color cardColor) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
     if (_loadingMatches) {
-      return const Center(child: CircularProgressIndicator(color: _kGold));
+      // Guide §4 : skeleton loaders, jamais de spinner centré.
+      return MatchListSkeleton(isDark: isDark);
     }
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text('Erreur de chargement',
-                style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: _loadMatches,
-              icon: const Icon(Icons.refresh_rounded, color: _kGold),
-              label: const Text('Réessayer',
-                  style: TextStyle(color: _kGold)),
-            ),
-          ],
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: spacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Semantics(
+                label: 'Erreur de chargement des matchs',
+                child: Icon(
+                  Icons.wifi_off_rounded,
+                  size: 48,
+                  color: AppColors.error,
+                ),
+              ),
+              SizedBox(height: spacing.md),
+              Text(
+                'Erreur de chargement',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: spacing.lg),
+              CustomButton(
+                label: 'Réessayer',
+                onPressed: _loadMatches,
+              ),
+            ],
+          ),
         ),
       );
     }
     if (_matches.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _kGold.withValues(alpha: 0.1),
-                border:
-                    Border.all(color: _kGold.withValues(alpha: 0.25)),
-              ),
-              child: const Icon(Icons.event_busy_rounded,
-                  size: 40, color: _kGold),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Aucun match disponible',
-              style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.black54,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Les matchs apparaîtront ici dès qu\'ils sont programmés',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.black38,
-                  fontSize: 13),
-            ),
-          ],
-        ),
+      return const EmptyState(
+        icon: Icons.event_busy_rounded,
+        title: 'Aucun match disponible',
+        subtitle: 'Les matchs apparaîtront ici dès qu\'ils sont programmés',
       );
     }
 
@@ -338,9 +315,9 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
     return RefreshIndicator(
       onRefresh: _loadMatches,
-      color: _kGold,
+      color: theme.colorScheme.secondary,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: spacing.sm),
         itemCount: grouped.length,
         itemBuilder: (context, i) {
           final date = grouped.keys.elementAt(i);
@@ -362,18 +339,18 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   // ── Onglet Classements ────────────────────────────────────────────
   Widget _buildStandingsTab(bool isDark) {
+    final spacing = Theme.of(context).extension<AppSpacing>() ?? const AppSpacing();
     if (_loadingStandings) {
-      return const Center(child: CircularProgressIndicator(color: _kGold));
+      return MatchListSkeleton(isDark: isDark);
     }
     if (_standings.isEmpty) {
-      return _EmptyState(
+      return const EmptyState(
         icon: Icons.leaderboard_rounded,
-        label: 'Classements non disponibles',
-        isDark: isDark,
+        title: 'Classements non disponibles',
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: EdgeInsets.fromLTRB(spacing.lg, spacing.md, spacing.lg, spacing.lg),
       itemCount: _standings.length,
       itemBuilder: (context, i) {
         final group = _standings[i];
@@ -388,18 +365,18 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   // ── Onglet Buteurs ────────────────────────────────────────────────
   Widget _buildScorersTab(bool isDark, Color cardColor) {
+    final spacing = Theme.of(context).extension<AppSpacing>() ?? const AppSpacing();
     if (_loadingScorers) {
-      return const Center(child: CircularProgressIndicator(color: _kGold));
+      return MatchListSkeleton(isDark: isDark);
     }
     if (_scorers.isEmpty) {
-      return _EmptyState(
+      return const EmptyState(
         icon: Icons.sports_soccer_rounded,
-        label: 'Buteurs non disponibles',
-        isDark: isDark,
+        title: 'Buteurs non disponibles',
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(spacing.md),
       itemCount: _scorers.length,
       itemBuilder: (context, i) {
         final scorer = _scorers[i];
@@ -415,31 +392,30 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 
   // ── Onglet Tableau ────────────────────────────────────────────────
   Widget _buildBracketTab(bool isDark) {
+    final spacing = Theme.of(context).extension<AppSpacing>() ?? const AppSpacing();
     if (_bracket == null) {
       if (!_loadingBracket) {
         // Chargement aussi au swipe (onTap ne couvre que le tap).
         Future.microtask(_loadBracket);
       }
-      return const Center(child: CircularProgressIndicator(color: _kGold));
+      return MatchListSkeleton(isDark: isDark);
     }
     final brackets = _bracket!['brackets'] as List? ?? [];
     if (brackets.isEmpty) {
-      return _EmptyState(
+      return const EmptyState(
         icon: Icons.account_tree_rounded,
-        label: 'Tableau non disponible',
-        isDark: isDark,
+        title: 'Tableau non disponible',
       );
     }
     final stages = (brackets.first as Map)['stages'] as List? ?? [];
     if (stages.isEmpty) {
-      return _EmptyState(
+      return const EmptyState(
         icon: Icons.account_tree_rounded,
-        label: 'Tableau non disponible',
-        isDark: isDark,
+        title: 'Tableau non disponible',
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(spacing.md),
       itemCount: stages.length,
       itemBuilder: (context, i) {
         final stage = stages[i] as Map? ?? {};
@@ -455,47 +431,9 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// WIDGETS INTERNES (même langage que l'accueil : or champagne,
-// radius 16, Material rounded icons, ripple sur les zones tactiles)
+// WIDGETS INTERNES (langage DS : tokens du thème, grille 8pt,
+// Semantics sur les zones tactiles — guide UI/UX §4-5)
 // ─────────────────────────────────────────────────────────────────────
-
-/// État vide générique : icône vectorielle dans pastille or (jamais d'emoji).
-class _EmptyState extends StatelessWidget {
-  const _EmptyState(
-      {required this.icon, required this.label, required this.isDark});
-  final IconData icon;
-  final String label;
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _kGold.withValues(alpha: 0.1),
-              border: Border.all(color: _kGold.withValues(alpha: 0.25)),
-            ),
-            child: Icon(icon, size: 40, color: _kGold),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            label,
-            style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black54,
-                fontSize: 15,
-                fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _DateHeader extends StatelessWidget {
   const _DateHeader({required this.date, required this.isDark});
@@ -504,18 +442,20 @@ class _DateHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final gold = theme.colorScheme.secondary;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+      padding: EdgeInsets.fromLTRB(spacing.lg, spacing.lg, spacing.lg, spacing.xs),
       child: Row(
         children: [
-          const Icon(Icons.calendar_month_rounded, size: 15, color: _kGold),
-          const SizedBox(width: 6),
+          Icon(Icons.calendar_month_rounded, size: 15, color: gold),
+          SizedBox(width: spacing.xs),
           Text(
             date,
-            style: TextStyle(
-              color: isDark ? Colors.white70 : Colors.black54,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
               fontWeight: FontWeight.w800,
-              fontSize: 13,
               letterSpacing: 0.5,
             ),
           ),
@@ -533,13 +473,22 @@ class _CompetitionMatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = Theme.of(context).extension<AppSpacing>() ?? const AppSpacing();
+    final status = match.isLive
+        ? 'en direct, ${match.statusDisplay}'
+        : match.statusDisplay;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: MatchCard(
-        match: match,
-        year: match.dateTime?.year ?? 2026,
-        // Même formule que l'accueil (home_screen).
-        textColor: isDark ? Colors.white : Colors.black87,
+      padding: EdgeInsets.symmetric(horizontal: spacing.lg, vertical: spacing.xs),
+      child: Semantics(
+        // Guide §5 : annonce vocale du match pour TalkBack / VoiceOver.
+        label: '${match.homeTeam} contre ${match.awayTeam}, $status',
+        button: true,
+        child: MatchCard(
+          match: match,
+          year: match.dateTime?.year ?? 2026,
+          // Même formule que l'accueil (home_screen).
+          textColor: isDark ? Colors.white : Colors.black87,
+        ),
       ),
     );
   }
@@ -560,32 +509,39 @@ class _GroupStandingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gold = _kGold;
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final radii = theme.extension<AppRadii>() ?? const AppRadii();
+    final gold = theme.colorScheme.secondary;
     final textColor =
-        isDark ? Colors.white : const Color(0xFF16324A);
+        isDark ? Colors.white : AppColors.primary;
+    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+      color: textColor.withValues(alpha: 0.5),
+      fontWeight: FontWeight.w700,
+    );
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: EdgeInsets.only(bottom: spacing.xl),
       decoration: BoxDecoration(
         color: textColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(radii.lg),
         border: Border.all(color: textColor.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           // Header groupe
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            padding: EdgeInsets.symmetric(vertical: spacing.md),
             decoration: BoxDecoration(
               color: gold.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(radii.lg),
               ),
             ),
             child: Center(
               child: Text(
                 group.groupName.toUpperCase(),
-                style: const TextStyle(
+                style: theme.textTheme.labelLarge?.copyWith(
                   color: gold,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
@@ -595,43 +551,25 @@ class _GroupStandingCard extends StatelessWidget {
           ),
           // En-tête colonnes
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(spacing.lg),
             child: Column(
               children: [
                 Row(
                   children: [
                     Expanded(
                       flex: 1,
-                      child: Text(
-                        'Pos',
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.5),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: Text('Pos', style: headerStyle),
                     ),
                     Expanded(
                       flex: 4,
-                      child: Text(
-                        'Équipe',
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.5),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: Text('Équipe', style: headerStyle),
                     ),
                     for (final h in ['MJ', 'GD', 'PTS'])
                       Expanded(
                         child: Text(
                           h,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: textColor.withValues(alpha: 0.5),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: headerStyle,
                         ),
                       ),
                   ],
@@ -650,14 +588,19 @@ class _GroupStandingCard extends StatelessWidget {
                     competitionId: competitionId,
                   );
                 }),
-                const SizedBox(height: 16),
+                SizedBox(height: spacing.lg),
                 Row(
                   children: [
+                    // Source unique : même util que les lignes (pas de hex dupliqué).
                     _LegendItem(
-                        color: const Color(0xFF2ECC71), label: 'Qualifié'),
-                    const SizedBox(width: 16),
+                        color: standingStatusColor(
+                            StandingQualification.qualified),
+                        label: 'Qualifié'),
+                    SizedBox(width: spacing.lg),
                     _LegendItem(
-                        color: const Color(0xFFE74C3C), label: 'Éliminé'),
+                        color: standingStatusColor(
+                            StandingQualification.eliminated),
+                        label: 'Éliminé'),
                   ],
                 ),
               ],
@@ -676,6 +619,8 @@ class _LegendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
     return Row(
       children: [
         Container(
@@ -683,13 +628,12 @@ class _LegendItem extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: spacing.xs),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -711,8 +655,10 @@ class _StandingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor =
-        isDark ? Colors.white : const Color(0xFF16324A);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final gold = theme.colorScheme.secondary;
+    final textColor = isDark ? Colors.white : AppColors.primary;
     final status = standingQualification(
       rank,
       isQualified: team.isQualified,
@@ -720,101 +666,110 @@ class _StandingRow extends StatelessWidget {
     );
     final statusColor = standingStatusColor(status);
 
-    return InkWell(
-      onTap: () => openTeamProfile(
-        context,
-        teamName: team.teamName,
-        teamId: team.teamId,
-        competitionId: competitionId,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: statusColor.withValues(alpha: 0.55),
-              width: 3,
+    return Semantics(
+      // Guide §5 : annonce vocale (le statut n'est pas que couleur).
+      label:
+          '${team.teamName}, ${rank}e, ${team.points} points, ${standingStatusLabel(status)}',
+      button: true,
+      child: InkWell(
+        onTap: () => openTeamProfile(
+          context,
+          teamName: team.teamName,
+          teamId: team.teamId,
+          competitionId: competitionId,
+        ),
+        borderRadius: BorderRadius.circular(spacing.sm),
+        child: Container(
+          // Guide §5 : zone tactile ≥ 48dp.
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: EdgeInsets.symmetric(vertical: spacing.sm),
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(
+                color: statusColor.withValues(alpha: 0.55),
+                width: 3,
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: EdgeInsets.only(left: spacing.sm),
+                  child: Text(
+                    '$rank',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 4,
+                child: Row(
+                  children: [
+                    NationFlagBadge(
+                      countryCode: resolveCountryCode(team.teamName),
+                      size: 24,
+                      teamName: team.teamName,
+                    ),
+                    SizedBox(width: spacing.sm + 2),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            team.teamName,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            standingStatusLabel(status),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
                 child: Text(
-                  '$rank',
-                  style: TextStyle(
-                    color: statusColor,
+                  '${team.played}',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: textColor),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '${team.goalsDiff}',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: textColor),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '${team.points}',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: gold,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Row(
-                children: [
-                  NationFlagBadge(
-                    countryCode: resolveCountryCode(team.teamName),
-                    size: 24,
-                    teamName: team.teamName,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          team.teamName,
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          standingStatusLabel(status),
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Text(
-                '${team.played}',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: textColor, fontSize: 12),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                '${team.goalsDiff}',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: textColor, fontSize: 12),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                '${team.points}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _kGold,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -833,15 +788,18 @@ class _BracketStageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gold = _kGold;
-    final cardBg = isDark ? _kCardDark : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final radii = theme.extension<AppRadii>() ?? const AppRadii();
+    final gold = theme.colorScheme.secondary;
+    final cardBg = theme.cardTheme.color;
+    final textColor = theme.colorScheme.onSurface;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: spacing.md),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radii.lg),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
@@ -854,24 +812,24 @@ class _BracketStageCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(
+                horizontal: spacing.lg, vertical: spacing.sm + 2),
             decoration: BoxDecoration(
               color: gold.withValues(alpha: 0.1),
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+                  BorderRadius.vertical(top: Radius.circular(radii.lg)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.account_tree_rounded,
-                    size: 16, color: gold),
-                const SizedBox(width: 8),
+                Icon(Icons.account_tree_rounded, size: 16, color: gold),
+                SizedBox(width: spacing.sm),
                 Expanded(
                   child: Text(
                     stageName,
-                    style: const TextStyle(
-                        color: gold,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: gold,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -879,39 +837,37 @@ class _BracketStageCard extends StatelessWidget {
           ),
           if (groups.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(spacing.lg),
               child: Text(
                 'Phase directe (matchs dans l\'onglet Matchs)',
-                style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black54,
-                    fontSize: 12),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: textColor.withValues(alpha: 0.6),
+                ),
               ),
             )
           else
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(spacing.md),
               child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: spacing.sm,
+                runSpacing: spacing.sm,
                 children: groups.map((g) {
                   final name = g['name']?.toString() ?? 'Groupe';
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: spacing.md, vertical: spacing.xs),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: gold.withValues(alpha: 0.3)),
+                      color: textColor.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(radii.full),
+                      border:
+                          Border.all(color: gold.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       name,
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: textColor),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -937,155 +893,124 @@ class _ScorerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+    final theme = Theme.of(context);
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final radii = theme.extension<AppRadii>() ?? const AppRadii();
+    final matchColors =
+        theme.extension<MatchColors>() ?? const MatchColors.light();
+    final gold = theme.colorScheme.secondary;
+    final textColor = theme.colorScheme.onSurface;
     final rankColor = rank == 1
-        ? _kGold
+        ? gold
         : rank == 2
-            ? const Color(0xFFE0E0E0)
+            ? matchColors.rankSilver
             : rank == 3
-                ? const Color(0xFFCD7F32)
-                : Colors.grey;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: rank == 1
-            ? Border.all(color: _kGold.withValues(alpha: 0.4))
-            : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 28,
-            child: Text(
-              '$rank',
-              style: TextStyle(
-                color: rankColor,
-                fontWeight: FontWeight.w800,
-                fontSize: rank == 1 ? 18 : 14,
+                ? matchColors.rankBronze
+                : theme.colorScheme.onSurfaceVariant;
+    return Semantics(
+      // Guide §5 : annonce vocale du buteur.
+      label: '${scorer.playerName}, ${scorer.goals} buts',
+      child: Container(
+        margin: EdgeInsets.only(bottom: spacing.sm),
+        padding: EdgeInsets.symmetric(
+            horizontal: spacing.lg, vertical: spacing.md),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(radii.lg),
+          border: rank == 1
+              ? Border.all(color: gold.withValues(alpha: 0.4))
+              : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 28,
+              child: Text(
+                '$rank',
+                style: (rank == 1
+                        ? theme.textTheme.titleMedium
+                        : theme.textTheme.titleSmall)
+                    ?.copyWith(
+                  color: rankColor,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(width: 12),
-          // Avatar joueur (photo 365Scores, initiale en repli)
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: _kGold.withValues(alpha: 0.12),
-              border: Border.all(
-                  color: _kGold.withValues(alpha: 0.3)),
+            SizedBox(width: spacing.md),
+            // Avatar partagé DS (photo + initiale en repli).
+            PlayerAvatar(
+              name: scorer.playerName,
+              imageUrl: scorer.bestPhotoUrl,
+              size: 40,
             ),
-            clipBehavior: Clip.hardEdge,
-            child: scorer.bestPhotoUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: scorer.bestPhotoUrl!,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Center(
-                      child: Text(
-                        scorer.playerName.isNotEmpty
-                            ? scorer.playerName
-                                .substring(0, 1)
-                                .toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.8),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+            SizedBox(width: spacing.sm + 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    scorer.playerName,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      NationFlagBadge(
+                        countryCode: resolveCountryCode(scorer.teamName),
+                        size: 14,
+                        teamName: scorer.teamName,
+                      ),
+                      SizedBox(width: spacing.xs),
+                      Expanded(
+                        child: Text(
+                          scorer.assists > 0
+                              ? '${scorer.teamName} • ${scorer.assists} passes'
+                              : scorer.teamName,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: textColor.withValues(alpha: 0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                  )
-                : Center(
-                    child: Text(
-                      scorer.playerName.isNotEmpty
-                          ? scorer.playerName
-                              .substring(0, 1)
-                              .toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: textColor.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: spacing.md, vertical: spacing.xs),
+              decoration: BoxDecoration(
+                color: gold.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(radii.full),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.sports_soccer_rounded, size: 14, color: gold),
+                  SizedBox(width: spacing.xs - 4),
+                  Text(
+                    '${scorer.goals}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: gold,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  scorer.playerName,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: textColor),
-                ),
-                Row(
-                  children: [
-                    NationFlagBadge(
-                      countryCode:
-                          resolveCountryCode(scorer.teamName),
-                      size: 14,
-                      teamName: scorer.teamName,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        scorer.assists > 0
-                            ? '${scorer.teamName} • ${scorer.assists} passes'
-                            : scorer.teamName,
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: isDark
-                                ? Colors.white54
-                                : Colors.black54),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _kGold.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.sports_soccer_rounded,
-                    size: 14, color: _kGold),
-                const SizedBox(width: 4),
-                Text(
-                  '${scorer.goals}',
-                  style: const TextStyle(
-                    color: _kGold,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
