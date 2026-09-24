@@ -362,6 +362,15 @@ class _MatchesTabState extends State<MatchesTab> {
   }
 
   
+  String _modeLabel(MatchFilterMode mode) {
+    switch (mode) {
+      case MatchFilterMode.byDate:
+        return 'Par date';
+      case MatchFilterMode.byCompetition:
+        return 'Par compétition';
+    }
+  }
+
   Widget _buildFilterBar(bool isDark) {
     return Material(
       color: isDark ? const Color(0xFF1A242D) : Colors.white,
