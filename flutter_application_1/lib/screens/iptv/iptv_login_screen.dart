@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../services/iptv_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/kora_matches_section.dart';
+import '../../widgets/loading_skeletons.dart';
 
 const Color _kGold = Color(0xFFE7C16A);
 const Color _kDarkBg = Color(0xFF0E1A24);
@@ -771,12 +772,14 @@ class _IptvLoginScreenState extends State<IptvLoginScreen>
       ),
       onPressed: _loading ? null : _connect,
       child: _loading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: _kDarkBg,
+          ? SkeletonShimmer(
+              child: Container(
+                width: 64,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
             )
           : Row(

@@ -568,7 +568,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildPagedMatchView(textColor, matches, standings);
       case 1:
         if (_isLoadingAllMatches) {
-          return const Center(child: CircularProgressIndicator(color: _kGold));
+          // Guide §4 : skeleton, jamais de spinner.
+          return MatchListSkeleton(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          );
         }
         return _buildCalendrierView(textColor, _allMatches, standings);
       case 2:
@@ -1308,12 +1311,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              SizedBox(
-                width: 200,
-                child: LinearProgressIndicator(
-                  backgroundColor: _kGold.withValues(alpha: 0.05),
-                  color: _kGold,
-                  minHeight: 2,
+              SkeletonShimmer(
+                child: SkeletonBlock(
+                  width: 200,
+                  height: 4,
+                  radius: 2,
+                  color: _kGold.withValues(alpha: 0.25),
                 ),
               ),
               const SizedBox(height: 24),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:startapp_sdk/startapp.dart';
 
 import '../services/ad_units.dart';
+import 'loading_skeletons.dart';
 
 class InlineAdaptiveBanner extends StatefulWidget {
   const InlineAdaptiveBanner({
@@ -63,12 +64,12 @@ class _InlineAdaptiveBannerState extends State<InlineAdaptiveBanner> {
           horizontal: widget.horizontalMargin,
           vertical: widget.verticalMargin,
         ),
-        child: SizedBox(
+        child: const SizedBox(
           height: 50, // Standard banner height
-          child: Center(
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.withValues(alpha: 0.3)),
+          child: SkeletonShimmer(
+            child: SkeletonBlock(
+              height: 50,
+              radius: 12,
             ),
           ),
         ),

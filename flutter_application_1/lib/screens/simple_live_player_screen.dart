@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import '../utils/app_globals.dart';
+import '../widgets/status_badge.dart';
 
 class SimpleLivePlayerScreen extends StatefulWidget {
   final String streamUrl;
@@ -90,7 +91,11 @@ class _SimpleLivePlayerScreenState extends State<SimpleLivePlayerScreen> {
               : _chewieController != null &&
                       _chewieController!.videoPlayerController.value.isInitialized
                   ? Chewie(controller: _chewieController!)
-                  : const CircularProgressIndicator(color: Colors.white),
+                  : const StatusBadge(
+                      label: 'CHARGEMENT',
+                      color: Color(0xFFE7C16A),
+                      pulsing: true,
+                    ),
         ),
       ),
     );

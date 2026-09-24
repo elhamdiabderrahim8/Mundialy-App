@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../utils/app_globals.dart';
+import '../widgets/loading_skeletons.dart';
 import '../widgets/nation_flag_badge.dart';
 
 // ─────────────────────────────────── Palette identique à l'app ───────────────
@@ -58,9 +59,6 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
   // Animation pour le point LIVE pulsant
   late final AnimationController _pulseCtrl;
   late final Animation<double>   _pulseAnim;
-
-  // Animation pour le shimmer de chargement
-  late final AnimationController _shimmerCtrl;
 
   static const String _chromeAgent =
       'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
@@ -236,12 +234,6 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
       CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
     );
 
-    // ► Shimmer chargement
-    _shimmerCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
-
     // ► Contrôleur WebView
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -285,7 +277,6 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
       overlays: SystemUiOverlay.values,
     );
     _pulseCtrl.dispose();
-    _shimmerCtrl.dispose();
     super.dispose();
   }
 
@@ -561,24 +552,15 @@ class _KoraLiveWebViewTestState extends State<KoraLiveWebViewTest>
               ),
             ),
             const SizedBox(height: 32),
-            // ── Barre de progression gold
-            SizedBox(
-              width: 180,
-              child: AnimatedBuilder(
-                animation: _shimmerCtrl,
-                builder: (_, child) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      backgroundColor: _kCardDark,
-                      valueColor: ColorTween(
-                        begin: _kGold.withValues(alpha: 0.4),
-                        end: _kGoldLight,
-                      ).animate(_shimmerCtrl),
-                      minHeight: 3,
-                    ),
-                  );
-                },
+            // ── Barre de chargement gold (shimmer DS, pas de spinner)
+            SkeletonShimmer(
+              child: Container(
+                width: 180,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _kGold.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
             const SizedBox(height: 16),

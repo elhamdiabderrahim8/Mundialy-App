@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/loading_skeletons.dart';
 import '../widgets/mundialy_logo.dart';
 import 'home_screen.dart';
 
@@ -127,13 +128,16 @@ class _SplashScreenState extends State<SplashScreen>
               right: 0,
               child: FadeTransition(
                 opacity: _fade,
-                child: const Center(
-                  child: SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Color(0xFFE7C16A),
+                child: Center(
+                  // Shimmer DS à la place du spinner.
+                  child: SkeletonShimmer(
+                    child: Container(
+                      width: 120,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7C16A).withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                 ),

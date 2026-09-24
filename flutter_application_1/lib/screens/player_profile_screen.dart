@@ -478,10 +478,26 @@ class _PlayerProfileScreenState extends State<PlayerProfileScreen> {
 
           // --- MATCH TIMELINE ---
           if (_timelineLoading && _teamMatches.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Center(child: CircularProgressIndicator(color: _kGold)),
+                padding: const EdgeInsets.all(32.0),
+                child: SkeletonShimmer(
+                  child: const Column(
+                    children: [
+                      SkeletonCard(
+                        margin: EdgeInsets.only(bottom: 12),
+                        child: SizedBox(height: 64),
+                      ),
+                      SkeletonCard(
+                        margin: EdgeInsets.only(bottom: 12),
+                        child: SizedBox(height: 64),
+                      ),
+                      SkeletonCard(
+                        child: SizedBox(height: 64),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           if (_teamMatches.isNotEmpty)
@@ -1042,7 +1058,9 @@ class _PlayerMatchTimelineCard extends StatelessWidget {
           if (details == null && (match.isFinished || match.isLive))
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: SizedBox(height: 12, width: 12, child: CircularProgressIndicator(strokeWidth: 2, color: _kGold.withValues(alpha: 0.5))),
+              child: SkeletonShimmer(
+                child: SkeletonBlock(width: 48, height: 10, radius: 5),
+              ),
             ),
         ],
       ),

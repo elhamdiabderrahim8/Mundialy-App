@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_sizes.dart';
+import 'loading_skeletons.dart';
 
 class CustomButton extends StatelessWidget {
   final String label;
@@ -32,12 +33,15 @@ class CustomButton extends StatelessWidget {
         ),
       ),
       child: isLoading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          // Pastille shimmer (pas de spinner) pendant l'action.
+          ? SkeletonShimmer(
+              child: Container(
+                width: 48,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
             )
           : Text(label),

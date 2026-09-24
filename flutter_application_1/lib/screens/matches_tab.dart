@@ -261,13 +261,17 @@ class _MatchesTabState extends State<MatchesTab> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               children: [
+                // Progression réelle X/Y : mini-barre déterminée (pas de spinner).
                 SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: _gold,
-                    value: value,
+                  width: 40,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: value,
+                      color: _gold,
+                      backgroundColor: _gold.withValues(alpha: 0.15),
+                      minHeight: 4,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
