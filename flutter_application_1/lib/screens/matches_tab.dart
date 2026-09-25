@@ -69,8 +69,10 @@ class _MatchesTabState extends State<MatchesTab> {
     if (_loading || !_dataLoaded) return;
     try {
       final now = DateTime.now();
-      final todayStr = _formatDate(now);
-      if (_formatDate(_selectedDate) != todayStr) return; // Only update if today is selected
+      final today = DateTime(now.year, now.month, now.day);
+      final selected = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+      // Only auto-refresh scores when viewing today's matches
+      if (selected != today) return;
 
       final toFetch = CompetitionsCatalog.all;
       final allCompIds = toFetch.map((c) => c.id).toList();
