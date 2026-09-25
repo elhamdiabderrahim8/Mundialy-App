@@ -157,28 +157,34 @@ class Scores365Service {
     String? startDate,
     String? endDate,
   }) async {
-    final idsStr = competitionIds.join(',');
-    String endpoint = 'games/current/?$baseParams&competitions=$idsStr';
-    if (startDate != null && endDate != null) {
-      endpoint += '&startDate=$startDate&endDate=$endDate';
+    // 1. Fetch EVERYTHING for soccer (sportId=1) for blazing fast CDN cache hit
+    String endpoint = 'games/current/?$baseParams&sportId=1';
+    
+    // Only add dates if we are specifically looking at the past/future
+    // If it's today, we leave it naked to hit the real-time Live cache!
+    final now = DateTime.now();
+    final todayStr = '${now.month.toString().padLeft(2, '0')}/${now.day.toString().padLeft(2, '0')}/${now.year}';
+    
+    if (startDate != null && endDate != null && (startDate != todayStr || endDate != todayStr)) {
+      endpoint = 'games/?$baseParams&sportId=1&startDate=$startDate&endDate=$endDate';
     }
+
     final data = await _fetchJson(endpoint);
     if (data == null || data['games'] == null) return [];
     
     final games = data['games'] as List;
+    final validIds = competitionIds.toSet();
     
-    // Deduplicate by match ID — the API can return the same match
-    // under multiple requested competition IDs (e.g. AFCON id=167
-    // returns AFCON Qualification id=588 matches when the main
-    // tournament hasn't started yet).
+    // 2. Client-side filtering & deduplication
     final Map<String, LiveMatch> uniqueMatches = {};
     for (final g in games) {
       final m = _mapToLiveMatch(g);
-      // Use the TRUE competitionId from the API response, not the requested one
-      final trueCompId = m.competitionId;
-      final catalogComp = trueCompId != null
-          ? CompetitionsCatalog.findById(trueCompId)
-          : null;
+      final trueCompId = m.competitionId ?? 0;
+      
+      // ONLY keep matches that belong to our National Catalog!
+      if (!validIds.contains(trueCompId)) continue;
+      
+      final catalogComp = CompetitionsCatalog.findById(trueCompId);
       final apiName = (g is Map)
           ? g['competitionDisplayName']?.toString() ?? ''
           : '';
@@ -186,10 +192,9 @@ class Scores365Service {
           (apiName.isNotEmpty ? apiName : (m.competitionName ?? ''));
       
       final resolved = m.copyWithCompetitionInfo(
-        competitionId: trueCompId ?? 0,
+        competitionId: trueCompId,
         competitionName: resolvedName,
       );
-      // Keep only one copy per match ID
       uniqueMatches[resolved.id] = resolved;
     }
     
