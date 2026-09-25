@@ -90,10 +90,9 @@ class CompetitionBadge extends StatelessWidget {
     return Container(
       width: size,
       height: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: logoAsset != null
-            ? const Color(0xFF0D1B2A)
-            : gold.withValues(alpha: isDark ? 0.12 : 0.18),
+        color: gold.withValues(alpha: isDark ? 0.12 : 0.18),
         shape: BoxShape.circle,
         border: Border.all(color: gold.withValues(alpha: 0.35)),
         boxShadow: [
@@ -118,7 +117,7 @@ class CompetitionBadge extends StatelessWidget {
               competitionIcon(
                   competition?.category ?? CompetitionCategory.continental),
               size: iconSize ?? size * 0.5,
-              color: isDark ? gold : const Color(0xFF16324A),
+              color: gold,
             ),
     );
   }
@@ -146,9 +145,7 @@ class _LogoImage extends StatelessWidget {
     final fallback = Icon(
       competitionIcon(category),
       size: iconSize ?? size * 0.5,
-      color: isDark
-          ? CompetitionBadge.gold
-          : const Color(0xFF16324A),
+      color: CompetitionBadge.gold,
     );
     if (asset.endsWith('.svg')) {
       // SVG monochromes (currentColor) teintés or champagne, exactement
@@ -158,8 +155,8 @@ class _LogoImage extends StatelessWidget {
         width: size * 0.72,
         height: size * 0.72,
         fit: BoxFit.contain,
-        colorFilter: ColorFilter.mode(
-          isDark ? CompetitionBadge.gold : const Color(0xFF8A6D2B),
+        colorFilter: const ColorFilter.mode(
+          CompetitionBadge.gold,
           BlendMode.srcIn,
         ),
         placeholderBuilder: (_) => fallback,
@@ -167,7 +164,9 @@ class _LogoImage extends StatelessWidget {
     }
     return Image.asset(
       asset,
-      fit: BoxFit.cover,
+      width: size * 0.72,
+      height: size * 0.72,
+      fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) => fallback,
     );
   }

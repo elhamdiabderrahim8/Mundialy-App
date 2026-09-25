@@ -165,6 +165,7 @@ en constantes locales type `kGold`, `kMatchCardDark`) :
 - **Animations** : 200–500 ms, `Curves.easeOutCubic`, jamais linéaire ;
   respecter `MediaQuery.disableAnimations` ; pull-to-refresh natif ;
   transition liste→détail en fade/scale.
+- **Regroupement des Matchs (Phase/Ligue)** : Pour les compétitions à structure complexe (Nations League, etc.), les matchs sont visuellement sous-groupés par phase/ligue (ex: "LEAGUE A - GROUP 1", "SEMI-FINALS") avec un micro-header (barre latérale accent + texte majuscule) si ce n'est pas un match amical. Le `phaseLabel` est calculé dynamiquement pour inclure la Ligue et le Groupe.
 - **Dark mode** : jamais une simple inversion — `secondary` reste l'or champagne
   dans les 2 thèmes ; élévation par surcouches, pas par ombres.
 - **Checklist écran terminé** : 0 en-dur · clair + sombre testés · contrastes OK ·

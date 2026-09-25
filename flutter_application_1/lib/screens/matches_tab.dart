@@ -257,8 +257,9 @@ class _MatchesTabState extends State<MatchesTab> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0D1B2A) : const Color(0xFFF4F6F8);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = theme.scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -624,13 +625,7 @@ class _MatchesTabState extends State<MatchesTab> {
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: (_isCompetitionExpanded[compEntry.value.first.competitionId ?? 0] ?? true)
-                      ? Column(
-                          children: compEntry.value.map((m) => _MatchCard(
-                            match: m,
-                            isDark: isDark,
-                            onTap: () => _openMatch(m),
-                          )).toList(),
-                        )
+                      ? _buildMatchesWithSubGroups(compEntry.value, isDark)
                       : const SizedBox.shrink(),
                 ),
               ],
@@ -641,6 +636,66 @@ class _MatchesTabState extends State<MatchesTab> {
     );
   }
 
+  Widget _buildMatchesWithSubGroups(List<LiveMatch> matches, bool isDark) {
+    // 1. Group by phaseLabel
+    final byPhase = <String, List<LiveMatch>>{};
+    for (final m in matches) {
+      final phase = m.phaseLabel;
+      byPhase.putIfAbsent(phase, () => []).add(m);
+    }
+    
+    final theme = Theme.of(context);
+    final gold = theme.colorScheme.secondary;
+    final isFriendly = (String p) => p.toLowerCase().contains('friendlies') || p.toLowerCase().contains('amicaux') || p.toLowerCase().contains('amical');
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: byPhase.entries.map((entry) {
+        final phase = entry.key;
+        final phaseMatches = entry.value;
+        final showSubHeader = !isFriendly(phase) && phase.isNotEmpty && phase.toLowerCase() != 'world cup';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showSubHeader)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: gold,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      phase.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: isDark ? Colors.white60 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ...phaseMatches.map((m) => _MatchCard(
+              match: m,
+              isDark: isDark,
+              onTap: () => _openMatch(m),
+            )),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
 
   Widget _buildSimpleMatchList(bool isDark) {
     final matches = List<LiveMatch>.from(_filteredMatches)
@@ -648,71 +703,63 @@ class _MatchesTabState extends State<MatchesTab> {
           .compareTo(b.dateTime ?? DateTime(0)));
     final compId = _selectedCompetition?.id ?? _selectedCompetitionId;
     final compName = _selectedCompetition?.name ?? _selectedCompetitionName;
+    final theme = Theme.of(context);
+    final gold = theme.colorScheme.secondary;
 
     return RefreshIndicator(
-      color: _gold,
+      color: gold,
       onRefresh: _loadAllMatches,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.only(bottom: 24),
-        itemCount: matches.length + 2,
-        itemBuilder: (context, i) {
-          if (i == 0) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _CompetitionGroupHeader(
-                      name: compName,
-                      isDark: isDark,
-                      competitionId: compId,
-                      matchCount: matches.length,
-                      onTap: compId != null
-                          ? () => _openCompetition(compId)
-                          : null,
-                    ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _CompetitionGroupHeader(
+                    name: compName,
+                    isDark: isDark,
+                    competitionId: compId,
+                    matchCount: matches.length,
+                    onTap: compId != null
+                        ? () => _openCompetition(compId)
+                        : null,
                   ),
-                  IconButton(
-                    tooltip: 'Changer de compétition',
-                    onPressed: () => setState(() {
-                      _selectedCompetition = null;
-                      _selectedCompetitionId = null;
-                    }),
-                    icon: Icon(
-                      Icons.unfold_more_rounded,
-                      size: 20,
-                      color: isDark ? Colors.white54 : Colors.black45,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (i == matches.length + 1) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Center(
-                child: TextButton.icon(
+                ),
+                IconButton(
+                  tooltip: 'Changer de compétition',
                   onPressed: () => setState(() {
                     _selectedCompetition = null;
                     _selectedCompetitionId = null;
                   }),
-                  icon: const Icon(Icons.swap_vert, size: 18, color: _gold),
-                  label: const Text(
-                    'Changer de compétition',
-                    style: TextStyle(color: _gold),
+                  icon: Icon(
+                    Icons.unfold_more_rounded,
+                    size: 20,
+                    color: isDark ? Colors.white54 : Colors.black45,
                   ),
                 ),
+              ],
+            ),
+          ),
+          _buildMatchesWithSubGroups(matches, isDark),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Center(
+              child: TextButton.icon(
+                onPressed: () => setState(() {
+                  _selectedCompetition = null;
+                  _selectedCompetitionId = null;
+                }),
+                icon: Icon(Icons.swap_vert, size: 18, color: gold),
+                label: Text(
+                  'Changer de compétition',
+                  style: TextStyle(color: gold),
+                ),
               ),
-            );
-          }
-          final m = matches[i - 1];
-          return _MatchCard(
-            match: m,
-            isDark: isDark,
-            onTap: () => _openMatch(m),
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

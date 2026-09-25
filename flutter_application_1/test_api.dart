@@ -1,25 +1,31 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 
 void main() async {
-  final baseParams = 'appTypeId=5&langId=1&timezoneName=Europe%2FParis&userCountryId=135';
+  final baseParams = 'appTypeId=5&langId=29&timezoneName=Europe%2FParis&userCountryId=135';
+  final url = 'https://webws.365scores.com/web/games/allscores/?$baseParams&sportId=1';
+  final response = await http.get(Uri.parse(url), headers: {
+    'User-Agent': 'Mozilla/5.0',
+    'Accept-Encoding': 'gzip, deflate, br'
+  });
   
-  Future<void> testComp(int id, String name) async {
-    final url = Uri.parse('https://webws.365scores.com/web/games/?$baseParams&competitions=$id');
-    try {
-      final request = await HttpClient().getUrl(url);
-      request.headers.set('User-Agent', 'Dart/3.0 (dart:io)');
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
-      final data = jsonDecode(body);
-      final games = data['games'] as List?;
-      print('[$name (ID: $id)] => HTTP ${response.statusCode} | Games count: ${games?.length ?? 0}');
-    } catch (e) {
-      print('[$name (ID: $id)] => Error: $e');
+  final decoded = jsonDecode(response.body);
+  if (decoded['games'] != null) {
+    final games = decoded['games'] as List;
+    for (final g in games) {
+      if (g['statusGroup'] == 3) {
+        print('Found Live Game:');
+        print(g.keys.toList());
+        print('gameTime: ${g['gameTime']}');
+        print('gameTimeDisplay: ${g['gameTimeDisplay']}');
+        print('gameTimeAndStatusDisplay: ${g['gameTimeAndStatusDisplay']}');
+        print('actualActionTime: ${g['actualActionTime']}');
+        print('startTime: ${g['startTime']}');
+        print('playClock: ${g['playClock']}');
+        print('clock: ${g['clock']}');
+        print('lastActionTime: ${g['lastActionTime']}');
+        break;
+      }
     }
   }
-
-  await testComp(67, 'CAN');
-  await testComp(572, 'EURO');
-  await testComp(5930, 'World Cup');
 }

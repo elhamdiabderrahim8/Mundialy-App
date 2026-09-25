@@ -1,6 +1,7 @@
 // lib/screens/competition_detail_screen.dart
 // Page de détail d'une compétition : Matchs | Classements | Buteurs | Tableau
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../constants/app_colors.dart';
 import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
@@ -69,11 +70,13 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
     _tabController = TabController(length: tabCount, vsync: this);
   }
 
-  Future<void> _loadMatches() async {
-    setState(() {
-      _loadingMatches = true;
-      _error = null;
-    });
+  Future<void> _loadMatches({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loadingMatches = true;
+        _error = null;
+      });
+    }
     try {
       final matches = await Scores365Service.fetchAllMatchesForCompetition(
         competitionId: widget.competitionId,
@@ -81,14 +84,33 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
       );
       if (mounted) {
         setState(() {
-          _matches = matches
-            ..sort((a, b) => (b.dateTime ?? DateTime(0))
-                .compareTo(a.dateTime ?? DateTime(0)));
-          _loadingMatches = false;
+          _matches = matches;
+          // Sort logic: LIVE matches first, then unplayed matches nearest to today, then finished matches nearest to today.
+          _matches.sort((a, b) {
+            if (a.isLive && !b.isLive) return -1;
+            if (!a.isLive && b.isLive) return 1;
+            
+            // Si les deux sont à venir
+            if (!a.isFinished && !b.isFinished) {
+              return (a.dateTime ?? DateTime(0)).compareTo(b.dateTime ?? DateTime(0));
+            }
+            
+            // Si les deux sont terminés
+            if (a.isFinished && b.isFinished) {
+              return (b.dateTime ?? DateTime(0)).compareTo(a.dateTime ?? DateTime(0));
+            }
+            
+            // Un terminé, l'autre à venir -> Le terminé en bas
+            if (a.isFinished && !b.isFinished) return 1;
+            if (!a.isFinished && b.isFinished) return -1;
+            
+            return 0;
+          });
+          if (!silent) _loadingMatches = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !silent) {
         setState(() {
           _error = e.toString();
           _loadingMatches = false;
@@ -313,23 +335,67 @@ class _CompetitionDetailScreenState extends State<CompetitionDetailScreen>
       grouped.putIfAbsent(m.dateLabel, () => []).add(m);
     }
 
+    final gold = theme.colorScheme.secondary;
+    final isFriendly = (String p) => p.toLowerCase().contains('friendlies') || p.toLowerCase().contains('amicaux') || p.toLowerCase().contains('amical');
+
     return RefreshIndicator(
       onRefresh: _loadMatches,
-      color: theme.colorScheme.secondary,
+      color: gold,
       child: ListView.builder(
         padding: EdgeInsets.symmetric(vertical: spacing.sm),
         itemCount: grouped.length,
         itemBuilder: (context, i) {
           final date = grouped.keys.elementAt(i);
           final dayMatches = grouped[date]!;
+          
+          final byPhase = <String, List<LiveMatch>>{};
+          for (final m in dayMatches) {
+            byPhase.putIfAbsent(m.phaseLabel, () => []).add(m);
+          }
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _DateHeader(date: date, isDark: isDark),
-              ...dayMatches.map((m) => _CompetitionMatchCard(
-                    match: m,
-                    isDark: isDark,
-                  )),
+              ...byPhase.entries.expand((entry) {
+                final phase = entry.key;
+                final phaseMatches = entry.value;
+                final showSubHeader = !isFriendly(phase) && phase.isNotEmpty && phase.toLowerCase() != 'world cup';
+
+                return [
+                  if (showSubHeader)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(spacing.lg, spacing.lg, spacing.lg, spacing.sm),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: gold,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            phase.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ...phaseMatches.map((m) => _CompetitionMatchCard(
+                        match: m,
+                        isDark: isDark,
+                      )),
+                ];
+              }),
             ],
           );
         },

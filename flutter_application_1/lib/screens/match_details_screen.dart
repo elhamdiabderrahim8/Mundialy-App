@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../l10n/app_localizations.dart';
 import '../utils/lang_utils.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -244,6 +245,10 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
   bool _isLoading = true;
   int _selectedView = 0;
   int _selectedTeamIndex = 0;
+  
+  Timer? _pollTimer;
+  Timer? _secondsTimer;
+  int _currentSeconds = 0;
 
   final GlobalKey _headerKey = GlobalKey();
   final GlobalKey _tabsKey = GlobalKey();
@@ -252,6 +257,19 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
   void initState() {
     super.initState();
     _loadMatchDetails();
+    
+    if (widget.match.isLive) {
+      _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+        _loadMatchDetails(silent: true);
+      });
+      _secondsTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) {
+          setState(() {
+            _currentSeconds = (_currentSeconds + 1) % 60;
+          });
+        }
+      });
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final prefs = await SharedPreferences.getInstance();
@@ -265,8 +283,8 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
     });
   }
 
-  Future<void> _loadMatchDetails() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadMatchDetails({bool silent = false}) async {
+    if (!silent) setState(() => _isLoading = true);
 
     try {
       final details = await ApiService.fetchMatchDetails(widget.match);
@@ -274,16 +292,38 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
       if (!mounted) return;
       setState(() {
         _details = details ?? getMockMatchDetails(widget.match);
-        _isLoading = false;
+        if (!silent) _isLoading = false;
+        
+        if (!widget.match.isLive) {
+          _pollTimer?.cancel();
+          _secondsTimer?.cancel();
+        }
       });
     } catch (e) {
       debugPrint('💥 Erreur chargement détails : $e');
-      if (!mounted) return;
-      setState(() {
-        _details = getMockMatchDetails(widget.match);
-        _isLoading = false;
-      });
+      if (mounted && !silent) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _secondsTimer?.cancel();
+    super.dispose();
+  }
+  
+  String _getLiveTimeWithSeconds() {
+    final status = widget.match.statusDisplay;
+    if (widget.match.isLive && status.endsWith("'")) {
+      final min = status.substring(0, status.length - 1);
+      final sec = _currentSeconds.toString().padLeft(2, '0');
+      return "$min:$sec";
+    }
+    return status;
   }
 
   Future<void> _pinMatch(LiveMatch match) async {
@@ -480,7 +520,7 @@ class _MatchDetailsScreenState extends State<_MatchDetailsScreenBody> {
                 ],
                 const SizedBox(height: 2),
                 Text(
-                  match.isLive ? 'EN DIRECT • ${match.statusDisplay}' : match.statusDisplay,
+                  match.isLive ? 'EN DIRECT • ${_getLiveTimeWithSeconds()}' : match.statusDisplay,
                   style: TextStyle(
                     color: match.isLive ? Colors.redAccent : kGold,
                     fontSize: 12,

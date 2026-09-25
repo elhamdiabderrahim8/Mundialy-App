@@ -83,21 +83,37 @@ class Scores365Service {
 
 
   static Future<List<LiveMatch>> fetchLiveMatches() async {
-    final data = await _fetchJson(
-      'games/current/?$baseParams&competitions=$wcCompetitionId',
-    );
+    // 1. Fetch EVERYTHING for soccer
+    String endpoint = 'games/current/?$baseParams&sportId=1';
+    final data = await _fetchJson(endpoint);
     if (data == null || data['games'] == null) return [];
 
     final games = data['games'] as List;
-    final List<LiveMatch> liveMatches = [];
+    final validIds = CompetitionsCatalog.all.map((c) => c.id).toSet();
+    
+    final Map<String, LiveMatch> uniqueMatches = {};
 
     for (final g in games) {
       final statusGroup = g['statusGroup'];
+      // statusGroup 3 is live!
       if (statusGroup == 3) {
-        liveMatches.add(_mapToLiveMatch(g));
+        final m = _mapToLiveMatch(g);
+        final trueCompId = m.competitionId ?? 0;
+        
+        if (!validIds.contains(trueCompId)) continue;
+        
+        final catalogComp = CompetitionsCatalog.findById(trueCompId);
+        final apiName = (g is Map) ? g['competitionDisplayName']?.toString() ?? '' : '';
+        final resolvedName = catalogComp?.displayName ?? (apiName.isNotEmpty ? apiName : (m.competitionName ?? ''));
+        
+        final resolved = m.copyWithCompetitionInfo(
+          competitionId: trueCompId,
+          competitionName: resolvedName,
+        );
+        uniqueMatches[resolved.id] = resolved;
       }
     }
-    return liveMatches;
+    return uniqueMatches.values.toList();
   }
 
   static Future<List<LiveMatch>> fetchFixtures(int year) async {
@@ -157,17 +173,20 @@ class Scores365Service {
     String? startDate,
     String? endDate,
   }) async {
-    // 1. Fetch EVERYTHING for soccer (sportId=1) for blazing fast CDN cache hit
-    String endpoint = 'games/current/?$baseParams&sportId=1';
-    
-    // Only add dates if we are specifically looking at the past/future
-    // If it's today, we leave it naked to hit the real-time Live cache!
+    // 1. Déterminer si on demande la date d'aujourd'hui
     final now = DateTime.now();
-    final todayStr = '${now.month.toString().padLeft(2, '0')}/${now.day.toString().padLeft(2, '0')}/${now.year}';
+    // On uniformise le format pour correspondre à celui envoyé par matches_tab.dart (dd/MM/yyyy)
+    final todayStr1 = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+    final todayStr2 = '${now.month.toString().padLeft(2, '0')}/${now.day.toString().padLeft(2, '0')}/${now.year}';
     
-    if (startDate != null && endDate != null && (startDate != todayStr || endDate != todayStr)) {
-      endpoint = 'games/?$baseParams&sportId=1&startDate=$startDate&endDate=$endDate';
-    }
+    final isToday = (startDate == null && endDate == null) || 
+                    (startDate == todayStr1) || (startDate == todayStr2);
+
+    // 2. Si c'est aujourd'hui, utiliser 'allscores' pur (cache CDN ultra-rapide ~100ms, temps réel garanti)
+    // Sinon, utiliser 'games/' avec les dates pour l'historique
+    String endpoint = isToday 
+        ? 'games/allscores/?$baseParams&sportId=1'
+        : 'games/?$baseParams&sportId=1&startDate=$startDate&endDate=$endDate';
 
     final data = await _fetchJson(endpoint);
     if (data == null || data['games'] == null) return [];
@@ -175,7 +194,7 @@ class Scores365Service {
     final games = data['games'] as List;
     final validIds = competitionIds.toSet();
     
-    // 2. Client-side filtering & deduplication
+    // 3. Client-side filtering & deduplication
     final Map<String, LiveMatch> uniqueMatches = {};
     for (final g in games) {
       final m = _mapToLiveMatch(g);
@@ -548,8 +567,13 @@ class Scores365Service {
         final groupName = g['groupName']?.toString() ?? '';
         final roundNum = (g['roundNum'] as num?)?.toInt();
         final groupNum = (g['groupNum'] as num?)?.toInt();
+        final stageName = g['stageName']?.toString() ?? '';
+        final roundName = g['roundName']?.toString() ?? '';
 
         if (groupName.isNotEmpty) {
+          if (stageName.toLowerCase().contains('league') || stageName.toLowerCase().contains('ligue')) {
+            return '$stageName - $groupName';
+          }
           return groupName; // Group Stage: "Group A", "Group B", etc.
         }
 
@@ -561,7 +585,11 @@ class Scores365Service {
             groupNum >= 1 &&
             groupNum <= 26 &&
             stageNum <= 2) {
-          return 'Group ${String.fromCharCode(64 + groupNum)}';
+          final computedGroup = 'Group ${String.fromCharCode(64 + groupNum)}';
+          if (stageName.toLowerCase().contains('league') || stageName.toLowerCase().contains('ligue')) {
+            return '$stageName - $computedGroup';
+          }
+          return computedGroup;
         }
 
         // Knockout stages based on stageNum (365Scores convention)
@@ -580,7 +608,7 @@ class Scores365Service {
             return 'Final';
           default:
             // Fallback to roundName/stageName if stageNum not available
-            final fallback = g['roundName'] ?? g['stageName'] ?? 'World Cup';
+            final fallback = roundName.isNotEmpty ? roundName : (stageName.isNotEmpty ? stageName : 'World Cup');
             if (fallback.toLowerCase().trim() == 'round') return 'Round of 32';
             return fallback;
         }

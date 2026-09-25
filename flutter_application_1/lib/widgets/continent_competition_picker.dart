@@ -141,8 +141,7 @@ class _ContinentCompetitionPickerState
                           continent.asset,
                           width: 30,
                           height: 30,
-                          colorFilter: const ColorFilter.mode(
-                              _gold, BlendMode.srcIn),
+                          colorFilter: const ColorFilter.mode(_gold, BlendMode.srcIn),
                         ),
                       ),
                       const SizedBox(width: 12),

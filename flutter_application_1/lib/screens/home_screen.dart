@@ -28,6 +28,7 @@ import '../utils/app_globals.dart';
 import '../utils/player_navigation.dart';
 import '../widgets/mundialy_logo.dart';
 import '../widgets/match_card.dart';
+import '../widgets/competition_header.dart';
 import '../widgets/competition_badge.dart';
 import '../widgets/continent_competition_picker.dart';
 import '../widgets/inline_adaptive_banner.dart';
@@ -83,59 +84,19 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoadingAllMatches = true;
     });
 
-    // Fenêtre réelle autour d'aujourd'hui (pas de décalage artificiel d'année).
-    final now = DateTime.now();
-    final start = _formatDate(now.subtract(const Duration(days: 15)));
-    final end = _formatDate(now.add(const Duration(days: 15)));
-
     final toFetch = CompetitionsCatalog.all;
 
     try {
-      final results = <LiveMatch>[];
+      final allCompIds = toFetch.map((c) => c.id).toList();
+      
+      // Utilisation du endpoint optimisé CDN (ultra-rapide) !
+      final results = await Scores365Service.fetchMatchesForMultipleCompetitions(
+        competitionIds: allCompIds,
+      );
 
-      // Fetch sequentially in small batches to avoid 365Scores Web Filter / Rate limit blocks!
-      final batchSize = 3;
-      for (var i = 0; i < toFetch.length; i += batchSize) {
-        final batch = toFetch.sublist(i, i + batchSize > toFetch.length ? toFetch.length : i + batchSize);
-        final futures = batch.map((comp) => Scores365Service.fetchMatchesByCompetition(
-          competitionId: comp.id,
-          startDate: start,
-          endDate: end,
-          competitionName: comp.name,
-        ));
-
-        final batchResults = await Future.wait(futures.map((f) => f.catchError((_) => <LiveMatch>[])));
-        for (final list in batchResults) {
-          results.addAll(list);
-        }
-
-        // Pause pour ne pas spammer l'API (Fortinet WAF)
-        await Future.delayed(const Duration(milliseconds: 400));
-      }
-
-      // Dates API telles quelles : statut/score et calendrier restent cohérents.
       var all = results;
       all.sort((a, b) =>
           (b.dateTime ?? DateTime(0)).compareTo(a.dateTime ?? DateTime(0)));
-
-      if (all.isEmpty) {
-        debugPrint('⚠️ API returned 0 matches (Network block?), using mock fallback');
-        final todayMock = DateTime(now.year, now.month, now.day, 20, 0);
-        all = [
-          LiveMatch(
-            id: '9991', dateLabel: 'Aujourd\'hui', localTime: '20:00', city: 'London',
-            homeTeam: 'Arsenal', homeCode: 'ENG', awayTeam: 'Chelsea', awayCode: 'ENG',
-            phaseLabel: 'Match', isLive: false, scoreHome: 1, scoreAway: 0,
-            dateTime: todayMock, competitionId: 7, competitionName: 'Premier League',
-          ),
-          LiveMatch(
-            id: '9992', dateLabel: 'Aujourd\'hui', localTime: '21:00', city: 'Madrid',
-            homeTeam: 'Real Madrid', homeCode: 'ESP', awayTeam: 'Barcelona', awayCode: 'ESP',
-            phaseLabel: 'Match', isLive: true, scoreHome: 2, scoreAway: 2, matchMinute: '67',
-            dateTime: todayMock, competitionId: 11, competitionName: 'La Liga',
-          )
-        ];
-      }
 
       if (mounted) {
         debugPrint("DEBUG: Fetched ${all.length} matches across all competitions.");
@@ -265,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   java_timer.Timer? _silentRefreshTimer;
   bool _scorePollBusy = false;
+  bool _isFetchingLive = false;
 
   bool _hasLiveOrToday(List<LiveMatch> source) {
     final now = DateTime.now();
@@ -308,47 +270,42 @@ class _HomeScreenState extends State<HomeScreen> {
   void _startSilentScoreRefresh() {
     _silentRefreshTimer?.cancel();
     if (_selectedYear == 2022) return;
-    // 12 s : réactif sans spammer le WAF 365Scores.
-    // Toujours actif (pas conditionné aux lives) : un match peut demarrer
-    // après le chargement initial.
+    
+    // Polling optimisé toutes les 25 secondes
     _silentRefreshTimer = java_timer.Timer.periodic(
-      const Duration(seconds: 12),
+      const Duration(seconds: 25),
       (_) async {
         if (!mounted || _scorePollBusy) return;
-        // Inutile de poller s'il n'y a rien d'intéressant à suivre
-        if (!_hasLiveOrToday(_matches) && !_hasLiveOrToday(_allMatches)) {
-          return;
-        }
         _scorePollBusy = true;
         try {
-          final freshLives = await ApiService.fetchLiveMatches();
-          final freshHome = await ApiService.fetchMatches(
-            year: _selectedYear,
-            forceRefresh: true,
+          final toFetch = CompetitionsCatalog.all.map((c) => c.id).toList();
+          final results = await Scores365Service.fetchMatchesForMultipleCompetitions(
+            competitionIds: toFetch,
           );
-
-          if (!mounted) return;
-
-          final nextMatches = _mergeFreshScores(
-            _matches,
-            freshHome.isEmpty ? freshLives : freshHome,
-          );
-          final nextAll = _mergeFreshScores(
-            _allMatches,
-            freshLives.isNotEmpty ? freshLives : freshHome,
-          );
-
-          final scoreChanged =
-              !identical(nextMatches, _matches) || !identical(nextAll, _allMatches);
-          if (scoreChanged) {
-            HapticFeedback.heavyImpact();
+          
+          if (mounted && results.isNotEmpty) {
             setState(() {
-              _matches = nextMatches;
-              _allMatches = nextAll;
+              // Mettre à jour les matchs avec les nouvelles données live
+              for (final newMatch in results) {
+                final index = _allMatches.indexWhere((m) => m.id == newMatch.id);
+                if (index != -1) {
+                  _allMatches[index] = newMatch;
+                }
+              }
             });
+            
+            if (await FlutterOverlayWindow.isActive()) {
+              // Mise à jour simplifiée de l'overlay avec le match actif
+              final liveM = _allMatches.firstWhere((m) => m.isLive, orElse: () => _allMatches.first);
+              FlutterOverlayWindow.shareData({
+                'home': liveM.homeTeam,
+                'away': liveM.awayTeam,
+                'score': '${liveM.scoreHome ?? 0} - ${liveM.scoreAway ?? 0}',
+              });
+            }
           }
-        } catch (_) {
-          // Réseau / WAF : on réessaiera au tick suivant
+        } catch (e) {
+          debugPrint('Silent poll error: $e');
         } finally {
           _scorePollBusy = false;
         }
@@ -356,7 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  bool _isFetchingLive = false;
   // ignore: unused_element
   Future<void> _fetchLiveMode() async {
     if (_isFetchingLive) return;
@@ -914,7 +870,7 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final entry in grouped.entries) {
       final first = entry.value.first;
       widgets.add(
-        _CompetitionGroupHeader(
+        CompetitionHeader(
           name: entry.key,
           competitionId: first.competitionId,
           matchCount: entry.value.length,
@@ -1945,612 +1901,7 @@ class _MatchCard extends StatelessWidget {
 
 /// Header de groupe compétition : logo + nom + compteur, cliquable vers
 /// la page compétition. Le nom n'est plus répété sur les cartes.
-class _CompetitionGroupHeader extends StatelessWidget {
-  const _CompetitionGroupHeader({
-    required this.name,
-    required this.competitionId,
-    required this.matchCount,
-    required this.onTap,
-  });
-  final String name;
-  final int? competitionId;
-  final int matchCount;
-  final VoidCallback? onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final comp = competitionId != null
-        ? CompetitionsCatalog.findById(competitionId!)
-        : null;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        margin: const EdgeInsets.only(top: 8, bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isDark ? Colors.white12 : Colors.grey.shade200,
-          ),
-        ),
-        child: Row(
-          children: [
-            CompetitionBadge(competition: comp, size: 26, iconSize: 14),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                name,
-                style: TextStyle(
-                  color: isDark ? Colors.white : const Color(0xFF1A2A3A),
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(right: 6),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: _kGold.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$matchCount',
-                style: const TextStyle(
-                  color: _kGold,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                ),
-              ),
-            ),
-            if (onTap != null)
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 12,
-                color: isDark ? Colors.white38 : Colors.black38,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/* ── Code déplacé dans widgets/match_card.dart (carte unique partagée).
-   Conservé en commentaire pour traçabilité, à supprimer après validation.
-  Widget _buildLiveCard(BuildContext context, bool isDark) {
-    final String scoreText = match.scoreHome != null
-        ? '${match.scoreHome}  -  ${match.scoreAway}'
-        : '–  –';
-    final String? penaltyText =
-        (match.penaltyHome != null && match.penaltyAway != null)
-        ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)'
-        : null;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.6), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.redAccent.withValues(alpha: 0.12),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: BouncingCard(
-          onTap: () => Navigator.of(context).push(
-            PremiumPageRoute(page: MatchDetailsScreen(match: match)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (match.competitionName != null && match.competitionName!.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      if (match.competitionId != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CompetitionDetailScreen(
-                              competitionId: match.competitionId!,
-                              overrideName: match.competitionName,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _kGold.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            match.competitionName!,
-                            style: TextStyle(
-                              color: isDark ? _kGold : const Color(0xFFB8860B),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                // Top section: Pulse + minute + épingler ──
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const PulsingLiveDot(),
-                        const SizedBox(width: 6),
-                        Text(
-                          match.statusDisplay,
-                          style: const TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                    PinMatchButton(
-                      compact: true,
-                      onTap: () => _pinMatch(context, match),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // ── Teams + Score Row ──
-                Row(
-                  children: [
-                    // Home team name
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: match.homeTeamId == null
-                            ? null
-                            : () => openTeamProfile(
-                                context,
-                                teamName: match.homeTeam,
-                                teamId: match.homeTeamId,
-                                year: match.dateTime?.year ?? 2026,
-                              ),
-                        child: Text(
-                          match.homeTeam,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Home flag
-                    Hero(
-                      tag: 'logo_home_${match.id}',
-                      child: NationFlagBadge(
-                        countryCode: match.homeCode,
-                        teamName: match.homeTeam,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Score
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      transitionBuilder: (child, anim) => FadeTransition(
-                        opacity: anim,
-                        child: ScaleTransition(scale: anim, child: child),
-                      ),
-                      child: Column(
-                        key: ValueKey(scoreText),
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            scoreText,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          if (penaltyText != null)
-                            Text(
-                              penaltyText,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Away flag
-                    Hero(
-                      tag: 'logo_away_${match.id}',
-                      child: NationFlagBadge(
-                        countryCode: match.awayCode,
-                        teamName: match.awayTeam,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Away team name
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: match.awayTeamId == null
-                            ? null
-                            : () => openTeamProfile(
-                                context,
-                                teamName: match.awayTeam,
-                                teamId: match.awayTeamId,
-                                year: match.dateTime?.year ?? 2026,
-                              ),
-                        child: Text(
-                          match.awayTeam,
-                          textAlign: TextAlign.right,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStandardCard(BuildContext context, bool isDark) {
-    final String centerText = match.scoreHome != null
-        ? '${match.scoreHome} - ${match.scoreAway}'
-        : 'VS';
-    final String? penaltyText =
-        (match.penaltyHome != null && match.penaltyAway != null)
-        ? '(${match.penaltyHome} - ${match.penaltyAway} TAB)'
-        : null;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? _kCardDark : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.05),
-        ),
-        boxShadow: [
-          if (!match.isFinished)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: BouncingCard(
-          onTap: () => Navigator.of(context).push(
-            PremiumPageRoute(page: MatchDetailsScreen(match: match)),
-          ),
-          child: Opacity(
-            opacity: match.isFinished ? 0.65 : 1.0,
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                children: [
-                  if (match.competitionName != null && match.competitionName!.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        if (match.competitionId != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CompetitionDetailScreen(
-                                competitionId: match.competitionId!,
-                                overrideName: match.competitionName,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _kGold.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          match.competitionName!,
-                          style: TextStyle(
-                            color: isDark ? _kGold : const Color(0xFFB8860B),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // Top row: status + phase
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (match.isFinished) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Text(
-                                  'TERMINÉ',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 10,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ] else ...[
-                              Text(
-                                match.localTime,
-                                style: const TextStyle(
-                                  color: _kGold,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        flex: 2,
-                        child: Text(
-                          LangUtils.getTranslatedPhase(match.phaseLabel, context),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 11,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Teams + Score row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Flexible(
-                              child: GestureDetector(
-                                onTap: match.homeTeamId == null
-                                    ? null
-                                    : () => openTeamProfile(
-                                        context,
-                                        teamName: match.homeTeam,
-                                        teamId: match.homeTeamId,
-                                        year: match.dateTime?.year ?? 2026,
-                                      ),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    match.homeTeam,
-                                    textAlign: TextAlign.right,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Hero(
-                              tag: 'logo_home_${match.id}',
-                              child: NationFlagBadge(
-                                countryCode: match.homeCode,
-                                teamName: match.homeTeam,
-                                size: 24,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 80,
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              transitionBuilder: (child, animation) =>
-                                  SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0.0, -0.2),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  ),
-                              child: Text(
-                                centerText,
-                                key: ValueKey<String>(centerText),
-                                style: TextStyle(
-                                  color: _kGold,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                            if (penaltyText != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  penaltyText,
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Hero(
-                              tag: 'logo_away_${match.id}',
-                              child: NationFlagBadge(
-                                countryCode: match.awayCode,
-                                teamName: match.awayTeam,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: GestureDetector(
-                                onTap: match.awayTeamId == null
-                                    ? null
-                                    : () => openTeamProfile(
-                                        context,
-                                        teamName: match.awayTeam,
-                                        teamId: match.awayTeamId,
-                                        year: match.dateTime?.year ?? 2026,
-                                      ),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    match.awayTeam,
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _pinMatch(BuildContext context, LiveMatch match) async {
-    final bool status = await FlutterOverlayWindow.isPermissionGranted();
-    if (!status) {
-      await FlutterOverlayWindow.requestPermission();
-      return;
-    }
-
-    if (await FlutterOverlayWindow.isActive()) {
-      FlutterOverlayWindow.closeOverlay();
-    }
-
-    ApiService.pinnedMatchId = match.id;
-
-    await FlutterOverlayWindow.showOverlay(
-      enableDrag: true,
-      overlayTitle: "Live Score",
-      overlayContent: "Match en cours",
-      flag: OverlayFlag.defaultFlag,
-      alignment: OverlayAlignment.centerLeft,
-      visibility: NotificationVisibility.visibilityPublic,
-      width: WindowSize.matchParent,
-      height: 120,
-    );
-
-    FlutterOverlayWindow.shareData({
-      'home': match.homeTeam,
-      'away': match.awayTeam,
-      'homeCode': match.homeCode,
-      'awayCode': match.awayCode,
-      'score': '${match.scoreHome ?? 0} - ${match.scoreAway ?? 0}',
-      'minute': match.matchMinute ?? '',
-    });
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Match ${match.homeTeam} épinglé sur l\'écran d\'accueil !',
-          ),
-          backgroundColor: _kGold,
-        ),
-      );
-    }
-  }
-}
-// ── Fin du bloc déplacé vers widgets/match_card.dart ── */
 
 class _LiveDot extends StatefulWidget {
   const _LiveDot();
