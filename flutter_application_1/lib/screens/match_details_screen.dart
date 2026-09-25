@@ -1524,6 +1524,10 @@ class _TeamMiniCard extends StatelessWidget {
           if (heroTag != null)
             Hero(
               tag: heroTag!,
+              flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) => Material(
+                type: MaterialType.transparency,
+                child: _DiamondFlag(countryCode: code, teamName: name, logoUrl: logoUrl, size: 74),
+              ),
               child: Material(type: MaterialType.transparency, child: _DiamondFlag(countryCode: code, teamName: name, logoUrl: logoUrl, size: 74)),
             )
           else
