@@ -51,6 +51,9 @@ jobs:
             echo "::warning::Secret GOOGLE_SERVICES_JSON absent — fichier local conservé."
             test -s android/app/google-services.json || { echo "::error::google-services.json manquant, build Firebase impossible."; exit 1; }
           fi
+          # Échec rapide si le JSON est invalide (évite 4 min de build + erreur
+          # Gson cryptique dans processReleaseGoogleServices).
+          python3 -c "import json; json.load(open('android/app/google-services.json')); print('google-services.json: JSON valide.')"
 
       # 🧱 BUILD
       - name: Build APK
