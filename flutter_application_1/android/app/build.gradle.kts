@@ -67,9 +67,5 @@ dependencies {
     implementation("androidx.palette:palette-ktx:1.0.0")
 }
 
-// Force startapp SDK vers la dernière version compatible compileSdk 36
-configurations.all {
-    resolutionStrategy {
-        force("com.startapp:inapp-sdk:4.11.5")
-    }
-}
+// StartApp : version forcée au niveau root (voir android/build.gradle.kts) —
+// un force ici ne couvrirait que :app, pas le module :startapp_sdk.
