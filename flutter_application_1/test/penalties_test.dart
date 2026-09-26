@@ -1,3 +1,6 @@
+// Test RÉEL (http direct vers 365Scores) : taggé 'live-api' pour être exclu
+// de la CI classique et lancé par le workflow api-check.yml (manuel / hebdo).
+@Tags(['live-api'])
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;

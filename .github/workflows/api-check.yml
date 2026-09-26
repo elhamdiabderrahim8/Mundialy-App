@@ -1,0 +1,42 @@
+name: Live API smoke check
+
+# Tests RÉELS contre les API (365Scores, SofaScore) : ils tapent le réseau et
+# peuvent échouer pour des raisons externes (rate-limit, endpoint modifié).
+# Donc PAS dans la CI classique : lancement manuel ou hebdomadaire.
+# Un rouge ici = "l'API a changé", pas "le code est cassé".
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1' # chaque lundi 06:00 UTC
+
+jobs:
+  live_api:
+    name: Real API endpoints
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: flutter_application_1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run live-API tests
+        run: flutter test --tags live-api

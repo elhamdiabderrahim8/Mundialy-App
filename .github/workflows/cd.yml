@@ -38,10 +38,19 @@ jobs:
         run: flutter pub get
 
       # 🔐 SECURITY: Restore secret files from GitHub Secrets
+      # Ne jamais écraser par du vide : si le secret est absent, on garde
+      # le fichier existant (échec explicite plutôt que build cassé).
       - name: Restore google-services.json
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "google-services.json restauré depuis le secret."
+          else
+            echo "::warning::Secret GOOGLE_SERVICES_JSON absent — fichier local conservé."
+            test -s android/app/google-services.json || { echo "::error::google-services.json manquant, build Firebase impossible."; exit 1; }
+          fi
 
       # 🧱 BUILD
       - name: Build APK

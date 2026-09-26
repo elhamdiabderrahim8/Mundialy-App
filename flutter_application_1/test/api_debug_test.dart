@@ -1,3 +1,6 @@
+// Test RÉEL (réseau SofaScore) : taggé 'live-api' pour être exclu de la CI
+// classique et lancé par le workflow api-check.yml (manuel / hebdo).
+@Tags(['live-api'])
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_application_1/services/sofa_direct_service.dart';
 

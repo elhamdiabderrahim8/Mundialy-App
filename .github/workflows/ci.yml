@@ -43,8 +43,11 @@ jobs:
       - name: Static Analysis
         run: flutter analyze || true
 
+      # Tests unitaires purs uniquement : les tests réseau taggés 'live-api'
+      # (api_debug, real_aggregator, penalties) sont lancés par api-check.yml
+      # pour ne jamais faire échouer la CI sur un aléa réseau/API.
       - name: Run Tests
-        run: flutter test --coverage
+        run: flutter test --exclude-tags live-api --coverage
 
       - name: Upload Coverage
         uses: actions/upload-artifact@v4
