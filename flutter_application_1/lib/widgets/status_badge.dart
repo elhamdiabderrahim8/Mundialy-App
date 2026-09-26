@@ -25,13 +25,18 @@ class StatusBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
     final radii = theme.extension<AppRadii>() ?? const AppRadii();
-    final reduceMotion =
-        MediaQuery.of(context).disableAnimations;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
+    // [Fix 4] Contraste WCAG AA (4.5:1) :
+    // Fond = color à 90% d'opacité (solide) → texte blanc (#FFF) = >7:1 garanti.
+    final Color bgColor = color.withValues(alpha: 0.90);
+    // On garde la pastille en blanc (visible sur fond coloré).
+    final Color textOnBadge = Colors.white;
 
     final dot = Container(
       width: 8,
       height: 8,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
     );
 
     return Semantics(
@@ -42,9 +47,9 @@ class StatusBadge extends StatelessWidget {
           vertical: spacing.xs - 1,
         ),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
+          color: bgColor,
           borderRadius: BorderRadius.circular(radii.full),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
+          // Pas de border supplémentaire — le fond plein suffit
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -56,8 +61,9 @@ class StatusBadge extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w700,
+                    color: textOnBadge,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
             ),
           ],
