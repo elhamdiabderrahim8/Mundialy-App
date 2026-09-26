@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import '../models/live_match.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/app_routes.dart';
 import '../utils/lang_utils.dart';
 import '../utils/team_navigation.dart';
@@ -19,14 +20,11 @@ import 'fade_slide_entrance.dart';
 import 'nation_flag_badge.dart';
 import 'pin_match_button.dart';
 
-/// ─── Design tokens ───────────────────────────────────────────────────────────
-/// Or champagne (identité Mundialy)
-const Color kMatchCardGold = Color(0xFFE7C16A);
-/// Fond carte dark
-const Color kMatchCardDark = Color(0xFF1D2D3B);
-/// Rouge LIVE — unifié border + minute + score (WCAG AA sur fonds sombres).
-/// Ancienne valeur : Colors.redAccent (#FF5252). Nouvelle : #E53935.
-const Color kLiveRed = Color(0xFFE53935);
+// ─── Tokens DS (source unique : AppTheme) ─────────────────────────────────────
+// Or champagne  → Theme.of(context).colorScheme.secondary
+// Rouge LIVE   → Theme.of(context).extension<MatchColors>()!.liveIndicator (#E53935)
+// Fond carte   → Theme.of(context).cardTheme.color
+// Plus aucun hex en dur ici (Guide §3 : interdit dans les widgets pré-DS).
 
 class MatchCard extends StatelessWidget {
   final LiveMatch match;
@@ -59,20 +57,27 @@ class MatchCard extends StatelessWidget {
             ? '(${match.penaltyHome}-${match.penaltyAway} tab)'
             : null;
 
-    final Color cardBg = isDark ? const Color(0xFF1A1A2E) : Colors.white;
-    final Color teamColor = isDark ? Colors.white : const Color(0xFF1A2A3A);
+    final theme = Theme.of(context);
+    final liveRed =
+        theme.extension<MatchColors>()?.liveIndicator ??
+        const Color(0xFFE53935);
+    final radii = theme.extension<AppRadii>() ?? const AppRadii();
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final Color cardBg =
+        theme.cardTheme.color ?? (isDark ? const Color(0xFF162634) : Colors.white);
+    final Color teamColor = theme.colorScheme.onSurface;
 
     return Container(
-      // Grille 8px : margin bottom = 12 (8+4, arrondi à 12 pour respirer)
-      margin: const EdgeInsets.only(bottom: 12),
+      // Grille 8pt : margin bottom = 12, radius lg 16 (Guide §1.3-1.4)
+      margin: EdgeInsets.only(bottom: spacing.md),
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        // [Fix 1] Border LIVE unifié — même couleur que score + minute
-        border: Border.all(color: kLiveRed.withValues(alpha: 0.65), width: 1.5),
+        borderRadius: BorderRadius.circular(radii.lg),
+        // Border LIVE = même token que score + minute (MatchColors.liveIndicator)
+        border: Border.all(color: liveRed.withValues(alpha: 0.65), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: kLiveRed.withValues(alpha: isDark ? 0.14 : 0.09),
+            color: liveRed.withValues(alpha: isDark ? 0.14 : 0.09),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -99,11 +104,11 @@ class MatchCard extends StatelessWidget {
                       children: [
                         const PulsingLiveDot(),
                         const SizedBox(width: 6),
-                        // [Fix 1] Rouge unifié pour la minute
+                        // Rouge LIVE = token MatchColors (jamais de hex en dur)
                         Text(
                           match.statusDisplay,
-                          style: const TextStyle(
-                            color: kLiveRed,
+                          style: TextStyle(
+                            color: liveRed,
                             fontWeight: FontWeight.w800,
                             fontSize: 13,
                           ),
@@ -186,9 +191,9 @@ class MatchCard extends StatelessWidget {
                             child: Text(
                               scoreText,
                               key: ValueKey(scoreText),
-                              style: const TextStyle(
-                                // [Fix 1] Rouge unifié pour le score live
-                                color: kLiveRed,
+                              style: TextStyle(
+                                // Rouge LIVE = token MatchColors
+                                color: liveRed,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -287,12 +292,19 @@ class MatchCard extends StatelessWidget {
         match.scoreAway != null &&
         match.scoreAway! > match.scoreHome!;
 
+    final theme = Theme.of(context);
+    final gold = theme.colorScheme.secondary;
+    final radii = theme.extension<AppRadii>() ?? const AppRadii();
+    final spacing = theme.extension<AppSpacing>() ?? const AppSpacing();
+    final Color cardBg =
+        theme.cardTheme.color ?? (isDark ? const Color(0xFF162634) : Colors.white);
+
     return Container(
-      // Grille 8px
-      margin: const EdgeInsets.only(bottom: 12),
+      // Grille 8pt (Guide §1.3)
+      margin: EdgeInsets.only(bottom: spacing.md),
       decoration: BoxDecoration(
-        color: isDark ? kMatchCardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: cardBg,
+        borderRadius: BorderRadius.circular(radii.lg),
         // [Fix 3] Border TOUJOURS présent — neutre pour terminé, transparent pour à venir
         border: Border.all(
           color: match.isFinished
@@ -337,8 +349,8 @@ class MatchCard extends StatelessWidget {
                             ? _TermineBadge(isDark: isDark)
                             : Text(
                                 match.localTime,
-                                style: const TextStyle(
-                                  color: kMatchCardGold,
+                                style: TextStyle(
+                                  color: gold,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
@@ -448,8 +460,8 @@ class MatchCard extends StatelessWidget {
                               child: Text(
                                 centerText,
                                 key: ValueKey<String>(centerText),
-                                style: const TextStyle(
-                                  color: kMatchCardGold,
+                                style: TextStyle(
+                                  color: gold,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -576,7 +588,7 @@ class MatchCard extends StatelessWidget {
           content: Text(
             'Match ${match.homeTeam} épinglé sur l\'écran d\'accueil !',
           ),
-          backgroundColor: kMatchCardGold,
+          backgroundColor: Theme.of(context).colorScheme.secondary,
         ),
       );
     }
@@ -617,6 +629,7 @@ class _TermineBadge extends StatelessWidget {
 }
 
 // ─── Point pulsant LIVE ───────────────────────────────────────────────────────
+// Token MatchColors.liveIndicator + respecte "reduce motion" (Guide §6).
 class PulsingLiveDot extends StatefulWidget {
   const PulsingLiveDot({super.key});
 
@@ -633,7 +646,7 @@ class _PulsingLiveDotState extends State<PulsingLiveDot>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
   }
 
@@ -645,16 +658,23 @@ class _PulsingLiveDotState extends State<PulsingLiveDot>
 
   @override
   Widget build(BuildContext context) {
+    final liveRed =
+        Theme.of(context).extension<MatchColors>()?.liveIndicator ??
+        const Color(0xFFE53935);
+    // Reduce-motion : pastille fixe, pas d'animation (Guide §6).
+    if (MediaQuery.of(context).disableAnimations) {
+      return Container(
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(color: liveRed, shape: BoxShape.circle),
+      );
+    }
     return FadeTransition(
       opacity: _controller,
       child: Container(
         width: 6,
         height: 6,
-        decoration: const BoxDecoration(
-          // [Fix 1] Rouge unifié kLiveRed
-          color: kLiveRed,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: liveRed, shape: BoxShape.circle),
       ),
     );
   }

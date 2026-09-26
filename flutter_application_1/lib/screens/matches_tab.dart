@@ -10,15 +10,13 @@ import '../data/competitions_catalog.dart';
 import '../models/competition.dart';
 import '../models/live_match.dart';
 import '../services/scores365_service.dart';
-import '../utils/app_routes.dart';
 import '../services/api_service.dart';
 import '../widgets/competition_badge.dart';
 import '../widgets/continent_competition_picker.dart';
 import '../widgets/loading_skeletons.dart';
 import '../widgets/match_card.dart';
-import '../widgets/nation_flag_badge.dart';
+import '../theme/app_theme.dart';
 import 'competition_detail_screen.dart';
-import 'match_details_screen.dart';
 
 enum MatchFilterMode { byDate, byCompetition }
 
@@ -702,11 +700,9 @@ class _MatchesTabState extends State<MatchesTab> {
                   ],
                 ),
               ),
-            ...phaseMatches.map((m) => _MatchCard(
-              match: m,
-              isDark: isDark,
-              onTap: () => _openMatch(m),
-            )),
+            ...phaseMatches.map(
+              (m) => _SharedMatchCard(match: m, isDark: isDark),
+            ),
           ],
         );
       }).toList(),
@@ -844,19 +840,11 @@ class _MatchesTabState extends State<MatchesTab> {
     );
   }
 
-  void _openMatch(LiveMatch match) {
-    Navigator.of(context).push(
-      PremiumPageRoute(page: MatchDetailsScreen(match: match)),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WIDGETS INTERNES
 // ─────────────────────────────────────────────────────────────────────────────
-
-/// Rouge LIVE unifié — même token que match_card.dart
-const Color _kLiveRed = Color(0xFFE53935);
 
 class _DateSectionHeader extends StatelessWidget {
   const _DateSectionHeader({
@@ -1006,306 +994,41 @@ class _CompetitionGroupHeader extends StatelessWidget {
 }
 
 
-// ── Carte match compacte (tab principale, mode horizontal) ───────────────────
-// Applique les mêmes règles UX que MatchCard :
-//  - kLiveRed (#E53935) unifié border + score + minute
-//  - Équipe gagnante en w800, perdante en w500 (terminé seulement)
-//  - Badge TERMINÉ au même endroit/format que la minute live
-//  - Border neutre 1px pour les matchs terminés (pas null)
-class _MatchCard extends StatelessWidget {
-  const _MatchCard({
-    required this.match,
-    required this.isDark,
-    required this.onTap,
-  });
+// ── Carte match partagée (source unique : MatchCard) ─────────────────────────
+// Même carte que la page Détails Compétition : la navigation est gérée par
+// MatchCard lui-même (BouncingCard → détails). Le wrapper n'ajoute que le
+// padding écran + l'annonce vocale (Guide §5). Le regroupement par phase
+// (phaseLabel) est inchangé dans _buildMatchesWithSubGroups.
+class _SharedMatchCard extends StatelessWidget {
+  const _SharedMatchCard({required this.match, required this.isDark});
   final LiveMatch match;
   final bool isDark;
-  final VoidCallback onTap;
 
-  String get _semanticLabel {
+  @override
+  Widget build(BuildContext context) {
+    final spacing =
+        Theme.of(context).extension<AppSpacing>() ?? const AppSpacing();
     final status = match.isLive
-        ? 'en direct ${match.statusDisplay}'
+        ? 'en direct, ${match.statusDisplay}'
         : match.isFinished
             ? 'terminé ${match.scoreHome ?? 0} à ${match.scoreAway ?? 0}'
             : 'à ${match.localTime}';
-    return '${match.homeTeam} contre ${match.awayTeam}, $status';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isLive = match.isLive;
-    final isFinished = match.isFinished;
-    final cardBg = isDark ? const Color(0xFF1A2A3A) : Colors.white;
-
-    // [Fix 2] Vainqueur en bold pour les matchs terminés
-    final homeWon = isFinished &&
-        match.scoreHome != null &&
-        match.scoreAway != null &&
-        match.scoreHome! > match.scoreAway!;
-    final awayWon = isFinished &&
-        match.scoreHome != null &&
-        match.scoreAway != null &&
-        match.scoreAway! > match.scoreHome!;
-
-    return Semantics(
-      button: true,
-      label: _semanticLabel,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-            decoration: BoxDecoration(
-              color: cardBg,
-              // [Fix 3] Border TOUJOURS présente
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isLive
-                    ? _kLiveRed.withValues(alpha: 0.65)  // [Fix 1] Rouge unifié
-                    : isFinished
-                        ? (isDark
-                            ? Colors.white.withValues(alpha: 0.12)
-                            : Colors.black.withValues(alpha: 0.08))
-                        : (isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.04)),
-                width: isLive ? 1.5 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isLive
-                      ? _kLiveRed.withValues(alpha: 0.10)
-                      : Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-                  blurRadius: isLive ? 10 : 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Opacity(
-              // [Fix 3] Terminé à 75%
-              opacity: isFinished ? 0.75 : 1.0,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  children: [
-                    // Équipe domicile
-                    Expanded(
-                      child: Row(
-                        children: [
-                          NationFlagBadge(
-                            countryCode: match.homeCode,
-                            size: 30,
-                            teamName: match.homeTeam,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              match.homeTeam,
-                              style: TextStyle(
-                                // [Fix 2] Gagnant en w800, perdant en w500
-                                fontWeight: homeWon
-                                    ? FontWeight.w800
-                                    : (awayWon
-                                        ? FontWeight.w500
-                                        : FontWeight.w700),
-                                fontSize: 13,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1A2A3A),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Score / heure — zone centrale
-                    SizedBox(
-                      width: 96,
-                      child: _buildScoreOrTime(isLive, isFinished, isDark),
-                    ),
-                    // Équipe extérieure
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              match.awayTeam,
-                              style: TextStyle(
-                                // [Fix 2] Gagnant en w800, perdant en w500
-                                fontWeight: awayWon
-                                    ? FontWeight.w800
-                                    : (homeWon
-                                        ? FontWeight.w500
-                                        : FontWeight.w700),
-                                fontSize: 13,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1A2A3A),
-                              ),
-                              textAlign: TextAlign.right,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          NationFlagBadge(
-                            countryCode: match.awayCode,
-                            size: 30,
-                            teamName: match.awayTeam,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: spacing.md,
+        vertical: spacing.xs,
       ),
-    );
-  }
-
-  Widget _buildScoreOrTime(bool isLive, bool isFinished, bool isDark) {
-    if (isLive || isFinished) {
-      final penalties = (match.penaltyHome != null && match.penaltyAway != null)
-          ? '(${match.penaltyHome}-${match.penaltyAway} tab)'
-          : '';
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${match.scoreHome ?? '-'}  –  ${match.scoreAway ?? '-'}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              // [Fix 1] Rouge pour live, neutre pour terminé
-              color: isLive
-                  ? _kLiveRed
-                  : (isDark ? Colors.white : const Color(0xFF1A2A3A)),
-            ),
-          ),
-          if (penalties.isNotEmpty)
-            Text(
-              penalties,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white54 : Colors.black45,
-              ),
-            ),
-          const SizedBox(height: 2),
-          // [Fix 3] Badge statut — même position et même format pour live ET terminé
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: isLive
-                  ? _kLiveRed.withValues(alpha: 0.12)
-                  : (isDark
-                      ? Colors.white.withValues(alpha: 0.07)
-                      : Colors.black.withValues(alpha: 0.05)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isLive) ...[
-                  // Point pulsant rouge unifié
-                  const _MiniPulsingDot(),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  isLive ? match.statusDisplay : 'FT',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    // [Fix 1] Rouge unifié pour la minute live
-                    color: isLive
-                        ? _kLiveRed
-                        : (isDark
-                            ? Colors.white.withValues(alpha: 0.55)
-                            : Colors.black.withValues(alpha: 0.45)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-    // Match à venir : heure en or
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          match.localTime,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFFE7C16A),
-          ),
-        ),
-        Text(
-          match.phaseLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 10,
-            color: isDark ? Colors.white38 : Colors.black38,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
-
-// Mini point pulsant rouge pour la carte compacte
-class _MiniPulsingDot extends StatefulWidget {
-  const _MiniPulsingDot();
-
-  @override
-  State<_MiniPulsingDot> createState() => _MiniPulsingDotState();
-}
-
-class _MiniPulsingDotState extends State<_MiniPulsingDot>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _ctrl,
-      child: Container(
-        width: 5,
-        height: 5,
-        decoration: const BoxDecoration(
-          color: _kLiveRed,
-          shape: BoxShape.circle,
+      child: Semantics(
+        // Guide §5 : annonce vocale du match pour TalkBack / VoiceOver.
+        label: '${match.homeTeam} contre ${match.awayTeam}, $status',
+        button: true,
+        child: MatchCard(
+          match: match,
+          year: match.dateTime?.year ?? DateTime.now().year,
+          // Même formule que la page Détails Compétition.
+          textColor: isDark ? Colors.white : Colors.black87,
         ),
       ),
     );
   }
 }
-

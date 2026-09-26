@@ -223,7 +223,7 @@ class MatchColors extends ThemeExtension<MatchColors> {
   });
 
   const MatchColors.light()
-      : liveIndicator = Colors.redAccent,
+      : liveIndicator = const Color(0xFFE53935),
         win = const Color(0xFF2ECC71),
         loss = const Color(0xFFE74C3C),
         draw = AppColors.secondary,
@@ -232,7 +232,7 @@ class MatchColors extends ThemeExtension<MatchColors> {
         rankBronze = const Color(0xFFCD7F32);
 
   const MatchColors.dark()
-      : liveIndicator = Colors.redAccent,
+      : liveIndicator = const Color(0xFFE53935),
         win = const Color(0xFF2ECC71),
         loss = const Color(0xFFE74C3C),
         draw = AppColors.secondary,

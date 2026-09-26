@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _kGold = Color(0xFFE7C16A);
+// Or champagne = source unique Theme.colorScheme.secondary (lire dans build).
+// Plus de hex en dur (Guide §3).
 
 class PinMatchButton extends StatefulWidget {
   const PinMatchButton({super.key, required this.onTap, this.compact = false, this.initiallyPinned = false});
@@ -46,7 +47,8 @@ class _PinMatchButtonState extends State<PinMatchButton> with SingleTickerProvid
       _isPinned = !_isPinned;
     });
     
-    if (_isPinned) {
+    // Guide §6 : pas d'animation si "reduce motion" système.
+    if (_isPinned && !MediaQuery.of(context).disableAnimations) {
       _controller.forward(from: 0.0);
       
       final prefs = await SharedPreferences.getInstance();
@@ -68,48 +70,65 @@ class _PinMatchButtonState extends State<PinMatchButton> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final gold = theme.colorScheme.secondary;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final idleColor = isDark ? Colors.white70 : Colors.black54;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _handleTap,
+    // Guide §5 : zone tactile ≥ 48×48dp. Le visuel reste compact mais la
+    // zone de frappe est élargie via ConstrainedBox (centrée).
+    // Guide §6 : animation 200ms désactivée si "reduce motion".
+    final pill = Ink(
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.compact ? 8 : 12,
+        vertical: widget.compact ? 5 : 7,
+      ),
+      decoration: BoxDecoration(
+        color: _isPinned ? gold.withValues(alpha: 0.2) : Colors.transparent,
         borderRadius: BorderRadius.circular(widget.compact ? 10 : 14),
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Ink(
-            padding: EdgeInsets.symmetric(
-              horizontal: widget.compact ? 8 : 12,
-              vertical: widget.compact ? 5 : 7,
-            ),
-            decoration: BoxDecoration(
-              color: _isPinned ? _kGold.withValues(alpha: 0.2) : Colors.transparent,
-              borderRadius: BorderRadius.circular(widget.compact ? 10 : 14),
-              border: Border.all(
-                color: _isPinned ? _kGold : _kGold.withValues(alpha: 0.5),
+        border: Border.all(
+          color: _isPinned ? gold : gold.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
+            size: widget.compact ? 13 : 15,
+            color: _isPinned ? gold : idleColor,
+          ),
+          if (!widget.compact) ...[
+            const SizedBox(width: 6),
+            Text(
+              'Épingler',
+              style: TextStyle(
+                color: _isPinned ? gold : idleColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                letterSpacing: 0.3,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-                  size: widget.compact ? 13 : 15,
-                  color: _isPinned ? _kGold : (isDark ? Colors.white70 : Colors.black54),
-                ),
-                if (!widget.compact) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    'Épingler',
-                    style: TextStyle(
-                      color: _isPinned ? _kGold : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ],
+          ],
+        ],
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      label: _isPinned ? 'Match épinglé, toucher pour détacher' : 'Épingler ce match',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _handleTap,
+          borderRadius: BorderRadius.circular(widget.compact ? 10 : 14),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Center(
+              child: reduceMotion
+                  ? pill
+                  : ScaleTransition(scale: _scaleAnimation, child: pill),
             ),
           ),
         ),

@@ -28,7 +28,7 @@ Couleurs thème complémentaires (définies dans les ThemeData, pas dans AppColo
 | `0xFFD8C8A8`  | `dividerColor` mode clair                             |
 | `0xFF5B6B79`  | BottomNav non-sélectionné (clair)                     |
 | `0xFF162634`  | Fond de carte mode sombre                             |
-| `Colors.redAccent` | Pastille LIVE, score live (clair + sombre)        |
+| `0xFFE53935` | Pastille LIVE, score live, border live (clair + sombre, source unique `MatchColors.liveIndicator`) |
 | `Colors.white54`   | BottomNav non-sélectionné (sombre)              |
 
 ## 2. Typographie
@@ -102,7 +102,7 @@ persisté en SharedPreferences sous la clé `theme_mode`.
 |-----------|--------|-------|
 | `AppSpacing` | `xs` 4, `sm` 8, `md` 12, `lg` 16 (marge écran / padding carte), `xl` 24, `xxl` 32 | `Theme.of(context).extension<AppSpacing>()!.md` |
 | `AppRadii` | `sm` 8, `md` 12, `lg` 16 (carte de match), `xl` 20, `full` 999 (pill) | `...extension<AppRadii>()!.lg` |
-| `MatchColors` | `liveIndicator` (redAccent, distinct de `error`), `win` 2ECC71, `loss` E74C3C, `draw`/`favorite` (or), `rankSilver` E0E0E0, `rankBronze` CD7F32 | `...extension<MatchColors>()!.win` |
+| `MatchColors` | `liveIndicator` #E53935 (distinct de `error` B3261E), `win` 2ECC71, `loss` E74C3C, `draw`/`favorite` (or), `rankSilver` E0E0E0, `rankBronze` CD7F32 | `...extension<MatchColors>()!.liveIndicator` |
 
 `main.dart` utilise `AppTheme.light()` / `AppTheme.dark()` (câblé le 2026-09-24,
 rendu identique aux builders historiques + extensions actives).
